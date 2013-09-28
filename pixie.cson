@@ -1,0 +1,9 @@
+version: "0.1.0"
+entryPoint: "editor"
+remoteDependencies: [
+  "//code.jquery.com/jquery-1.10.1.min.js"
+  "http://strd6.github.io/tempest/javascripts/envweb.js"
+  "http://strd6.github.io/require/v0.1.0.js"
+]
+dependencies:
+  hotkeys: "STRd6/jquery.hotkeys:v0.9.0"
