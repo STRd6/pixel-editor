@@ -7,3 +7,5 @@ remoteDependencies: [
 ]
 dependencies:
   hotkeys: "STRd6/jquery.hotkeys:v0.9.0"
+width: 640
+height: 960
