@@ -1,0 +1,3 @@
+.editor
+  .viewport
+  .palette
