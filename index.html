@@ -28,7 +28,7 @@ require('./editor')
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    \n    runtime = require(\"runtime\")(PACKAGE)\n    \n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n",
       "type": "blob"
     },
     "pixie.cson": {
@@ -37,22 +37,22 @@ require('./editor')
       "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\nwidth: 480\nheight: 320\n",
       "type": "blob"
     },
-    "test/editor.coffee": {
-      "path": "test/editor.coffee",
+    "style.styl": {
+      "path": "style.styl",
       "mode": "100644",
-      "content": "require \"../editor\"\n\ndescribe \"editor\", ->\n  it \"should be radical\", ->\n    assert true\n",
+      "content": "body\n  background-color: lightgray\n",
       "type": "blob"
     },
     "templates/editor.haml.md": {
       "path": "templates/editor.haml.md",
       "mode": "100644",
-      "content": ".editor\n  .viewport\n  .palette\n",
+      "content": "Editor template\n\n    .editor\n      .viewport\n      .palette\n",
       "type": "blob"
     },
-    "style.styl": {
-      "path": "style.styl",
+    "test/editor.coffee": {
+      "path": "test/editor.coffee",
       "mode": "100644",
-      "content": "body\n  background-color: lightgray\n",
+      "content": "require \"../editor\"\n\ndescribe \"editor\", ->\n  it \"should be radical\", ->\n    assert true\n",
       "type": "blob"
     }
   },
@@ -67,19 +67,19 @@ require('./editor')
       "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\",\"runtime\":\"STRd6/runtime:v0.1.1\"},\"width\":480,\"height\":320};",
       "type": "blob"
     },
-    "test/editor": {
-      "path": "test/editor",
-      "content": "(function() {\n  require(\"../editor\");\n\n  describe(\"editor\", function() {\n    return it(\"should be radical\", function() {\n      return assert(true);\n    });\n  });\n\n}).call(this);\n",
+    "style": {
+      "path": "style",
+      "content": "module.exports = \"body {\\n  background-color: lightgray;\\n}\";",
       "type": "blob"
     },
     "templates/editor": {
       "path": "templates/editor",
-      "content": "module.exports = (function(data) {\n  return (function() {\n    var __attribute, __each, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    return __pop();\n  }).call(data);\n});\n;",
+      "content": "module.exports = (function(data) {\n  return (function() {\n    var __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
       "type": "blob"
     },
-    "style": {
-      "path": "style",
-      "content": "module.exports = \"body {\\n  background-color: lightgray;\\n}\";",
+    "test/editor": {
+      "path": "test/editor",
+      "content": "(function() {\n  require(\"../editor\");\n\n  describe(\"editor\", function() {\n    return it(\"should be radical\", function() {\n      return assert(true);\n    });\n  });\n\n}).call(this);\n",
       "type": "blob"
     }
   },
@@ -410,7 +410,7 @@ require('./editor')
     "owner": {
       "login": "STRd6",
       "id": 18894,
-      "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png",
+      "avatar_url": "https://1.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png",
       "gravatar_id": "33117162fff8a9cf50544a604f60c045",
       "url": "https://api.github.com/users/STRd6",
       "html_url": "https://github.com/STRd6",
@@ -465,14 +465,14 @@ require('./editor')
     "notifications_url": "https://api.github.com/repos/STRd6/pixel-editor/notifications{?since,all,participating}",
     "labels_url": "https://api.github.com/repos/STRd6/pixel-editor/labels{/name}",
     "created_at": "2013-09-28T23:51:14Z",
-    "updated_at": "2013-09-30T00:32:02Z",
-    "pushed_at": "2013-09-30T00:32:00Z",
+    "updated_at": "2013-09-30T02:45:14Z",
+    "pushed_at": "2013-09-30T02:45:13Z",
     "git_url": "git://github.com/STRd6/pixel-editor.git",
     "ssh_url": "git@github.com:STRd6/pixel-editor.git",
     "clone_url": "https://github.com/STRd6/pixel-editor.git",
     "svn_url": "https://github.com/STRd6/pixel-editor",
     "homepage": null,
-    "size": 416,
+    "size": 600,
     "watchers_count": 0,
     "language": "CoffeeScript",
     "has_issues": true,
