@@ -1,3 +1,5 @@
-.editor
-  .viewport
-  .palette
+Editor template
+
+    .editor
+      .viewport
+      .palette
