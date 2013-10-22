@@ -16,7 +16,7 @@ window["STRd6/pixel-editor:master"]({
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n    \n    $('body').append template\n      colors: [\n        \"F00\"\n        \"0F0\"\n        \"00F\"\n        \"FFF\"\n        \"000\"\n      ]\n",
       "type": "blob"
     },
     "pixie.cson": {
@@ -28,13 +28,13 @@ window["STRd6/pixel-editor:master"]({
     "style.styl": {
       "path": "style.styl",
       "mode": "100644",
-      "content": "body\n  background-color: lightgray\n",
+      "content": "html, body\n  margin: 0\n  height: 100%\n\n.editor\n  background-color: lightgray\n  box-sizing: border-box\n  height: 100%\n  padding-left: 40px\n  position: relative\n\n.toolbar\n  background-color: white\n  box-sizing: border-box\n  height: 100%\n  width: 40px\n  padding: 4px\n  position: absolute\n  top: 0\n  left: 0\n\n.palette\n  background-color: white\n  box-sizing: border-box\n  height: 100%\n  width: 40px\n  position: absolute\n  top: 0\n  right: 0\n  font-size: 0\n\n  .color\n    box-sizing: border-box\n    border: 1px solid rgba(0, 0, 0, 0.5)\n    border-radius: 2px\n    float: left\n    width: 16px\n    height: 16px\n    margin: 2px\n",
       "type": "blob"
     },
     "templates/editor.haml.md": {
       "path": "templates/editor.haml.md",
       "mode": "100644",
-      "content": "Editor template\n\n    .editor\n      .viewport\n      .palette\n",
+      "content": "Editor template\n\n    .editor\n      .toolbar\n      .viewport\n      .palette\n        - each @colors, (color) ->\n          .color(style=\"background-color: ##{color}\")\n            - on \"click\", ->\n              - console.log color\n",
       "type": "blob"
     },
     "test/editor.coffee": {
@@ -47,7 +47,7 @@ window["STRd6/pixel-editor:master"]({
   "distribution": {
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var runtime;\n\n  require(\"hotkeys\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n}).call(this);\n",
+      "content": "(function() {\n  var runtime, template;\n\n  require(\"hotkeys\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  $('body').append(template({\n    colors: [\"F00\", \"0F0\", \"00F\", \"FFF\", \"000\"]\n  }));\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
       "type": "blob"
     },
     "pixie": {
@@ -57,17 +57,17 @@ window["STRd6/pixel-editor:master"]({
     },
     "style": {
       "path": "style",
-      "content": "module.exports = \"body {\\n  background-color: lightgray;\\n}\";",
+      "content": "module.exports = \"html,\\nbody {\\n  margin: 0;\\n  height: 100%;\\n}\\n\\n.editor {\\n  background-color: lightgray;\\n  height: 100%;\\n  padding-left: 40px;\\n  position: relative;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.toolbar {\\n  background-color: white;\\n  height: 100%;\\n  width: 40px;\\n  padding: 4px;\\n  position: absolute;\\n  top: 0;\\n  left: 0;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.palette {\\n  background-color: white;\\n  height: 100%;\\n  width: 40px;\\n  position: absolute;\\n  top: 0;\\n  right: 0;\\n  font-size: 0;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.palette .color {\\n  border: 1px solid rgba(0, 0, 0, 0.5);\\n  border-radius: 2px;\\n  float: left;\\n  width: 16px;\\n  height: 16px;\\n  margin: 2px;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\";",
       "type": "blob"
     },
     "templates/editor": {
       "path": "templates/editor",
-      "content": "module.exports = (function(data) {\n  return (function() {\n    var __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
+      "content": "module.exports = (function(data) {\n  return (function() {\n    var __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __each(this.colors, function(color) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: #\" + color);\n      __on(\"click\", function() {\n        return console.log(color);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
       "type": "blob"
     },
     "test/editor": {
       "path": "test/editor",
-      "content": "(function() {\n  require(\"../editor\");\n\n  describe(\"editor\", function() {\n    return it(\"should be radical\", function() {\n      return assert(true);\n    });\n  });\n\n}).call(this);\n",
+      "content": "(function() {\n  require(\"../editor\");\n\n  describe(\"editor\", function() {\n    return it(\"should be radical\", function() {\n      return assert(true);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/editor.coffee",
       "type": "blob"
     }
   },
@@ -383,7 +383,8 @@ window["STRd6/pixel-editor:master"]({
       },
       "progenitor": {
         "url": "http://strd6.github.io/editor/"
-      }
+      },
+      "name": "runtime"
     }
   },
   "remoteDependencies": [
@@ -391,6 +392,9 @@ window["STRd6/pixel-editor:master"]({
     "http://strd6.github.io/tempest/javascripts/envweb.js",
     "http://strd6.github.io/require/v0.2.0.js"
   ],
+  "progenitor": {
+    "url": "http://strd6.github.io/editor/"
+  },
   "repository": {
     "id": 13182952,
     "name": "pixel-editor",
@@ -398,7 +402,7 @@ window["STRd6/pixel-editor:master"]({
     "owner": {
       "login": "STRd6",
       "id": 18894,
-      "avatar_url": "https://1.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png",
+      "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png",
       "gravatar_id": "33117162fff8a9cf50544a604f60c045",
       "url": "https://api.github.com/users/STRd6",
       "html_url": "https://github.com/STRd6",
@@ -411,7 +415,8 @@ window["STRd6/pixel-editor:master"]({
       "repos_url": "https://api.github.com/users/STRd6/repos",
       "events_url": "https://api.github.com/users/STRd6/events{/privacy}",
       "received_events_url": "https://api.github.com/users/STRd6/received_events",
-      "type": "User"
+      "type": "User",
+      "site_admin": false
     },
     "private": false,
     "html_url": "https://github.com/STRd6/pixel-editor",
@@ -453,14 +458,14 @@ window["STRd6/pixel-editor:master"]({
     "notifications_url": "https://api.github.com/repos/STRd6/pixel-editor/notifications{?since,all,participating}",
     "labels_url": "https://api.github.com/repos/STRd6/pixel-editor/labels{/name}",
     "created_at": "2013-09-28T23:51:14Z",
-    "updated_at": "2013-09-30T02:45:14Z",
-    "pushed_at": "2013-09-30T02:45:13Z",
+    "updated_at": "2013-10-03T19:25:49Z",
+    "pushed_at": "2013-10-03T19:25:47Z",
     "git_url": "git://github.com/STRd6/pixel-editor.git",
     "ssh_url": "git@github.com:STRd6/pixel-editor.git",
     "clone_url": "https://github.com/STRd6/pixel-editor.git",
     "svn_url": "https://github.com/STRd6/pixel-editor",
     "homepage": null,
-    "size": 600,
+    "size": 752,
     "watchers_count": 0,
     "language": "CoffeeScript",
     "has_issues": true,
@@ -481,12 +486,6 @@ window["STRd6/pixel-editor:master"]({
     },
     "network_count": 0,
     "branch": "master",
-    "defaultBranch": "master",
-    "includedModules": [
-      "Bindable"
-    ]
-  },
-  "progenitor": {
-    "url": "http://strd6.github.io/editor/"
+    "defaultBranch": "master"
   }
 });

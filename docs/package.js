@@ -1,16 +1,6 @@
-<!DOCTYPE html>
-<html manifest="manifest.appcache?1382477244209">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
-<script src="http://strd6.github.io/require/v0.2.0.js"></script>
-</head>
-<body>
-<script>
-;(function(PACKAGE) {
-var require = Require.generateFor(PACKAGE);
-require('./editor')
+(function(pkg) {
+  // Expose a require for our package so scripts can access our modules
+  window.require = Require.generateFor(pkg);
 })({
   "version": "0.1.0",
   "source": {
@@ -502,6 +492,3 @@ require('./editor')
     "defaultBranch": "master"
   }
 });
-</script>
-</body>
-</html>
