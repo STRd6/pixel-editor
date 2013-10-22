@@ -5,6 +5,7 @@ Editing pixels in your browser.
 
     require "hotkeys"
 
+    Palette = require("./palette")
     runtime = require("runtime")(PACKAGE)
 
     runtime.boot()
@@ -13,10 +14,4 @@ Editing pixels in your browser.
     template = require "./templates/editor"
     
     $('body').append template
-      colors: [
-        "F00"
-        "0F0"
-        "00F"
-        "FFF"
-        "000"
-      ]
+      colors: Palette.defaults
