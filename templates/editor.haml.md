@@ -1,5 +1,6 @@
 Editor template
 
+    - pickColor = @pickColor
     .editor
       .toolbar
       .viewport
@@ -7,4 +8,4 @@ Editor template
         - each @colors, (color) ->
           .color(style="background-color: #{color}")
             - on "click", ->
-              - console.log color
+              - pickColor color

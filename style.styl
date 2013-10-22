@@ -6,8 +6,10 @@ html, body
   background-color: lightgray
   box-sizing: border-box
   height: 100%
-  padding-left: 40px
+  padding: 0 40px
   position: relative
+  user-select: none
+  overflow: hidden
 
 .toolbar
   background-color: white
@@ -37,3 +39,19 @@ html, body
     width: 16px
     height: 16px
     margin: 2px
+
+.viewport
+  background-color: white
+  border: 1px solid gray
+  height: 320px
+  width: 320px
+  
+  position: absolute
+  top: 0
+  bottom: 0
+  left: 0
+  right: 0
+  margin: auto
+
+  canvas
+    background-color: white
