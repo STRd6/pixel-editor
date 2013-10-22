@@ -21,14 +21,15 @@
               <p>Editor template</p>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">.editor
+            <div class="content"><pre><code class="lang-haml">- pickColor = @pickColor
+.editor
   .toolbar
   .viewport
   .palette
     - each @colors, (color) -&gt;
       .color(style=&quot;background-color: #{color}&quot;)
         - on &quot;click&quot;, -&gt;
-          - console.log color</code></pre>
+          - pickColor color</code></pre>
 </div>
         </li>
         

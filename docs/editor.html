@@ -36,6 +36,7 @@
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"hotkeys"</span>
+TouchCanvas = require <span class="string">"touch-canvas"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
@@ -45,8 +46,29 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
+activeColor = <span class="string">"red"</span>
+
 $(<span class="string">'body'</span>).append template
-  colors: Palette.defaults</code></pre>
+  colors: Palette.defaults
+  pickColor: (color) -&gt;
+    activeColor = color
+
+canvas = TouchCanvas
+  width: <span class="number">320</span>
+  height: <span class="number">320</span>
+
+$(<span class="string">'.viewport'</span>).append canvas.element()
+
+canvas.<span class="literal">on</span> <span class="string">"touch"</span>, -&gt;
+
+canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
+  console.log position
+
+  <span class="keyword">if</span> previousPosition
+    canvas.drawLine
+      start: previousPosition.scale(<span class="number">320</span>)
+      end: position.scale(<span class="number">320</span>)
+      color: activeColor</code></pre>
 </div>
         </li>
         
