@@ -1,2 +1,39 @@
-body
+html, body
+  margin: 0
+  height: 100%
+
+.editor
   background-color: lightgray
+  box-sizing: border-box
+  height: 100%
+  padding-left: 40px
+  position: relative
+
+.toolbar
+  background-color: white
+  box-sizing: border-box
+  height: 100%
+  width: 40px
+  padding: 4px
+  position: absolute
+  top: 0
+  left: 0
+
+.palette
+  background-color: white
+  box-sizing: border-box
+  height: 100%
+  width: 40px
+  position: absolute
+  top: 0
+  right: 0
+  font-size: 0
+
+  .color
+    box-sizing: border-box
+    border: 1px solid rgba(0, 0, 0, 0.5)
+    border-radius: 2px
+    float: left
+    width: 16px
+    height: 16px
+    margin: 2px
