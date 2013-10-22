@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache?1382477244209">
+<html manifest="manifest.appcache?1382478949244">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -29,7 +29,7 @@ require('./editor')
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n    \n    $('body').append template\n      colors: [\n        \"F00\"\n        \"0F0\"\n        \"00F\"\n        \"FFF\"\n        \"000\"\n      ]\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n    \n    $('body').append template\n      colors: Palette.defaults\n",
       "type": "blob"
     },
     "pixie.cson": {
@@ -47,7 +47,7 @@ require('./editor')
     "templates/editor.haml.md": {
       "path": "templates/editor.haml.md",
       "mode": "100644",
-      "content": "Editor template\n\n    .editor\n      .toolbar\n      .viewport\n      .palette\n        - each @colors, (color) ->\n          .color(style=\"background-color: ##{color}\")\n            - on \"click\", ->\n              - console.log color\n",
+      "content": "Editor template\n\n    .editor\n      .toolbar\n      .viewport\n      .palette\n        - each @colors, (color) ->\n          .color(style=\"background-color: #{color}\")\n            - on \"click\", ->\n              - console.log color\n",
       "type": "blob"
     },
     "test/editor.coffee": {
@@ -55,12 +55,18 @@ require('./editor')
       "mode": "100644",
       "content": "require \"../editor\"\n\ndescribe \"editor\", ->\n  it \"should be radical\", ->\n    assert true\n",
       "type": "blob"
+    },
+    "palette.coffee.md": {
+      "path": "palette.coffee.md",
+      "mode": "100644",
+      "content": "Palette\n=======\n\n    Palette = \n\n      defaults:\n        [\n          \"#000000\"\n          \"#FFFFFF\"\n          \"#666666\"\n          \"#DCDCDC\"\n          \"#EB070E\"\n          \"#F69508\"\n          \"#FFDE49\"\n          \"#388326\"\n          \"#0246E3\"\n          \"#563495\"\n          \"#58C4F5\"\n          \"#E5AC99\"\n          \"#5B4635\"\n          \"#FFFEE9\"\n        ]\n\n    module.exports = Palette\n",
+      "type": "blob"
     }
   },
   "distribution": {
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var runtime, template;\n\n  require(\"hotkeys\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  $('body').append(template({\n    colors: [\"F00\", \"0F0\", \"00F\", \"FFF\", \"000\"]\n  }));\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "content": "(function() {\n  var Palette, runtime, template;\n\n  require(\"hotkeys\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  $('body').append(template({\n    colors: Palette.defaults\n  }));\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
       "type": "blob"
     },
     "pixie": {
@@ -75,12 +81,17 @@ require('./editor')
     },
     "templates/editor": {
       "path": "templates/editor",
-      "content": "module.exports = (function(data) {\n  return (function() {\n    var __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __each(this.colors, function(color) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: #\" + color);\n      __on(\"click\", function() {\n        return console.log(color);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
+      "content": "module.exports = (function(data) {\n  return (function() {\n    var __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __each(this.colors, function(color) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: \" + color);\n      __on(\"click\", function() {\n        return console.log(color);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
       "type": "blob"
     },
     "test/editor": {
       "path": "test/editor",
       "content": "(function() {\n  require(\"../editor\");\n\n  describe(\"editor\", function() {\n    return it(\"should be radical\", function() {\n      return assert(true);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/editor.coffee",
+      "type": "blob"
+    },
+    "palette": {
+      "path": "palette",
+      "content": "(function() {\n  var Palette;\n\n  Palette = {\n    defaults: [\"#000000\", \"#FFFFFF\", \"#666666\", \"#DCDCDC\", \"#EB070E\", \"#F69508\", \"#FFDE49\", \"#388326\", \"#0246E3\", \"#563495\", \"#58C4F5\", \"#E5AC99\", \"#5B4635\", \"#FFFEE9\"]\n  };\n\n  module.exports = Palette;\n\n}).call(this);\n\n//# sourceURL=palette.coffee",
       "type": "blob"
     }
   },

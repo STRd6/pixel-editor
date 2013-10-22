@@ -37,6 +37,7 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"hotkeys"</span>
 
+Palette = require(<span class="string">"./palette"</span>)
 runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
 
 runtime.boot()
@@ -45,13 +46,7 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 template = require <span class="string">"./templates/editor"</span>
 
 $(<span class="string">'body'</span>).append template
-  colors: [
-    <span class="string">"F00"</span>
-    <span class="string">"0F0"</span>
-    <span class="string">"00F"</span>
-    <span class="string">"FFF"</span>
-    <span class="string">"000"</span>
-  ]</code></pre>
+  colors: Palette.defaults</code></pre>
 </div>
         </li>
         

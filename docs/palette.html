@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>editor</title>
+  <title>palette</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,7 +18,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="pixel-editor">Pixel Editor</h1>
+              <h1 id="palette">Palette</h1>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">
@@ -32,21 +32,29 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Editing pixels in your browser.</p>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"hotkeys"</span>
+            <div class="content"><pre><code class="lang-coffeescript">Palette = 
 
-Palette = require(<span class="string">"./palette"</span>)
-runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
+  defaults:
+    [
+      <span class="string">"#000000"</span>
+      <span class="string">"#FFFFFF"</span>
+      <span class="string">"#666666"</span>
+      <span class="string">"#DCDCDC"</span>
+      <span class="string">"#EB070E"</span>
+      <span class="string">"#F69508"</span>
+      <span class="string">"#FFDE49"</span>
+      <span class="string">"#388326"</span>
+      <span class="string">"#0246E3"</span>
+      <span class="string">"#563495"</span>
+      <span class="string">"#58C4F5"</span>
+      <span class="string">"#E5AC99"</span>
+      <span class="string">"#5B4635"</span>
+      <span class="string">"#FFFEE9"</span>
+    ]
 
-runtime.boot()
-runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
-
-template = require <span class="string">"./templates/editor"</span>
-
-$(<span class="string">'body'</span>).append template
-  colors: Palette.defaults</code></pre>
+module.exports = Palette</code></pre>
 </div>
         </li>
         
