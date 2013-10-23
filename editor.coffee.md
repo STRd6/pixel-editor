@@ -34,7 +34,7 @@ Editing pixels in your browser.
       self.include Undo
       self.include Hotkeys
 
-      pixels = Grid(16, 16, 0)
+      pixels = Grid(16, 16, 1)
 
       self.extend
         changePixel: ({x, y, index})->
@@ -54,8 +54,7 @@ Editing pixels in your browser.
 
       $('body').append template
         colors: palette
-        pickColor: (color, index) ->
-          activeIndex(index)
+        pickColor: activeIndex
 
       canvas = TouchCanvas
         width: 320
