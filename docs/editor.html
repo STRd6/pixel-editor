@@ -40,6 +40,7 @@ TouchCanvas = require <span class="string">"touch-canvas"</span>
 
 Command = require <span class="string">"./command"</span>
 Undo = require <span class="string">"./undo"</span>
+Hotkeys = require <span class="string">"./hotkeys"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
@@ -61,6 +62,7 @@ template = require <span class="string">"./templates/editor"</span>
   self ?= Model(I)
 
   self.include Undo
+  self.include Hotkeys
 
   self.extend
     changePixel: ({x, y, color})-&gt;
@@ -88,8 +90,6 @@ template = require <span class="string">"./templates/editor"</span>
   $(<span class="string">'.viewport'</span>).append canvas.element()
 
   <span class="function"><span class="title">draw</span></span> = ({x, y}) -&gt;
-    <span class="keyword">debugger</span> <span class="keyword">if</span> x != x.floor()
-
     lastCommand.push Command.ChangePixel
       x: x
       y: y
