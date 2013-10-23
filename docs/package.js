@@ -16,10 +16,28 @@
       "content": "pixel-editor\n============\n\nIt edits pixels\n",
       "type": "blob"
     },
+    "command.coffee.md": {
+      "path": "command.coffee.md",
+      "mode": "100644",
+      "content": "Command\n=======\n\nCommands that can be undone in the editor.\n\n    module.exports =\n      ChangePixel: (data, editor) ->\n        previous = editor.getPixel(data)\n\n        execute: ->\n          editor.changePixel(data)\n\n        undo: ->\n          editor.changePixel(previous)\n\n      Composite: ->\n        commands = []\n\n        execute: ->\n          commands.invoke \"execute\"\n\n        undo: ->\n          # Undo last command first because the order matters\n          commands.copy().reverse().invoke \"undo\"\n\n        push: (command, noExecute) ->\n          # We execute commands immediately when pushed in the compound\n          # so that the effects of events during mousemove appear\n          # immediately but they are all revoked together on undo/redo\n          # Passing noExecute as true will skip executing if we are\n          # adding commands that have already executed.\n          commands.push command\n          command.execute() unless noExecute\n",
+      "type": "blob"
+    },
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    TouchCanvas = require \"touch-canvas\"\n\n    Command = require \"./command\"\n    Undo = require \"./undo\"\n    Hotkeys = require \"./hotkeys\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n    \n    {line} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeColor = \"red\"\n      pixelSize = 20\n      canvasSize = 320\n\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Undo\n      self.include Hotkeys\n\n      self.extend\n        changePixel: ({x, y, color})->\n          canvas.drawRect\n            x: x * pixelSize\n            y: y * pixelSize\n            width: pixelSize\n            height: pixelSize\n            color: color\n\n        getPixel: ({x, y}) ->\n          x: x\n          y: y\n          color: \"white\" #TODO real color\n\n      $('body').append template\n        colors: Palette.defaults\n        pickColor: (color) ->\n          activeColor = color\n\n      canvas = TouchCanvas\n        width: 320\n        height: 320\n\n      $('.viewport').append canvas.element()\n\n      draw = ({x, y}) ->\n        lastCommand.push Command.ChangePixel\n          x: x\n          y: y\n          color: activeColor\n        , self\n\n      canvas.on \"touch\", (position) ->\n        lastCommand = Command.Composite()\n        self.execute lastCommand\n\n        draw(position.scale(canvasSize / pixelSize).floor())\n\n      canvas.on \"move\", (position, previousPosition) ->\n        start = previousPosition.scale(canvasSize / pixelSize).floor()\n        end = position.scale(canvasSize / pixelSize).floor()\n\n        line start, end, draw\n\n      canvas.on \"release\", (position) ->\n\n      return self\n\n    Editor()\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    TouchCanvas = require \"touch-canvas\"\n\n    Command = require \"./command\"\n    Undo = require \"./undo\"\n    Hotkeys = require \"./hotkeys\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n\n    {line, Grid} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeIndex = Observable(0)\n\n      pixelSize = 20\n      canvasSize = 320\n      palette = Palette.defaults\n\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Undo\n      self.include Hotkeys\n\n      pixels = Grid(16, 16, 0)\n\n      self.extend\n        changePixel: ({x, y, index})->\n          pixels.set(x, y, index)\n\n          canvas.drawRect\n            x: x * pixelSize\n            y: y * pixelSize\n            width: pixelSize\n            height: pixelSize\n            color: palette[index]\n\n        getPixel: ({x, y}) ->\n          x: x\n          y: y\n          index: pixels.get(x, y)\n\n      $('body').append template\n        colors: palette\n        pickColor: (color, index) ->\n          activeIndex(index)\n\n      canvas = TouchCanvas\n        width: 320\n        height: 320\n\n      $('.viewport').append canvas.element()\n\n      draw = ({x, y}) ->\n        lastCommand.push Command.ChangePixel\n          x: x\n          y: y\n          index: activeIndex()\n        , self\n\n      canvas.on \"touch\", (position) ->\n        lastCommand = Command.Composite()\n        self.execute lastCommand\n\n        draw(position.scale(canvasSize / pixelSize).floor())\n\n      canvas.on \"move\", (position, previousPosition) ->\n        start = previousPosition.scale(canvasSize / pixelSize).floor()\n        end = position.scale(canvasSize / pixelSize).floor()\n\n        line start, end, draw\n\n      canvas.on \"release\", (position) ->\n\n      return self\n\n    Editor()\n",
+      "type": "blob"
+    },
+    "hotkeys.coffee.md": {
+      "path": "hotkeys.coffee.md",
+      "mode": "100644",
+      "content": "Hotkeys\n=======\n\nHotkeys for the pixel editor.\n\n    module.exports = (I={}, self)->\n      self.extend\n        addHotkey: (key, method) ->\n          $(document).bind \"keydown\", key, ->\n            console.log key, method\n            self[method]()\n\n      hotkeys =\n        \"ctrl+z\": \"undo\"\n        \"ctrl+y\": \"redo\"\n\n      Object.keys(hotkeys).forEach (key) ->\n        console.log \"Adding\", key\n        self.addHotkey(key, hotkeys[key])\n\n      return self\n",
+      "type": "blob"
+    },
+    "palette.coffee.md": {
+      "path": "palette.coffee.md",
+      "mode": "100644",
+      "content": "Palette\n=======\n\n    Palette =\n\n      defaults:\n        [\n          \"#000000\"\n          \"#FFFFFF\"\n          \"#666666\"\n          \"#DCDCDC\"\n          \"#EB070E\"\n          \"#F69508\"\n          \"#FFDE49\"\n          \"#388326\"\n          \"#0246E3\"\n          \"#563495\"\n          \"#58C4F5\"\n          \"#E5AC99\"\n          \"#5B4635\"\n          \"#FFFEE9\"\n        ]\n\n    module.exports = Palette\n",
       "type": "blob"
     },
     "pixie.cson": {
@@ -37,7 +55,7 @@
     "templates/editor.haml.md": {
       "path": "templates/editor.haml.md",
       "mode": "100644",
-      "content": "Editor template\n\n    - pickColor = @pickColor\n    .editor\n      .toolbar\n      .viewport\n      .palette\n        - each @colors, (color) ->\n          .color(style=\"background-color: #{color}\")\n            - on \"click\", ->\n              - pickColor color\n",
+      "content": "Editor template\n\n    - pickColor = @pickColor\n    .editor\n      .toolbar\n      .viewport\n      .palette\n        - each @colors, (color, index) ->\n          .color(style=\"background-color: #{color}\")\n            - on \"click\", ->\n              - pickColor index\n",
       "type": "blob"
     },
     "test/editor.coffee": {
@@ -46,41 +64,38 @@
       "content": "require \"../editor\"\n\ndescribe \"editor\", ->\n  it \"should be radical\", ->\n    assert true\n",
       "type": "blob"
     },
-    "palette.coffee.md": {
-      "path": "palette.coffee.md",
-      "mode": "100644",
-      "content": "Palette\n=======\n\n    Palette = \n\n      defaults:\n        [\n          \"#000000\"\n          \"#FFFFFF\"\n          \"#666666\"\n          \"#DCDCDC\"\n          \"#EB070E\"\n          \"#F69508\"\n          \"#FFDE49\"\n          \"#388326\"\n          \"#0246E3\"\n          \"#563495\"\n          \"#58C4F5\"\n          \"#E5AC99\"\n          \"#5B4635\"\n          \"#FFFEE9\"\n        ]\n\n    module.exports = Palette\n",
-      "type": "blob"
-    },
     "undo.coffee.md": {
       "path": "undo.coffee.md",
       "mode": "100644",
       "content": "Undo\n====\n\nAn editor module for editors that support undo/redo\n\n    CommandStack = require \"commando\"\n\n    module.exports = (I={}, self=Core(I)) ->\n      # TODO: Module include should be idempotent\n      self.include Bindable unless self.on\n\n      commandStack = CommandStack()\n      lastClean = undefined\n\n      # TODO: Make this an observable rather than an event emitter\n      dirty = (newDirty) ->\n        if newDirty is false\n          lastClean = commandStack.current()\n          self.trigger('clean')\n\n          return self\n        else\n          return lastClean != commandStack.current()\n\n      updateDirtyState = ->\n        if dirty()\n          self.trigger('dirty')\n        else\n          self.trigger('clean')\n\n      # Set dirty state on save event\n      self.on 'save', ->\n        dirty(false)\n\n      self.extend\n        execute: (command) ->\n          commandStack.execute command\n          updateDirtyState()\n\n          return self\n\n        undo: ->\n          commandStack.undo()\n          updateDirtyState()\n\n          return self\n\n        redo: ->\n          commandStack.redo()\n          updateDirtyState()\n\n          return self\n\n      return self\n",
       "type": "blob"
     },
-    "command.coffee.md": {
-      "path": "command.coffee.md",
-      "mode": "100644",
-      "content": "Command\n=======\n\nCommands that can be undone in the editor.\n\n    module.exports = \n      ChangePixel: (data, editor) ->\n        previous = editor.getPixel(data)\n\n        execute: ->\n          editor.changePixel(data)\n\n        undo: ->\n          editor.changePixel(previous)\n\n      Composite: ->\n        commands = []\n\n        execute: ->\n          commands.invoke \"execute\"\n\n        undo: ->\n          # Undo last command first because the order matters\n          commands.copy().reverse().invoke \"undo\"\n          \n        push: (command, noExecute) ->\n          # We execute commands immediately when pushed in the compound\n          # so that the effects of events during mousemove appear\n          # immediately but they are all revoked together on undo/redo\n          # Passing noExecute as true will skip executing if we are\n          # adding commands that have already executed.\n          commands.push command\n          command.execute() unless noExecute\n",
-      "type": "blob"
-    },
     "util.coffee.md": {
       "path": "util.coffee.md",
       "mode": "100644",
-      "content": "\n    module.exports =\n\nCall an iterator for each integer point on a line between two integer points.\n\n      line: (p0, p1, iterator) ->\n        {x:x0, y:y0} = p0\n        {x:x1, y:y1} = p1\n  \n        dx = (x1 - x0).abs()\n        dy = (y1 - y0).abs()\n        sx = (x1 - x0).sign()\n        sy = (y1 - y0).sign()\n        err = dx - dy\n    \n        while !(x0 is x1 and y0 is y1)\n          e2 = 2 * err\n    \n          if e2 > -dy\n            err -= dy\n            x0 += sx\n    \n          if e2 < dx\n            err += dx\n            y0 += sy\n\n          iterator\n            x: x0\n            y: y0\n",
-      "type": "blob"
-    },
-    "hotkeys.coffee.md": {
-      "path": "hotkeys.coffee.md",
-      "mode": "100644",
-      "content": "Hotkeys\n=======\n\nHotkeys for the pixel editor.\n\n    module.exports = (I={}, self)->\n      self.extend\n        addHotkey: (key, method) ->\n          $(document).bind \"keydown\", key, ->\n            console.log key, method\n            self[method]()\n\n      hotkeys = \n        \"ctrl+z\": \"undo\"\n        \"ctrl+y\": \"redo\"\n\n      Object.keys(hotkeys).forEach (key) ->\n        console.log \"Adding\", key\n        self.addHotkey(key, hotkeys[key])\n\n      return self\n",
+      "content": "Util\n====\n\nExtra utilities that may be broken out into separate libraries.\n\n    module.exports =\n\nA 2d grid of values.\n\n      Grid: (width, height, defaultValue) ->\n        grid =\n          [0...height].map ->\n            [0...width].map ->\n              defaultValue\n\n        self =\n          get: (x, y) ->\n            grid[y]?[x]\n\n          set: (x, y, value) ->\n            grid[y][x] = value\n  \n          each: (iterator) ->\n            grid.forEach (row, y) ->\n              row.forEach (value, x) ->\n                iterator(value, x, y)\n\n            return self\n\n        return self\n\nCall an iterator for each integer point on a line between two integer points.\n\n      line: (p0, p1, iterator) ->\n        {x:x0, y:y0} = p0\n        {x:x1, y:y1} = p1\n\n        dx = (x1 - x0).abs()\n        dy = (y1 - y0).abs()\n        sx = (x1 - x0).sign()\n        sy = (y1 - y0).sign()\n        err = dx - dy\n\n        while !(x0 is x1 and y0 is y1)\n          e2 = 2 * err\n\n          if e2 > -dy\n            err -= dy\n            x0 += sx\n\n          if e2 < dx\n            err += dx\n            y0 += sy\n\n          iterator\n            x: x0\n            y: y0\n",
       "type": "blob"
     }
   },
   "distribution": {
+    "command": {
+      "path": "command",
+      "content": "(function() {\n  module.exports = {\n    ChangePixel: function(data, editor) {\n      var previous;\n      previous = editor.getPixel(data);\n      return {\n        execute: function() {\n          return editor.changePixel(data);\n        },\n        undo: function() {\n          return editor.changePixel(previous);\n        }\n      };\n    },\n    Composite: function() {\n      var commands;\n      commands = [];\n      return {\n        execute: function() {\n          return commands.invoke(\"execute\");\n        },\n        undo: function() {\n          return commands.copy().reverse().invoke(\"undo\");\n        },\n        push: function(command, noExecute) {\n          commands.push(command);\n          if (!noExecute) {\n            return command.execute();\n          }\n        }\n      };\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=command.coffee",
+      "type": "blob"
+    },
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var Command, Editor, Hotkeys, Palette, TouchCanvas, Undo, line, runtime, template;\n\n  require(\"hotkeys\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"./undo\");\n\n  Hotkeys = require(\"./hotkeys\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  line = require(\"./util\").line;\n\n  Editor = function(I, self) {\n    var activeColor, canvas, canvasSize, draw, lastCommand, pixelSize;\n    if (I == null) {\n      I = {};\n    }\n    activeColor = \"red\";\n    pixelSize = 20;\n    canvasSize = 320;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Undo);\n    self.include(Hotkeys);\n    self.extend({\n      changePixel: function(_arg) {\n        var color, x, y;\n        x = _arg.x, y = _arg.y, color = _arg.color;\n        return canvas.drawRect({\n          x: x * pixelSize,\n          y: y * pixelSize,\n          width: pixelSize,\n          height: pixelSize,\n          color: color\n        });\n      },\n      getPixel: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return {\n          x: x,\n          y: y,\n          color: \"white\"\n        };\n      }\n    });\n    $('body').append(template({\n      colors: Palette.defaults,\n      pickColor: function(color) {\n        return activeColor = color;\n      }\n    }));\n    canvas = TouchCanvas({\n      width: 320,\n      height: 320\n    });\n    $('.viewport').append(canvas.element());\n    draw = function(_arg) {\n      var x, y;\n      x = _arg.x, y = _arg.y;\n      return lastCommand.push(Command.ChangePixel({\n        x: x,\n        y: y,\n        color: activeColor\n      }, self));\n    };\n    canvas.on(\"touch\", function(position) {\n      lastCommand = Command.Composite();\n      self.execute(lastCommand);\n      return draw(position.scale(canvasSize / pixelSize).floor());\n    });\n    canvas.on(\"move\", function(position, previousPosition) {\n      var end, start;\n      start = previousPosition.scale(canvasSize / pixelSize).floor();\n      end = position.scale(canvasSize / pixelSize).floor();\n      return line(start, end, draw);\n    });\n    canvas.on(\"release\", function(position) {});\n    return self;\n  };\n\n  Editor();\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "content": "(function() {\n  var Command, Editor, Grid, Hotkeys, Palette, TouchCanvas, Undo, line, runtime, template, _ref;\n\n  require(\"hotkeys\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"./undo\");\n\n  Hotkeys = require(\"./hotkeys\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  _ref = require(\"./util\"), line = _ref.line, Grid = _ref.Grid;\n\n  Editor = function(I, self) {\n    var activeIndex, canvas, canvasSize, draw, lastCommand, palette, pixelSize, pixels;\n    if (I == null) {\n      I = {};\n    }\n    activeIndex = Observable(0);\n    pixelSize = 20;\n    canvasSize = 320;\n    palette = Palette.defaults;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Undo);\n    self.include(Hotkeys);\n    pixels = Grid(16, 16, 0);\n    self.extend({\n      changePixel: function(_arg) {\n        var index, x, y;\n        x = _arg.x, y = _arg.y, index = _arg.index;\n        pixels.set(x, y, index);\n        return canvas.drawRect({\n          x: x * pixelSize,\n          y: y * pixelSize,\n          width: pixelSize,\n          height: pixelSize,\n          color: palette[index]\n        });\n      },\n      getPixel: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return {\n          x: x,\n          y: y,\n          index: pixels.get(x, y)\n        };\n      }\n    });\n    $('body').append(template({\n      colors: palette,\n      pickColor: function(color, index) {\n        return activeIndex(index);\n      }\n    }));\n    canvas = TouchCanvas({\n      width: 320,\n      height: 320\n    });\n    $('.viewport').append(canvas.element());\n    draw = function(_arg) {\n      var x, y;\n      x = _arg.x, y = _arg.y;\n      return lastCommand.push(Command.ChangePixel({\n        x: x,\n        y: y,\n        index: activeIndex()\n      }, self));\n    };\n    canvas.on(\"touch\", function(position) {\n      lastCommand = Command.Composite();\n      self.execute(lastCommand);\n      return draw(position.scale(canvasSize / pixelSize).floor());\n    });\n    canvas.on(\"move\", function(position, previousPosition) {\n      var end, start;\n      start = previousPosition.scale(canvasSize / pixelSize).floor();\n      end = position.scale(canvasSize / pixelSize).floor();\n      return line(start, end, draw);\n    });\n    canvas.on(\"release\", function(position) {});\n    return self;\n  };\n\n  Editor();\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "type": "blob"
+    },
+    "hotkeys": {
+      "path": "hotkeys",
+      "content": "(function() {\n  module.exports = function(I, self) {\n    var hotkeys;\n    if (I == null) {\n      I = {};\n    }\n    self.extend({\n      addHotkey: function(key, method) {\n        return $(document).bind(\"keydown\", key, function() {\n          console.log(key, method);\n          return self[method]();\n        });\n      }\n    });\n    hotkeys = {\n      \"ctrl+z\": \"undo\",\n      \"ctrl+y\": \"redo\"\n    };\n    Object.keys(hotkeys).forEach(function(key) {\n      console.log(\"Adding\", key);\n      return self.addHotkey(key, hotkeys[key]);\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=hotkeys.coffee",
+      "type": "blob"
+    },
+    "palette": {
+      "path": "palette",
+      "content": "(function() {\n  var Palette;\n\n  Palette = {\n    defaults: [\"#000000\", \"#FFFFFF\", \"#666666\", \"#DCDCDC\", \"#EB070E\", \"#F69508\", \"#FFDE49\", \"#388326\", \"#0246E3\", \"#563495\", \"#58C4F5\", \"#E5AC99\", \"#5B4635\", \"#FFFEE9\"]\n  };\n\n  module.exports = Palette;\n\n}).call(this);\n\n//# sourceURL=palette.coffee",
       "type": "blob"
     },
     "pixie": {
@@ -95,7 +110,7 @@
     },
     "templates/editor": {
       "path": "templates/editor",
-      "content": "module.exports = (function(data) {\n  return (function() {\n    var pickColor, __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    pickColor = this.pickColor;\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __each(this.colors, function(color) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: \" + color);\n      __on(\"click\", function() {\n        return pickColor(color);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
+      "content": "module.exports = (function(data) {\n  return (function() {\n    var pickColor, __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    pickColor = this.pickColor;\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __each(this.colors, function(color, index) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: \" + color);\n      __on(\"click\", function() {\n        return pickColor(index);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
       "type": "blob"
     },
     "test/editor": {
@@ -103,29 +118,14 @@
       "content": "(function() {\n  require(\"../editor\");\n\n  describe(\"editor\", function() {\n    return it(\"should be radical\", function() {\n      return assert(true);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/editor.coffee",
       "type": "blob"
     },
-    "palette": {
-      "path": "palette",
-      "content": "(function() {\n  var Palette;\n\n  Palette = {\n    defaults: [\"#000000\", \"#FFFFFF\", \"#666666\", \"#DCDCDC\", \"#EB070E\", \"#F69508\", \"#FFDE49\", \"#388326\", \"#0246E3\", \"#563495\", \"#58C4F5\", \"#E5AC99\", \"#5B4635\", \"#FFFEE9\"]\n  };\n\n  module.exports = Palette;\n\n}).call(this);\n\n//# sourceURL=palette.coffee",
-      "type": "blob"
-    },
     "undo": {
       "path": "undo",
       "content": "(function() {\n  var CommandStack;\n\n  CommandStack = require(\"commando\");\n\n  module.exports = function(I, self) {\n    var commandStack, dirty, lastClean, updateDirtyState;\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    if (!self.on) {\n      self.include(Bindable);\n    }\n    commandStack = CommandStack();\n    lastClean = void 0;\n    dirty = function(newDirty) {\n      if (newDirty === false) {\n        lastClean = commandStack.current();\n        self.trigger('clean');\n        return self;\n      } else {\n        return lastClean !== commandStack.current();\n      }\n    };\n    updateDirtyState = function() {\n      if (dirty()) {\n        return self.trigger('dirty');\n      } else {\n        return self.trigger('clean');\n      }\n    };\n    self.on('save', function() {\n      return dirty(false);\n    });\n    self.extend({\n      execute: function(command) {\n        commandStack.execute(command);\n        updateDirtyState();\n        return self;\n      },\n      undo: function() {\n        commandStack.undo();\n        updateDirtyState();\n        return self;\n      },\n      redo: function() {\n        commandStack.redo();\n        updateDirtyState();\n        return self;\n      }\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=undo.coffee",
       "type": "blob"
     },
-    "command": {
-      "path": "command",
-      "content": "(function() {\n  module.exports = {\n    ChangePixel: function(data, editor) {\n      var previous;\n      previous = editor.getPixel(data);\n      return {\n        execute: function() {\n          return editor.changePixel(data);\n        },\n        undo: function() {\n          return editor.changePixel(previous);\n        }\n      };\n    },\n    Composite: function() {\n      var commands;\n      commands = [];\n      return {\n        execute: function() {\n          return commands.invoke(\"execute\");\n        },\n        undo: function() {\n          return commands.copy().reverse().invoke(\"undo\");\n        },\n        push: function(command, noExecute) {\n          commands.push(command);\n          if (!noExecute) {\n            return command.execute();\n          }\n        }\n      };\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=command.coffee",
-      "type": "blob"
-    },
     "util": {
       "path": "util",
-      "content": "(function() {\n  module.exports = {\n    line: function(p0, p1, iterator) {\n      var dx, dy, e2, err, sx, sy, x0, x1, y0, y1, _results;\n      x0 = p0.x, y0 = p0.y;\n      x1 = p1.x, y1 = p1.y;\n      dx = (x1 - x0).abs();\n      dy = (y1 - y0).abs();\n      sx = (x1 - x0).sign();\n      sy = (y1 - y0).sign();\n      err = dx - dy;\n      _results = [];\n      while (!(x0 === x1 && y0 === y1)) {\n        e2 = 2 * err;\n        if (e2 > -dy) {\n          err -= dy;\n          x0 += sx;\n        }\n        if (e2 < dx) {\n          err += dx;\n          y0 += sy;\n        }\n        _results.push(iterator({\n          x: x0,\n          y: y0\n        }));\n      }\n      return _results;\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=util.coffee",
-      "type": "blob"
-    },
-    "hotkeys": {
-      "path": "hotkeys",
-      "content": "(function() {\n  module.exports = function(I, self) {\n    var hotkeys;\n    if (I == null) {\n      I = {};\n    }\n    self.extend({\n      addHotkey: function(key, method) {\n        return $(document).bind(\"keydown\", key, function() {\n          console.log(key, method);\n          return self[method]();\n        });\n      }\n    });\n    hotkeys = {\n      \"ctrl+z\": \"undo\",\n      \"ctrl+y\": \"redo\"\n    };\n    Object.keys(hotkeys).forEach(function(key) {\n      console.log(\"Adding\", key);\n      return self.addHotkey(key, hotkeys[key]);\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=hotkeys.coffee",
+      "content": "(function() {\n  module.exports = {\n    Grid: function(width, height, defaultValue) {\n      var grid, self, _i, _results;\n      grid = (function() {\n        _results = [];\n        for (var _i = 0; 0 <= height ? _i < height : _i > height; 0 <= height ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).map(function() {\n        var _i, _results;\n        return (function() {\n          _results = [];\n          for (var _i = 0; 0 <= width ? _i < width : _i > width; 0 <= width ? _i++ : _i--){ _results.push(_i); }\n          return _results;\n        }).apply(this).map(function() {\n          return defaultValue;\n        });\n      });\n      self = {\n        get: function(x, y) {\n          var _ref;\n          return (_ref = grid[y]) != null ? _ref[x] : void 0;\n        },\n        set: function(x, y, value) {\n          return grid[y][x] = value;\n        },\n        each: function(iterator) {\n          grid.forEach(function(row, y) {\n            return row.forEach(function(value, x) {\n              return iterator(value, x, y);\n            });\n          });\n          return self;\n        }\n      };\n      return self;\n    },\n    line: function(p0, p1, iterator) {\n      var dx, dy, e2, err, sx, sy, x0, x1, y0, y1, _results;\n      x0 = p0.x, y0 = p0.y;\n      x1 = p1.x, y1 = p1.y;\n      dx = (x1 - x0).abs();\n      dy = (y1 - y0).abs();\n      sx = (x1 - x0).sign();\n      sy = (y1 - y0).sign();\n      err = dx - dy;\n      _results = [];\n      while (!(x0 === x1 && y0 === y1)) {\n        e2 = 2 * err;\n        if (e2 > -dy) {\n          err -= dy;\n          x0 += sx;\n        }\n        if (e2 < dx) {\n          err += dx;\n          y0 += sy;\n        }\n        _results.push(iterator({\n          x: x0,\n          y: y0\n        }));\n      }\n      return _results;\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=util.coffee",
       "type": "blob"
     }
   },
@@ -906,7 +906,7 @@
     "owner": {
       "login": "STRd6",
       "id": 18894,
-      "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png",
+      "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
       "gravatar_id": "33117162fff8a9cf50544a604f60c045",
       "url": "https://api.github.com/users/STRd6",
       "html_url": "https://github.com/STRd6",
@@ -962,14 +962,14 @@
     "notifications_url": "https://api.github.com/repos/STRd6/pixel-editor/notifications{?since,all,participating}",
     "labels_url": "https://api.github.com/repos/STRd6/pixel-editor/labels{/name}",
     "created_at": "2013-09-28T23:51:14Z",
-    "updated_at": "2013-10-03T19:25:49Z",
-    "pushed_at": "2013-10-03T19:25:47Z",
+    "updated_at": "2013-10-23T22:15:41Z",
+    "pushed_at": "2013-10-23T22:15:41Z",
     "git_url": "git://github.com/STRd6/pixel-editor.git",
     "ssh_url": "git@github.com:STRd6/pixel-editor.git",
     "clone_url": "https://github.com/STRd6/pixel-editor.git",
     "svn_url": "https://github.com/STRd6/pixel-editor",
     "homepage": null,
-    "size": 752,
+    "size": 1524,
     "watchers_count": 0,
     "language": "CoffeeScript",
     "has_issues": true,

@@ -18,9 +18,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              
+              <h1 id="util">Util</h1>
+
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.exports =</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
 </div>
         </li>
         
@@ -29,6 +31,52 @@
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Extra utilities that may be broken out into separate libraries.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">module.exports =</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>A 2d grid of values.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  Grid: (width, height, defaultValue) -&gt;
+    grid =
+      [<span class="number">0.</span>..height].map -&gt;
+        [<span class="number">0.</span>..width].map -&gt;
+          defaultValue
+
+    self =
+      get: (x, y) -&gt;
+        grid[y]?[x]
+
+      set: (x, y, value) -&gt;
+        grid[y][x] = value
+
+      each: (iterator) -&gt;
+        grid.forEach (row, y) -&gt;
+          row.forEach (value, x) -&gt;
+            iterator(value, x, y)
+
+        <span class="keyword">return</span> self
+
+    <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>Call an iterator for each integer point on a line between two integer points.</p>
 

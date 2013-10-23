@@ -26,10 +26,10 @@
   .toolbar
   .viewport
   .palette
-    - each @colors, (color) -&gt;
+    - each @colors, (color, index) -&gt;
       .color(style=&quot;background-color: #{color}&quot;)
         - on &quot;click&quot;, -&gt;
-          - pickColor color</code></pre>
+          - pickColor index</code></pre>
 </div>
         </li>
         

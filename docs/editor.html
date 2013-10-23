@@ -50,12 +50,14 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
-{line} = require <span class="string">"./util"</span>
+{line, Grid} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
-  activeColor = <span class="string">"red"</span>
+  activeIndex = Observable(<span class="number">0</span>)
+
   pixelSize = <span class="number">20</span>
   canvasSize = <span class="number">320</span>
+  palette = Palette.defaults
 
   lastCommand = <span class="literal">null</span>
 
@@ -64,24 +66,28 @@ template = require <span class="string">"./templates/editor"</span>
   self.include Undo
   self.include Hotkeys
 
+  pixels = Grid(<span class="number">16</span>, <span class="number">16</span>, <span class="number">0</span>)
+
   self.extend
-    changePixel: ({x, y, color})-&gt;
+    changePixel: ({x, y, index})-&gt;
+      pixels.set(x, y, index)
+
       canvas.drawRect
         x: x * pixelSize
         y: y * pixelSize
         width: pixelSize
         height: pixelSize
-        color: color
+        color: palette[index]
 
     getPixel: ({x, y}) -&gt;
       x: x
       y: y
-      color: <span class="string">"white"</span> <span class="comment">#TODO real color</span>
+      index: pixels.get(x, y)
 
   $(<span class="string">'body'</span>).append template
-    colors: Palette.defaults
-    pickColor: (color) -&gt;
-      activeColor = color
+    colors: palette
+    pickColor: (color, index) -&gt;
+      activeIndex(index)
 
   canvas = TouchCanvas
     width: <span class="number">320</span>
@@ -93,7 +99,7 @@ template = require <span class="string">"./templates/editor"</span>
     lastCommand.push Command.ChangePixel
       x: x
       y: y
-      color: activeColor
+      index: activeIndex()
     , self
 
   canvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
