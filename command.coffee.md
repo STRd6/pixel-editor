@@ -3,7 +3,7 @@ Command
 
 Commands that can be undone in the editor.
 
-    module.exports = 
+    module.exports =
       ChangePixel: (data, editor) ->
         previous = editor.getPixel(data)
 
@@ -22,7 +22,7 @@ Commands that can be undone in the editor.
         undo: ->
           # Undo last command first because the order matters
           commands.copy().reverse().invoke "undo"
-          
+
         push: (command, noExecute) ->
           # We execute commands immediately when pushed in the compound
           # so that the effects of events during mousemove appear

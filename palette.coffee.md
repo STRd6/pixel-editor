@@ -1,7 +1,7 @@
 Palette
 =======
 
-    Palette = 
+    Palette =
 
       defaults:
         [

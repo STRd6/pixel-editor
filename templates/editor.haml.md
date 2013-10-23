@@ -5,7 +5,7 @@ Editor template
       .toolbar
       .viewport
       .palette
-        - each @colors, (color) ->
+        - each @colors, (color, index) ->
           .color(style="background-color: #{color}")
             - on "click", ->
-              - pickColor color
+              - pickColor index

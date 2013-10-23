@@ -17,13 +17,15 @@ Editing pixels in your browser.
     runtime.applyStyleSheet(require('./style'))
 
     template = require "./templates/editor"
-    
-    {line} = require "./util"
+
+    {line, Grid} = require "./util"
 
     Editor = (I={}, self) ->
-      activeColor = "red"
+      activeIndex = Observable(0)
+
       pixelSize = 20
       canvasSize = 320
+      palette = Palette.defaults
 
       lastCommand = null
 
@@ -32,24 +34,28 @@ Editing pixels in your browser.
       self.include Undo
       self.include Hotkeys
 
+      pixels = Grid(16, 16, 0)
+
       self.extend
-        changePixel: ({x, y, color})->
+        changePixel: ({x, y, index})->
+          pixels.set(x, y, index)
+
           canvas.drawRect
             x: x * pixelSize
             y: y * pixelSize
             width: pixelSize
             height: pixelSize
-            color: color
+            color: palette[index]
 
         getPixel: ({x, y}) ->
           x: x
           y: y
-          color: "white" #TODO real color
+          index: pixels.get(x, y)
 
       $('body').append template
-        colors: Palette.defaults
-        pickColor: (color) ->
-          activeColor = color
+        colors: palette
+        pickColor: (color, index) ->
+          activeIndex(index)
 
       canvas = TouchCanvas
         width: 320
@@ -61,7 +67,7 @@ Editing pixels in your browser.
         lastCommand.push Command.ChangePixel
           x: x
           y: y
-          color: activeColor
+          index: activeIndex()
         , self
 
       canvas.on "touch", (position) ->

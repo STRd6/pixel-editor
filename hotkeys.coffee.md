@@ -10,7 +10,7 @@ Hotkeys for the pixel editor.
             console.log key, method
             self[method]()
 
-      hotkeys = 
+      hotkeys =
         "ctrl+z": "undo"
         "ctrl+y": "redo"
 
