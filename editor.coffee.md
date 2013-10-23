@@ -5,6 +5,9 @@ Editing pixels in your browser.
 
     require "hotkeys"
     TouchCanvas = require "touch-canvas"
+    
+    Command = require "./command"
+    Undo = require "./undo"
 
     Palette = require("./palette")
     runtime = require("runtime")(PACKAGE)
@@ -13,39 +16,68 @@ Editing pixels in your browser.
     runtime.applyStyleSheet(require('./style'))
 
     template = require "./templates/editor"
+    
+    {line} = require "./util"
 
-    activeColor = "red"
-    pixelSize = 20
-    canvasSize = 320
+    Editor = (I={}, self) ->
+      activeColor = "red"
+      pixelSize = 20
+      canvasSize = 320
 
-    $('body').append template
-      colors: Palette.defaults
-      pickColor: (color) ->
-        activeColor = color
+      lastCommand = null
 
-    canvas = TouchCanvas
-      width: 320
-      height: 320
+      self ?= Model(I)
 
-    $('.viewport').append canvas.element()
+      self.include Undo
 
-    canvas.on "touch", (position) ->
-      canvas.drawRect
-        position: position.scale(canvasSize).snap(pixelSize)
-        width: pixelSize
-        height: pixelSize
-        color: activeColor
+      self.extend
+        changePixel: ({x, y, color})->
+          canvas.drawRect
+            x: x * pixelSize
+            y: y * pixelSize
+            width: pixelSize
+            height: pixelSize
+            color: color
 
-    canvas.on "move", (position, previousPosition) ->
-      if previousPosition
-        canvas.drawLine
-          start: previousPosition.scale(canvasSize)
-          end: position.scale(canvasSize)
+        getPixel: ({x, y}) ->
+          x: x
+          y: y
+          color: "white" #TODO real color
+
+      $('body').append template
+        colors: Palette.defaults
+        pickColor: (color) ->
+          activeColor = color
+
+      canvas = TouchCanvas
+        width: 320
+        height: 320
+
+      $('.viewport').append canvas.element()
+
+      draw = ({x, y}) ->
+        debugger if x != x.floor()
+
+        lastCommand.push Command.ChangePixel
+          x: x
+          y: y
           color: activeColor
+        , self
 
-    canvas.on "release", (position) ->
-      canvas.drawRect
-        position: position.scale(canvasSize).snap(pixelSize)
-        width: pixelSize
-        height: pixelSize
-        color: activeColor
+      canvas.on "touch", (position) ->
+        lastCommand = Command.Composite()
+        self.execute lastCommand
+
+        draw(position.scale(canvasSize / pixelSize).floor())
+
+      canvas.on "move", (position, previousPosition) ->
+        start = previousPosition.scale(canvasSize / pixelSize).floor()
+        end = position.scale(canvasSize / pixelSize).floor()
+
+        line start, end, draw
+
+      canvas.on "release", (position) ->
+
+      return self
+
+    Editor()
