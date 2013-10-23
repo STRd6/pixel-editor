@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache?1382485999631">
+<html manifest="manifest.appcache?1382489334242">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -29,13 +29,13 @@ require('./editor')
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    TouchCanvas = require \"touch-canvas\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n\n    activeColor = \"red\"\n\n    $('body').append template\n      colors: Palette.defaults\n      pickColor: (color) ->\n        activeColor = color\n\n    canvas = TouchCanvas\n      width: 320\n      height: 320\n    \n    $('.viewport').append canvas.element()\n\n    canvas.on \"touch\", ->\n    \n    canvas.on \"move\", (position, previousPosition) ->\n      console.log position\n\n      if previousPosition\n        canvas.drawLine\n          start: previousPosition.scale(320)\n          end: position.scale(320)\n          color: activeColor\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    TouchCanvas = require \"touch-canvas\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n\n    activeColor = \"red\"\n    pixelSize = 20\n    canvasSize = 320\n\n    $('body').append template\n      colors: Palette.defaults\n      pickColor: (color) ->\n        activeColor = color\n\n    canvas = TouchCanvas\n      width: 320\n      height: 320\n\n    $('.viewport').append canvas.element()\n\n    canvas.on \"touch\", (position) ->\n      canvas.drawRect\n        position: position.scale(canvasSize).snap(pixelSize)\n        width: pixelSize\n        height: pixelSize\n        color: activeColor\n\n    canvas.on \"move\", (position, previousPosition) ->\n      if previousPosition\n        canvas.drawLine\n          start: previousPosition.scale(canvasSize)\n          end: position.scale(canvasSize)\n          color: activeColor\n\n    canvas.on \"release\", (position) ->\n      canvas.drawRect\n        position: position.scale(canvasSize).snap(pixelSize)\n        width: pixelSize\n        height: pixelSize\n        color: activeColor\n",
       "type": "blob"
     },
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.0\"\nwidth: 480\nheight: 320\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\nwidth: 480\nheight: 320\n",
       "type": "blob"
     },
     "style.styl": {
@@ -66,12 +66,12 @@ require('./editor')
   "distribution": {
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var Palette, TouchCanvas, activeColor, canvas, runtime, template;\n\n  require(\"hotkeys\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  activeColor = \"red\";\n\n  $('body').append(template({\n    colors: Palette.defaults,\n    pickColor: function(color) {\n      return activeColor = color;\n    }\n  }));\n\n  canvas = TouchCanvas({\n    width: 320,\n    height: 320\n  });\n\n  $('.viewport').append(canvas.element());\n\n  canvas.on(\"touch\", function() {});\n\n  canvas.on(\"move\", function(position, previousPosition) {\n    console.log(position);\n    if (previousPosition) {\n      return canvas.drawLine({\n        start: previousPosition.scale(320),\n        end: position.scale(320),\n        color: activeColor\n      });\n    }\n  });\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "content": "(function() {\n  var Palette, TouchCanvas, activeColor, canvas, canvasSize, pixelSize, runtime, template;\n\n  require(\"hotkeys\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  activeColor = \"red\";\n\n  pixelSize = 20;\n\n  canvasSize = 320;\n\n  $('body').append(template({\n    colors: Palette.defaults,\n    pickColor: function(color) {\n      return activeColor = color;\n    }\n  }));\n\n  canvas = TouchCanvas({\n    width: 320,\n    height: 320\n  });\n\n  $('.viewport').append(canvas.element());\n\n  canvas.on(\"touch\", function(position) {\n    return canvas.drawRect({\n      position: position.scale(canvasSize).snap(pixelSize),\n      width: pixelSize,\n      height: pixelSize,\n      color: activeColor\n    });\n  });\n\n  canvas.on(\"move\", function(position, previousPosition) {\n    if (previousPosition) {\n      return canvas.drawLine({\n        start: previousPosition.scale(canvasSize),\n        end: position.scale(canvasSize),\n        color: activeColor\n      });\n    }\n  });\n\n  canvas.on(\"release\", function(position) {\n    return canvas.drawRect({\n      position: position.scale(canvasSize).snap(pixelSize),\n      width: pixelSize,\n      height: pixelSize,\n      color: activeColor\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
       "type": "blob"
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.0\"},\"width\":480,\"height\":320};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\"},\"width\":480,\"height\":320};",
       "type": "blob"
     },
     "style": {
@@ -411,7 +411,7 @@ require('./editor')
       "name": "runtime"
     },
     "touch-canvas": {
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": {
         "LICENSE": {
           "path": "LICENSE",
@@ -428,25 +428,25 @@ require('./editor')
         "pixie.cson": {
           "path": "pixie.cson",
           "mode": "100644",
-          "content": "entryPoint: \"touch_canvas\"\nversion: \"0.1.0\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\ndependencies:\n  \"pixie-canvas\": \"STRd6/pixie-canvas:v0.8.1\"\n",
+          "content": "entryPoint: \"touch_canvas\"\nversion: \"0.1.1\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\ndependencies:\n  \"pixie-canvas\": \"STRd6/pixie-canvas:v0.8.1\"\n",
           "type": "blob"
         },
         "touch_canvas.coffee.md": {
           "path": "touch_canvas.coffee.md",
           "mode": "100644",
-          "content": "Touch Canvas\n============\n\nA canvas element that reports mouse and touch events in the range [0, 1].\n\nTODO: Add touch event support.\n\n    PixieCanvas = require \"pixie-canvas\"\n\nA number really close to 1. We should never actually return 1, but move events\nmay get a little fast and loose with exiting the canvas, so let's play it safe.\n\n    MAX = 0.999999999999\n\n    TouchCanvas = (I={}) ->\n      self = PixieCanvas I\n\n      Core(I, self)\n\n      self.include Bindable\n\n      element = self.element()\n\n      active = false\n      lastPosition = null\n\nWhen we click within the canvas set the value for the position we clicked at.\n\n      $(element).on \"mousedown\", (e) ->\n        active = true\n\n        position = localPosition(e)\n        self.trigger \"touch\", position\n        lastPosition = position\n\nWhen the mouse moves apply a change for each x value in the intervening positions.\n\n      $(element).on \"mousemove\", (e) ->\n        if active\n          position = localPosition(e)\n          self.trigger \"move\", position, lastPosition\n          lastPosition = position\n\nWhenever the mouse button is released, deactivate.\n\n      $(document).on \"mouseup\", (e) ->\n        active = false\n\n      return self\n\nExport\n\n    module.exports = TouchCanvas\n\nHelpers\n-------\n\nLocal event position.\n\n    localPosition = (e) ->\n      $currentTarget = $(e.currentTarget)\n      offset = $currentTarget.offset()\n\n      width = $currentTarget.width()\n      height = $currentTarget.height()\n\n      Point(\n        ((e.pageX - offset.left) / width).clamp(0, MAX)\n        ((e.pageY - offset.top) / height).clamp(0, MAX)\n      )\n",
+          "content": "Touch Canvas\n============\n\nA canvas element that reports mouse and touch events in the range [0, 1].\n\nTODO: Add touch event support.\n\n    PixieCanvas = require \"pixie-canvas\"\n\nA number really close to 1. We should never actually return 1, but move events\nmay get a little fast and loose with exiting the canvas, so let's play it safe.\n\n    MAX = 0.999999999999\n\n    TouchCanvas = (I={}) ->\n      self = PixieCanvas I\n\n      Core(I, self)\n\n      self.include Bindable\n\n      element = self.element()\n\n      active = false\n      lastPosition = null\n\nWhen we click within the canvas set the value for the position we clicked at.\n\n      $(element).on \"mousedown\", (e) ->\n        active = true\n\n        position = localPosition(e)\n        self.trigger \"touch\", position\n        lastPosition = position\n\nWhen the mouse moves apply a change for each x value in the intervening positions.\n\n      $(element).on \"mousemove\", (e) ->\n        if active\n          position = localPosition(e)\n          self.trigger \"move\", position, lastPosition\n          lastPosition = position\n\nHandle releases.\n\n      $(element).on \"mouseup\", (e) ->\n        self.trigger \"release\", localPosition(e)\n        active = false\n\n        return\n\nWhenever the mouse button is released, deactivate.\n\n      $(document).on \"mouseup\", (e) ->\n        active = false\n\n      return self\n\nExport\n\n    module.exports = TouchCanvas\n\nHelpers\n-------\n\nLocal event position.\n\n    localPosition = (e) ->\n      $currentTarget = $(e.currentTarget)\n      offset = $currentTarget.offset()\n\n      width = $currentTarget.width()\n      height = $currentTarget.height()\n\n      Point(\n        ((e.pageX - offset.left) / width).clamp(0, MAX)\n        ((e.pageY - offset.top) / height).clamp(0, MAX)\n      )\n",
           "type": "blob"
         }
       },
       "distribution": {
         "pixie": {
           "path": "pixie",
-          "content": "module.exports = {\"entryPoint\":\"touch_canvas\",\"version\":\"0.1.0\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.2.js\"],\"dependencies\":{\"pixie-canvas\":\"STRd6/pixie-canvas:v0.8.1\"}};",
+          "content": "module.exports = {\"entryPoint\":\"touch_canvas\",\"version\":\"0.1.1\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.2.js\"],\"dependencies\":{\"pixie-canvas\":\"STRd6/pixie-canvas:v0.8.1\"}};",
           "type": "blob"
         },
         "touch_canvas": {
           "path": "touch_canvas",
-          "content": "(function() {\n  var MAX, PixieCanvas, TouchCanvas, localPosition;\n\n  PixieCanvas = require(\"pixie-canvas\");\n\n  MAX = 0.999999999999;\n\n  TouchCanvas = function(I) {\n    var active, element, lastPosition, self;\n    if (I == null) {\n      I = {};\n    }\n    self = PixieCanvas(I);\n    Core(I, self);\n    self.include(Bindable);\n    element = self.element();\n    active = false;\n    lastPosition = null;\n    $(element).on(\"mousedown\", function(e) {\n      var position;\n      active = true;\n      position = localPosition(e);\n      self.trigger(\"touch\", position);\n      return lastPosition = position;\n    });\n    $(element).on(\"mousemove\", function(e) {\n      var position;\n      if (active) {\n        position = localPosition(e);\n        self.trigger(\"move\", position, lastPosition);\n        return lastPosition = position;\n      }\n    });\n    $(document).on(\"mouseup\", function(e) {\n      return active = false;\n    });\n    return self;\n  };\n\n  module.exports = TouchCanvas;\n\n  localPosition = function(e) {\n    var $currentTarget, height, offset, width;\n    $currentTarget = $(e.currentTarget);\n    offset = $currentTarget.offset();\n    width = $currentTarget.width();\n    height = $currentTarget.height();\n    return Point(((e.pageX - offset.left) / width).clamp(0, MAX), ((e.pageY - offset.top) / height).clamp(0, MAX));\n  };\n\n}).call(this);\n\n//# sourceURL=touch_canvas.coffee",
+          "content": "(function() {\n  var MAX, PixieCanvas, TouchCanvas, localPosition;\n\n  PixieCanvas = require(\"pixie-canvas\");\n\n  MAX = 0.999999999999;\n\n  TouchCanvas = function(I) {\n    var active, element, lastPosition, self;\n    if (I == null) {\n      I = {};\n    }\n    self = PixieCanvas(I);\n    Core(I, self);\n    self.include(Bindable);\n    element = self.element();\n    active = false;\n    lastPosition = null;\n    $(element).on(\"mousedown\", function(e) {\n      var position;\n      active = true;\n      position = localPosition(e);\n      self.trigger(\"touch\", position);\n      return lastPosition = position;\n    });\n    $(element).on(\"mousemove\", function(e) {\n      var position;\n      if (active) {\n        position = localPosition(e);\n        self.trigger(\"move\", position, lastPosition);\n        return lastPosition = position;\n      }\n    });\n    $(element).on(\"mouseup\", function(e) {\n      self.trigger(\"release\", localPosition(e));\n      active = false;\n    });\n    $(document).on(\"mouseup\", function(e) {\n      return active = false;\n    });\n    return self;\n  };\n\n  module.exports = TouchCanvas;\n\n  localPosition = function(e) {\n    var $currentTarget, height, offset, width;\n    $currentTarget = $(e.currentTarget);\n    offset = $currentTarget.offset();\n    width = $currentTarget.width();\n    height = $currentTarget.height();\n    return Point(((e.pageX - offset.left) / width).clamp(0, MAX), ((e.pageY - offset.top) / height).clamp(0, MAX));\n  };\n\n}).call(this);\n\n//# sourceURL=touch_canvas.coffee",
           "type": "blob"
         }
       },
@@ -694,7 +694,7 @@ require('./editor')
           "pull": true
         },
         "network_count": 0,
-        "branch": "v0.1.0",
+        "branch": "v0.1.1",
         "defaultBranch": "master"
       }
     }

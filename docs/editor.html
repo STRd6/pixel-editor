@@ -47,6 +47,8 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 template = require <span class="string">"./templates/editor"</span>
 
 activeColor = <span class="string">"red"</span>
+pixelSize = <span class="number">20</span>
+canvasSize = <span class="number">320</span>
 
 $(<span class="string">'body'</span>).append template
   colors: Palette.defaults
@@ -59,16 +61,26 @@ canvas = TouchCanvas
 
 $(<span class="string">'.viewport'</span>).append canvas.element()
 
-canvas.<span class="literal">on</span> <span class="string">"touch"</span>, -&gt;
+canvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
+  canvas.drawRect
+    position: position.scale(canvasSize).snap(pixelSize)
+    width: pixelSize
+    height: pixelSize
+    color: activeColor
 
 canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
-  console.log position
-
   <span class="keyword">if</span> previousPosition
     canvas.drawLine
-      start: previousPosition.scale(<span class="number">320</span>)
-      end: position.scale(<span class="number">320</span>)
-      color: activeColor</code></pre>
+      start: previousPosition.scale(canvasSize)
+      end: position.scale(canvasSize)
+      color: activeColor
+
+canvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
+  canvas.drawRect
+    position: position.scale(canvasSize).snap(pixelSize)
+    width: pixelSize
+    height: pixelSize
+    color: activeColor</code></pre>
 </div>
         </li>
         
