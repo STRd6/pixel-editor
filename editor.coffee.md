@@ -5,9 +5,10 @@ Editing pixels in your browser.
 
     require "hotkeys"
     TouchCanvas = require "touch-canvas"
-    
+
     Command = require "./command"
     Undo = require "./undo"
+    Hotkeys = require "./hotkeys"
 
     Palette = require("./palette")
     runtime = require("runtime")(PACKAGE)
@@ -29,6 +30,7 @@ Editing pixels in your browser.
       self ?= Model(I)
 
       self.include Undo
+      self.include Hotkeys
 
       self.extend
         changePixel: ({x, y, color})->
@@ -56,8 +58,6 @@ Editing pixels in your browser.
       $('.viewport').append canvas.element()
 
       draw = ({x, y}) ->
-        debugger if x != x.floor()
-
         lastCommand.push Command.ChangePixel
           x: x
           y: y
