@@ -66,7 +66,7 @@ template = require <span class="string">"./templates/editor"</span>
   self.include Undo
   self.include Hotkeys
 
-  pixels = Grid(<span class="number">16</span>, <span class="number">16</span>, <span class="number">0</span>)
+  pixels = Grid(<span class="number">16</span>, <span class="number">16</span>, <span class="number">1</span>)
 
   self.extend
     changePixel: ({x, y, index})-&gt;
@@ -86,8 +86,7 @@ template = require <span class="string">"./templates/editor"</span>
 
   $(<span class="string">'body'</span>).append template
     colors: palette
-    pickColor: (color, index) -&gt;
-      activeIndex(index)
+    pickColor: activeIndex
 
   canvas = TouchCanvas
     width: <span class="number">320</span>
