@@ -15,6 +15,8 @@ Editing pixels in your browser.
     template = require "./templates/editor"
 
     activeColor = "red"
+    pixelSize = 20
+    canvasSize = 320
 
     $('body').append template
       colors: Palette.defaults
@@ -24,16 +26,26 @@ Editing pixels in your browser.
     canvas = TouchCanvas
       width: 320
       height: 320
-    
+
     $('.viewport').append canvas.element()
 
-    canvas.on "touch", ->
-    
-    canvas.on "move", (position, previousPosition) ->
-      console.log position
+    canvas.on "touch", (position) ->
+      canvas.drawRect
+        position: position.scale(canvasSize).snap(pixelSize)
+        width: pixelSize
+        height: pixelSize
+        color: activeColor
 
+    canvas.on "move", (position, previousPosition) ->
       if previousPosition
         canvas.drawLine
-          start: previousPosition.scale(320)
-          end: position.scale(320)
+          start: previousPosition.scale(canvasSize)
+          end: position.scale(canvasSize)
           color: activeColor
+
+    canvas.on "release", (position) ->
+      canvas.drawRect
+        position: position.scale(canvasSize).snap(pixelSize)
+        width: pixelSize
+        height: pixelSize
+        color: activeColor
