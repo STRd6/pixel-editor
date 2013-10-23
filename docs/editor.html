@@ -38,6 +38,9 @@
             <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"hotkeys"</span>
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 
+Command = require <span class="string">"./command"</span>
+Undo = require <span class="string">"./undo"</span>
+
 Palette = require(<span class="string">"./palette"</span>)
 runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
 
@@ -46,41 +49,70 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
-activeColor = <span class="string">"red"</span>
-pixelSize = <span class="number">20</span>
-canvasSize = <span class="number">320</span>
+{line} = require <span class="string">"./util"</span>
 
-$(<span class="string">'body'</span>).append template
-  colors: Palette.defaults
-  pickColor: (color) -&gt;
-    activeColor = color
+<span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
+  activeColor = <span class="string">"red"</span>
+  pixelSize = <span class="number">20</span>
+  canvasSize = <span class="number">320</span>
 
-canvas = TouchCanvas
-  width: <span class="number">320</span>
-  height: <span class="number">320</span>
+  lastCommand = <span class="literal">null</span>
 
-$(<span class="string">'.viewport'</span>).append canvas.element()
+  self ?= Model(I)
 
-canvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
-  canvas.drawRect
-    position: position.scale(canvasSize).snap(pixelSize)
-    width: pixelSize
-    height: pixelSize
-    color: activeColor
+  self.include Undo
 
-canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
-  <span class="keyword">if</span> previousPosition
-    canvas.drawLine
-      start: previousPosition.scale(canvasSize)
-      end: position.scale(canvasSize)
+  self.extend
+    changePixel: ({x, y, color})-&gt;
+      canvas.drawRect
+        x: x * pixelSize
+        y: y * pixelSize
+        width: pixelSize
+        height: pixelSize
+        color: color
+
+    getPixel: ({x, y}) -&gt;
+      x: x
+      y: y
+      color: <span class="string">"white"</span> <span class="comment">#TODO real color</span>
+
+  $(<span class="string">'body'</span>).append template
+    colors: Palette.defaults
+    pickColor: (color) -&gt;
+      activeColor = color
+
+  canvas = TouchCanvas
+    width: <span class="number">320</span>
+    height: <span class="number">320</span>
+
+  $(<span class="string">'.viewport'</span>).append canvas.element()
+
+  <span class="function"><span class="title">draw</span></span> = ({x, y}) -&gt;
+    <span class="keyword">debugger</span> <span class="keyword">if</span> x != x.floor()
+
+    lastCommand.push Command.ChangePixel
+      x: x
+      y: y
       color: activeColor
+    , self
 
-canvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
-  canvas.drawRect
-    position: position.scale(canvasSize).snap(pixelSize)
-    width: pixelSize
-    height: pixelSize
-    color: activeColor</code></pre>
+  canvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
+    lastCommand = Command.Composite()
+    self.execute lastCommand
+
+    draw(position.scale(canvasSize / pixelSize).floor())
+
+  canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
+    start = previousPosition.scale(canvasSize / pixelSize).floor()
+    end = position.scale(canvasSize / pixelSize).floor()
+
+    line start, end, draw
+
+  canvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
+
+  <span class="keyword">return</span> self
+
+Editor()</code></pre>
 </div>
         </li>
         

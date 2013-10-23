@@ -19,13 +19,13 @@
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    TouchCanvas = require \"touch-canvas\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n\n    activeColor = \"red\"\n    pixelSize = 20\n    canvasSize = 320\n\n    $('body').append template\n      colors: Palette.defaults\n      pickColor: (color) ->\n        activeColor = color\n\n    canvas = TouchCanvas\n      width: 320\n      height: 320\n\n    $('.viewport').append canvas.element()\n\n    canvas.on \"touch\", (position) ->\n      canvas.drawRect\n        position: position.scale(canvasSize).snap(pixelSize)\n        width: pixelSize\n        height: pixelSize\n        color: activeColor\n\n    canvas.on \"move\", (position, previousPosition) ->\n      if previousPosition\n        canvas.drawLine\n          start: previousPosition.scale(canvasSize)\n          end: position.scale(canvasSize)\n          color: activeColor\n\n    canvas.on \"release\", (position) ->\n      canvas.drawRect\n        position: position.scale(canvasSize).snap(pixelSize)\n        width: pixelSize\n        height: pixelSize\n        color: activeColor\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"hotkeys\"\n    TouchCanvas = require \"touch-canvas\"\n    \n    Command = require \"./command\"\n    Undo = require \"./undo\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n    \n    {line} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeColor = \"red\"\n      pixelSize = 20\n      canvasSize = 320\n\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Undo\n\n      self.extend\n        changePixel: ({x, y, color})->\n          canvas.drawRect\n            x: x * pixelSize\n            y: y * pixelSize\n            width: pixelSize\n            height: pixelSize\n            color: color\n\n        getPixel: ({x, y}) ->\n          x: x\n          y: y\n          color: \"white\" #TODO real color\n\n      $('body').append template\n        colors: Palette.defaults\n        pickColor: (color) ->\n          activeColor = color\n\n      canvas = TouchCanvas\n        width: 320\n        height: 320\n\n      $('.viewport').append canvas.element()\n\n      draw = ({x, y}) ->\n        debugger if x != x.floor()\n\n        lastCommand.push Command.ChangePixel\n          x: x\n          y: y\n          color: activeColor\n        , self\n\n      canvas.on \"touch\", (position) ->\n        lastCommand = Command.Composite()\n        self.execute lastCommand\n\n        draw(position.scale(canvasSize / pixelSize).floor())\n\n      canvas.on \"move\", (position, previousPosition) ->\n        start = previousPosition.scale(canvasSize / pixelSize).floor()\n        end = position.scale(canvasSize / pixelSize).floor()\n\n        line start, end, draw\n\n      canvas.on \"release\", (position) ->\n\n      return self\n\n    Editor()\n",
       "type": "blob"
     },
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\nwidth: 480\nheight: 320\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\nwidth: 480\nheight: 320\n",
       "type": "blob"
     },
     "style.styl": {
@@ -51,17 +51,35 @@
       "mode": "100644",
       "content": "Palette\n=======\n\n    Palette = \n\n      defaults:\n        [\n          \"#000000\"\n          \"#FFFFFF\"\n          \"#666666\"\n          \"#DCDCDC\"\n          \"#EB070E\"\n          \"#F69508\"\n          \"#FFDE49\"\n          \"#388326\"\n          \"#0246E3\"\n          \"#563495\"\n          \"#58C4F5\"\n          \"#E5AC99\"\n          \"#5B4635\"\n          \"#FFFEE9\"\n        ]\n\n    module.exports = Palette\n",
       "type": "blob"
+    },
+    "undo.coffee.md": {
+      "path": "undo.coffee.md",
+      "mode": "100644",
+      "content": "Undo\n====\n\nAn editor module for editors that support undo/redo\n\n    CommandStack = require \"commando\"\n\n    module.exports = (I={}, self=Core(I)) ->\n      # TODO: Module include should be idempotent\n      self.include Bindable unless self.on\n\n      commandStack = CommandStack()\n      lastClean = undefined\n\n      # TODO: Make this an observable rather than an event emitter\n      dirty = (newDirty) ->\n        if newDirty is false\n          lastClean = commandStack.current()\n          self.trigger('clean')\n\n          return self\n        else\n          return lastClean != commandStack.current()\n\n      updateDirtyState = ->\n        if dirty()\n          self.trigger('dirty')\n        else\n          self.trigger('clean')\n\n      # Set dirty state on save event\n      self.on 'save', ->\n        dirty(false)\n\n      self.extend\n        execute: (command) ->\n          commandStack.execute command\n          updateDirtyState()\n\n          return self\n\n        undo: ->\n          commandStack.undo()\n          updateDirtyState()\n\n          return self\n\n        redo: ->\n          commandStack.redo()\n          updateDirtyState()\n\n          return self\n\n      return self\n",
+      "type": "blob"
+    },
+    "command.coffee.md": {
+      "path": "command.coffee.md",
+      "mode": "100644",
+      "content": "Command\n=======\n\nCommands that can be undone in the editor.\n\n    module.exports = \n      ChangePixel: (data, editor) ->\n        previous = editor.getPixel(data)\n\n        execute: ->\n          editor.changePixel(data)\n\n        undo: ->\n          editor.changePixel(previous)\n\n      Composite: ->\n        commands = []\n\n        execute: ->\n          commands.invoke \"execute\"\n\n        undo: ->\n          # Undo last command first because the order matters\n          commands.copy().reverse().invoke \"undo\"\n          \n        push: (command, noExecute) ->\n          # We execute commands immediately when pushed in the compound\n          # so that the effects of events during mousemove appear\n          # immediately but they are all revoked together on undo/redo\n          # Passing noExecute as true will skip executing if we are\n          # adding commands that have already executed.\n          commands.push command\n          command.execute() unless noExecute\n",
+      "type": "blob"
+    },
+    "util.coffee.md": {
+      "path": "util.coffee.md",
+      "mode": "100644",
+      "content": "\n    module.exports =\n\nCall an iterator for each integer point on a line between two integer points.\n\n      line: (p0, p1, iterator) ->\n        {x:x0, y:y0} = p0\n        {x:x1, y:y1} = p1\n  \n        dx = (x1 - x0).abs()\n        dy = (y1 - y0).abs()\n        sx = (x1 - x0).sign()\n        sy = (y1 - y0).sign()\n        err = dx - dy\n    \n        while !(x0 is x1 and y0 is y1)\n          e2 = 2 * err\n    \n          if e2 > -dy\n            err -= dy\n            x0 += sx\n    \n          if e2 < dx\n            err += dx\n            y0 += sy\n\n          iterator\n            x: x0\n            y: y0\n",
+      "type": "blob"
     }
   },
   "distribution": {
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var Palette, TouchCanvas, activeColor, canvas, canvasSize, pixelSize, runtime, template;\n\n  require(\"hotkeys\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  activeColor = \"red\";\n\n  pixelSize = 20;\n\n  canvasSize = 320;\n\n  $('body').append(template({\n    colors: Palette.defaults,\n    pickColor: function(color) {\n      return activeColor = color;\n    }\n  }));\n\n  canvas = TouchCanvas({\n    width: 320,\n    height: 320\n  });\n\n  $('.viewport').append(canvas.element());\n\n  canvas.on(\"touch\", function(position) {\n    return canvas.drawRect({\n      position: position.scale(canvasSize).snap(pixelSize),\n      width: pixelSize,\n      height: pixelSize,\n      color: activeColor\n    });\n  });\n\n  canvas.on(\"move\", function(position, previousPosition) {\n    if (previousPosition) {\n      return canvas.drawLine({\n        start: previousPosition.scale(canvasSize),\n        end: position.scale(canvasSize),\n        color: activeColor\n      });\n    }\n  });\n\n  canvas.on(\"release\", function(position) {\n    return canvas.drawRect({\n      position: position.scale(canvasSize).snap(pixelSize),\n      width: pixelSize,\n      height: pixelSize,\n      color: activeColor\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "content": "(function() {\n  var Command, Editor, Palette, TouchCanvas, Undo, line, runtime, template;\n\n  require(\"hotkeys\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"./undo\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  line = require(\"./util\").line;\n\n  Editor = function(I, self) {\n    var activeColor, canvas, canvasSize, draw, lastCommand, pixelSize;\n    if (I == null) {\n      I = {};\n    }\n    activeColor = \"red\";\n    pixelSize = 20;\n    canvasSize = 320;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Undo);\n    self.extend({\n      changePixel: function(_arg) {\n        var color, x, y;\n        x = _arg.x, y = _arg.y, color = _arg.color;\n        return canvas.drawRect({\n          x: x * pixelSize,\n          y: y * pixelSize,\n          width: pixelSize,\n          height: pixelSize,\n          color: color\n        });\n      },\n      getPixel: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return {\n          x: x,\n          y: y,\n          color: \"white\"\n        };\n      }\n    });\n    $('body').append(template({\n      colors: Palette.defaults,\n      pickColor: function(color) {\n        return activeColor = color;\n      }\n    }));\n    canvas = TouchCanvas({\n      width: 320,\n      height: 320\n    });\n    $('.viewport').append(canvas.element());\n    draw = function(_arg) {\n      var x, y;\n      x = _arg.x, y = _arg.y;\n      if (x !== x.floor()) {\n        debugger;\n      }\n      return lastCommand.push(Command.ChangePixel({\n        x: x,\n        y: y,\n        color: activeColor\n      }, self));\n    };\n    canvas.on(\"touch\", function(position) {\n      lastCommand = Command.Composite();\n      self.execute(lastCommand);\n      return draw(position.scale(canvasSize / pixelSize).floor());\n    });\n    canvas.on(\"move\", function(position, previousPosition) {\n      var end, start;\n      start = previousPosition.scale(canvasSize / pixelSize).floor();\n      end = position.scale(canvasSize / pixelSize).floor();\n      return line(start, end, draw);\n    });\n    canvas.on(\"release\", function(position) {});\n    return self;\n  };\n\n  Editor();\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
       "type": "blob"
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\"},\"width\":480,\"height\":320};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\",\"commando\":\"STRd6/commando:v0.9.0\"},\"width\":480,\"height\":320};",
       "type": "blob"
     },
     "style": {
@@ -82,6 +100,21 @@
     "palette": {
       "path": "palette",
       "content": "(function() {\n  var Palette;\n\n  Palette = {\n    defaults: [\"#000000\", \"#FFFFFF\", \"#666666\", \"#DCDCDC\", \"#EB070E\", \"#F69508\", \"#FFDE49\", \"#388326\", \"#0246E3\", \"#563495\", \"#58C4F5\", \"#E5AC99\", \"#5B4635\", \"#FFFEE9\"]\n  };\n\n  module.exports = Palette;\n\n}).call(this);\n\n//# sourceURL=palette.coffee",
+      "type": "blob"
+    },
+    "undo": {
+      "path": "undo",
+      "content": "(function() {\n  var CommandStack;\n\n  CommandStack = require(\"commando\");\n\n  module.exports = function(I, self) {\n    var commandStack, dirty, lastClean, updateDirtyState;\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    if (!self.on) {\n      self.include(Bindable);\n    }\n    commandStack = CommandStack();\n    lastClean = void 0;\n    dirty = function(newDirty) {\n      if (newDirty === false) {\n        lastClean = commandStack.current();\n        self.trigger('clean');\n        return self;\n      } else {\n        return lastClean !== commandStack.current();\n      }\n    };\n    updateDirtyState = function() {\n      if (dirty()) {\n        return self.trigger('dirty');\n      } else {\n        return self.trigger('clean');\n      }\n    };\n    self.on('save', function() {\n      return dirty(false);\n    });\n    self.extend({\n      execute: function(command) {\n        commandStack.execute(command);\n        updateDirtyState();\n        return self;\n      },\n      undo: function() {\n        commandStack.undo();\n        updateDirtyState();\n        return self;\n      },\n      redo: function() {\n        commandStack.redo();\n        updateDirtyState();\n        return self;\n      }\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=undo.coffee",
+      "type": "blob"
+    },
+    "command": {
+      "path": "command",
+      "content": "(function() {\n  module.exports = {\n    ChangePixel: function(data, editor) {\n      var previous;\n      previous = editor.getPixel(data);\n      return {\n        execute: function() {\n          return editor.changePixel(data);\n        },\n        undo: function() {\n          return editor.changePixel(previous);\n        }\n      };\n    },\n    Composite: function() {\n      var commands;\n      commands = [];\n      return {\n        execute: function() {\n          return commands.invoke(\"execute\");\n        },\n        undo: function() {\n          return commands.copy().reverse().invoke(\"undo\");\n        },\n        push: function(command, noExecute) {\n          commands.push(command);\n          if (!noExecute) {\n            return command.execute();\n          }\n        }\n      };\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=command.coffee",
+      "type": "blob"
+    },
+    "util": {
+      "path": "util",
+      "content": "(function() {\n  module.exports = {\n    line: function(p0, p1, iterator) {\n      var dx, dy, e2, err, sx, sy, x0, x1, y0, y1, _results;\n      x0 = p0.x, y0 = p0.y;\n      x1 = p1.x, y1 = p1.y;\n      dx = (x1 - x0).abs();\n      dy = (y1 - y0).abs();\n      sx = (x1 - x0).sign();\n      sy = (y1 - y0).sign();\n      err = dx - dy;\n      _results = [];\n      while (!(x0 === x1 && y0 === y1)) {\n        e2 = 2 * err;\n        if (e2 > -dy) {\n          err -= dy;\n          x0 += sx;\n        }\n        if (e2 < dx) {\n          err += dx;\n          y0 += sy;\n        }\n        _results.push(iterator({\n          x: x0,\n          y: y0\n        }));\n      }\n      return _results;\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=util.coffee",
       "type": "blob"
     }
   },
@@ -685,6 +718,164 @@
         },
         "network_count": 0,
         "branch": "v0.1.1",
+        "defaultBranch": "master"
+      }
+    },
+    "commando": {
+      "version": "0.9.0",
+      "source": {
+        "README.md": {
+          "path": "README.md",
+          "mode": "100644",
+          "content": "",
+          "type": "blob"
+        },
+        "main.coffee.md": {
+          "path": "main.coffee.md",
+          "mode": "100644",
+          "content": "Command Stack\n=============\n\nA simple stack based implementation of executable and undoable commands.\n\n    CommandStack = ->\n      stack = []\n      index = 0\n\n      execute: (command) ->\n        stack[index] = command\n        command.execute()\n\n        # Be sure to blast obsolete redos\n        stack.length = index += 1\n\n      undo: ->\n        if @canUndo()\n          index -= 1\n\n          command = stack[index]\n          command.undo()\n\n          return command\n\n      redo: ->\n        if @canRedo()\n          command = stack[index]\n          command.execute()\n\n          index += 1\n\n          return command\n\n      current: ->\n        stack[index-1]\n\n      canUndo: ->\n        index > 0\n\n      canRedo: ->\n        stack[index]?\n\n    module.exports = CommandStack\n",
+          "type": "blob"
+        },
+        "package.json": {
+          "path": "package.json",
+          "mode": "100644",
+          "content": "{\n  \"name\": \"commando\",\n  \"version\": \"0.9.0\",\n  \"description\": \"Simple Command Pattern\",\n  \"devDependencies\": {\n    \"coffee-script\": \"~1.6.3\",\n    \"mocha\": \"~1.12.0\",\n    \"uglify-js\": \"~2.3.6\"\n  },\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"https://github.com/STRd6/commando.git\"\n  },\n  \"files\": [\n    \"dist\"\n  ],\n  \"main\": \"dist/commando.js\"\n}\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "version: \"0.9.0\"\nremoteDependencies: [\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\n",
+          "type": "blob"
+        },
+        "test/command_stack.coffee": {
+          "path": "test/command_stack.coffee",
+          "mode": "100644",
+          "content": "CommandStack = require \"../main\"\n\nok = assert\nequals = assert.equal\n\ndescribe \"CommandStack\", ->\n  it \"undo on an empty stack returns undefined\", ->\n    commandStack = CommandStack()\n  \n    equals commandStack.undo(), undefined\n  \n  it \"redo on an empty stack returns undefined\", ->\n    commandStack = CommandStack()\n  \n    equals commandStack.redo(), undefined\n  \n  it \"executes commands\", ->\n    command =\n      execute: ->\n        ok true, \"command executed\"\n  \n    commandStack = CommandStack()\n  \n    commandStack.execute command\n  \n  it \"can undo\", ->\n    command =\n      execute: ->\n      undo: ->\n        ok true, \"command executed\"\n  \n    commandStack = CommandStack()\n    commandStack.execute command\n  \n    commandStack.undo()\n  \n  it \"can redo\", ->\n    command =\n      execute: ->\n        ok true, \"command executed\"\n      undo: ->\n  \n    commandStack = CommandStack()\n    commandStack.execute command\n  \n    commandStack.undo()\n    commandStack.redo()\n  \n  it \"executes redone command once on redo\", ->\n    command =\n      execute: ->\n        ok true, \"command executed\"\n      undo: ->\n  \n    commandStack = CommandStack()\n    commandStack.execute command\n  \n    commandStack.undo()\n    commandStack.redo()\n  \n    equals commandStack.redo(), undefined\n    equals commandStack.redo(), undefined\n  \n  it \"command is returned when undone\", ->\n    command =\n      execute: ->\n      undo: ->\n  \n    commandStack = CommandStack()\n    commandStack.execute command\n  \n    equals commandStack.undo(), command, \"Undone command is returned\"\n  \n  it \"command is returned when redone\", ->\n    command =\n      execute: ->\n      undo: ->\n  \n    commandStack = CommandStack()\n    commandStack.execute command\n    commandStack.undo()\n  \n    equals commandStack.redo(), command, \"Redone command is returned\"\n  \n  it \"cannot redo an obsolete future\", ->\n    Command = ->\n      execute: ->\n      undo: ->\n  \n    commandStack = CommandStack()\n    commandStack.execute Command()\n    commandStack.execute Command()\n  \n    commandStack.undo()\n    commandStack.undo()\n  \n    equals commandStack.canRedo(), true\n  \n    commandStack.execute Command()\n  \n    equals commandStack.canRedo(), false\n",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "main": {
+          "path": "main",
+          "content": "(function() {\n  var CommandStack;\n\n  CommandStack = function() {\n    var index, stack;\n    stack = [];\n    index = 0;\n    return {\n      execute: function(command) {\n        stack[index] = command;\n        command.execute();\n        return stack.length = index += 1;\n      },\n      undo: function() {\n        var command;\n        if (this.canUndo()) {\n          index -= 1;\n          command = stack[index];\n          command.undo();\n          return command;\n        }\n      },\n      redo: function() {\n        var command;\n        if (this.canRedo()) {\n          command = stack[index];\n          command.execute();\n          index += 1;\n          return command;\n        }\n      },\n      current: function() {\n        return stack[index - 1];\n      },\n      canUndo: function() {\n        return index > 0;\n      },\n      canRedo: function() {\n        return stack[index] != null;\n      }\n    };\n  };\n\n  module.exports = CommandStack;\n\n}).call(this);\n\n//# sourceURL=main.coffee",
+          "type": "blob"
+        },
+        "package": {
+          "path": "package",
+          "content": "module.exports = {\"name\":\"commando\",\"version\":\"0.9.0\",\"description\":\"Simple Command Pattern\",\"devDependencies\":{\"coffee-script\":\"~1.6.3\",\"mocha\":\"~1.12.0\",\"uglify-js\":\"~2.3.6\"},\"repository\":{\"type\":\"git\",\"url\":\"https://github.com/STRd6/commando.git\"},\"files\":[\"dist\"],\"main\":\"dist/commando.js\"};",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.9.0\",\"remoteDependencies\":[\"http://strd6.github.io/require/v0.2.2.js\"]};",
+          "type": "blob"
+        },
+        "test/command_stack": {
+          "path": "test/command_stack",
+          "content": "(function() {\n  var CommandStack, equals, ok;\n\n  CommandStack = require(\"../main\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  describe(\"CommandStack\", function() {\n    it(\"undo on an empty stack returns undefined\", function() {\n      var commandStack;\n      commandStack = CommandStack();\n      return equals(commandStack.undo(), void 0);\n    });\n    it(\"redo on an empty stack returns undefined\", function() {\n      var commandStack;\n      commandStack = CommandStack();\n      return equals(commandStack.redo(), void 0);\n    });\n    it(\"executes commands\", function() {\n      var command, commandStack;\n      command = {\n        execute: function() {\n          return ok(true, \"command executed\");\n        }\n      };\n      commandStack = CommandStack();\n      return commandStack.execute(command);\n    });\n    it(\"can undo\", function() {\n      var command, commandStack;\n      command = {\n        execute: function() {},\n        undo: function() {\n          return ok(true, \"command executed\");\n        }\n      };\n      commandStack = CommandStack();\n      commandStack.execute(command);\n      return commandStack.undo();\n    });\n    it(\"can redo\", function() {\n      var command, commandStack;\n      command = {\n        execute: function() {\n          return ok(true, \"command executed\");\n        },\n        undo: function() {}\n      };\n      commandStack = CommandStack();\n      commandStack.execute(command);\n      commandStack.undo();\n      return commandStack.redo();\n    });\n    it(\"executes redone command once on redo\", function() {\n      var command, commandStack;\n      command = {\n        execute: function() {\n          return ok(true, \"command executed\");\n        },\n        undo: function() {}\n      };\n      commandStack = CommandStack();\n      commandStack.execute(command);\n      commandStack.undo();\n      commandStack.redo();\n      equals(commandStack.redo(), void 0);\n      return equals(commandStack.redo(), void 0);\n    });\n    it(\"command is returned when undone\", function() {\n      var command, commandStack;\n      command = {\n        execute: function() {},\n        undo: function() {}\n      };\n      commandStack = CommandStack();\n      commandStack.execute(command);\n      return equals(commandStack.undo(), command, \"Undone command is returned\");\n    });\n    it(\"command is returned when redone\", function() {\n      var command, commandStack;\n      command = {\n        execute: function() {},\n        undo: function() {}\n      };\n      commandStack = CommandStack();\n      commandStack.execute(command);\n      commandStack.undo();\n      return equals(commandStack.redo(), command, \"Redone command is returned\");\n    });\n    return it(\"cannot redo an obsolete future\", function() {\n      var Command, commandStack;\n      Command = function() {\n        return {\n          execute: function() {},\n          undo: function() {}\n        };\n      };\n      commandStack = CommandStack();\n      commandStack.execute(Command());\n      commandStack.execute(Command());\n      commandStack.undo();\n      commandStack.undo();\n      equals(commandStack.canRedo(), true);\n      commandStack.execute(Command());\n      return equals(commandStack.canRedo(), false);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/command_stack.coffee",
+          "type": "blob"
+        }
+      },
+      "entryPoint": "main",
+      "dependencies": {},
+      "remoteDependencies": [
+        "http://strd6.github.io/require/v0.2.2.js"
+      ],
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "repository": {
+        "id": 11981428,
+        "name": "commando",
+        "full_name": "STRd6/commando",
+        "owner": {
+          "login": "STRd6",
+          "id": 18894,
+          "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
+          "gravatar_id": "33117162fff8a9cf50544a604f60c045",
+          "url": "https://api.github.com/users/STRd6",
+          "html_url": "https://github.com/STRd6",
+          "followers_url": "https://api.github.com/users/STRd6/followers",
+          "following_url": "https://api.github.com/users/STRd6/following{/other_user}",
+          "gists_url": "https://api.github.com/users/STRd6/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/STRd6/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/STRd6/subscriptions",
+          "organizations_url": "https://api.github.com/users/STRd6/orgs",
+          "repos_url": "https://api.github.com/users/STRd6/repos",
+          "events_url": "https://api.github.com/users/STRd6/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/STRd6/received_events",
+          "type": "User",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/STRd6/commando",
+        "description": "A simple JS command pattern.",
+        "fork": false,
+        "url": "https://api.github.com/repos/STRd6/commando",
+        "forks_url": "https://api.github.com/repos/STRd6/commando/forks",
+        "keys_url": "https://api.github.com/repos/STRd6/commando/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/STRd6/commando/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/STRd6/commando/teams",
+        "hooks_url": "https://api.github.com/repos/STRd6/commando/hooks",
+        "issue_events_url": "https://api.github.com/repos/STRd6/commando/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/STRd6/commando/events",
+        "assignees_url": "https://api.github.com/repos/STRd6/commando/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/STRd6/commando/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/STRd6/commando/tags",
+        "blobs_url": "https://api.github.com/repos/STRd6/commando/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/STRd6/commando/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/STRd6/commando/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/STRd6/commando/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/STRd6/commando/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/STRd6/commando/languages",
+        "stargazers_url": "https://api.github.com/repos/STRd6/commando/stargazers",
+        "contributors_url": "https://api.github.com/repos/STRd6/commando/contributors",
+        "subscribers_url": "https://api.github.com/repos/STRd6/commando/subscribers",
+        "subscription_url": "https://api.github.com/repos/STRd6/commando/subscription",
+        "commits_url": "https://api.github.com/repos/STRd6/commando/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/STRd6/commando/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/STRd6/commando/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/STRd6/commando/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/STRd6/commando/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/STRd6/commando/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/STRd6/commando/merges",
+        "archive_url": "https://api.github.com/repos/STRd6/commando/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/STRd6/commando/downloads",
+        "issues_url": "https://api.github.com/repos/STRd6/commando/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/STRd6/commando/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/STRd6/commando/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/STRd6/commando/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/STRd6/commando/labels{/name}",
+        "created_at": "2013-08-08T16:51:40Z",
+        "updated_at": "2013-09-29T21:08:02Z",
+        "pushed_at": "2013-09-29T21:08:02Z",
+        "git_url": "git://github.com/STRd6/commando.git",
+        "ssh_url": "git@github.com:STRd6/commando.git",
+        "clone_url": "https://github.com/STRd6/commando.git",
+        "svn_url": "https://github.com/STRd6/commando",
+        "homepage": null,
+        "size": 192,
+        "watchers_count": 0,
+        "language": "CoffeeScript",
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "master_branch": "master",
+        "default_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "network_count": 0,
+        "branch": "v0.9.0",
         "defaultBranch": "master"
       }
     }
