@@ -3,7 +3,6 @@ Pixel Editor
 
 Editing pixels in your browser.
 
-
     require "hotkeys"
 
     require "./lib/canvas-to-blob"
@@ -24,7 +23,7 @@ Editing pixels in your browser.
 
     template = require "./templates/editor"
 
-    {Grid, download} = require "./util"
+    {Grid, Size, download} = require "./util"
 
     Editor = (I={}, self) ->
       tools = Tools()
@@ -32,8 +31,9 @@ Editing pixels in your browser.
       activeIndex = Observable(0)
       activeTool = Observable tools.line
 
+      pixelExtent = Size(16, 16)
       pixelSize = 20
-      canvasSize = 320
+      canvasSize = pixelExtent.scale(pixelSize)
       palette = Palette.defaults
 
       canvas = null
@@ -44,7 +44,7 @@ Editing pixels in your browser.
       self.include Undo
       self.include Hotkeys
 
-      pixels = Grid(16, 16, 1)
+      pixels = Grid(pixelExtent.width, pixelExtent.height, 1)
 
       self.extend
         activeIndex: activeIndex
@@ -101,13 +101,8 @@ accidentally setting the pixel values during the preview.
         colors: palette
         pickColor: activeIndex
 
-      canvas = TouchCanvas
-        width: canvasSize
-        height: canvasSize
-
-      previewCanvas = TouchCanvas
-        width: canvasSize
-        height: canvasSize
+      canvas = TouchCanvas canvasSize
+      previewCanvas = TouchCanvas canvasSize
 
       # TODO: Tempest should have an easier way to do this
       updateActiveColor = (newIndex) ->
@@ -127,18 +122,18 @@ accidentally setting the pixel values during the preview.
         self.execute lastCommand
 
         activeTool().touch
-          position: position.scale(canvasSize / pixelSize).floor()
+          position: position.scale(pixelExtent).floor()
           editor: self
 
       canvas.on "move", (position, previousPosition) ->
         activeTool().move
-          position: position.scale(canvasSize / pixelSize).floor()
-          previousPosition: previousPosition.scale(canvasSize / pixelSize).floor()
+          position: position.scale(pixelExtent).floor()
+          previousPosition: previousPosition.scale(pixelExtent).floor()
           editor: self
 
       canvas.on "release", (position) ->
         activeTool().release
-          position: position.scale(canvasSize / pixelSize).floor()
+          position: position.scale(pixelExtent).floor()
           editor: self
 
         previewCanvas.clear()

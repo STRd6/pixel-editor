@@ -1,9 +1,48 @@
 Util
 ====
 
+Helpers
+-------
+
+    isObject = (object) ->
+      Object::toString.call(object) is "[object Object]"
+
+Size
+----
+
+A 2d extent.
+
+    Size = (width, height) ->
+      width: width
+      height: height
+      __proto__: Size.prototype
+
+    Size.prototype =
+      scale: (scalar) ->
+        Size(@width * scalar, @height * scalar)
+
+      toString: ->
+        "Size(#{@width}, #{@height})"
+
+      each: (iterator) ->
+        [0...@height].forEach (y) ->
+          [0...@width].forEach (x) ->
+            iterator(x, y)
+
+Point Extensions
+----------------
+
+    Point.prototype.scale = (scalar) ->
+      if isObject(scalar)
+        Point(@x * scalar.width, @y * scalar.height)
+      else
+        Point(@x * scalar, @y * scalar)
+
 Extra utilities that may be broken out into separate libraries.
 
     module.exports =
+
+      Size: Size
 
 A 2d grid of values.
 
