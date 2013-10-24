@@ -26,6 +26,7 @@
   .toolbar
   .viewport
   .palette
+    .color.current
     - each @colors, (color, index) -&gt;
       .color(style=&quot;background-color: #{color}&quot;)
         - on &quot;click&quot;, -&gt;
