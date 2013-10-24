@@ -13,6 +13,7 @@ Hotkeys for the pixel editor.
       hotkeys =
         "ctrl+z": "undo"
         "ctrl+y": "redo"
+        "ctrl+s": "download"
 
       Object.keys(hotkeys).forEach (key) ->
         console.log "Adding", key

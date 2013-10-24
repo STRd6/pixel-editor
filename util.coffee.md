@@ -97,3 +97,29 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
           iterator Point(x0 - y, y0 + x)
           iterator Point(x0 + y, y0 - x)
           iterator Point(x0 - y, y0 - x)
+
+A download utility using the webkit file system.
+
+      download: (extension="png", type="image/png") ->
+        return unless webkitRequestFileSystem?
+
+        name = prompt("File name", "#{name}.#{extension}")
+
+        webkitRequestFileSystem TEMPORARY, 5 * 1024 * 1024, (fs) ->
+          fs.root.getFile name, {create: true}, (fileEntry) ->
+            fileEntry.createWriter (fileWriter) ->
+              arr = new Uint8Array(3)
+  
+              arr[0] = 97
+              arr[1] = 98
+              arr[2] = 99
+  
+              blob = new Blob [arr],
+                type: type
+  
+              fileWriter.addEventListener "writeend", ->
+                # Download by navigating to url
+                location.href = fileEntry.toURL()
+              , false
+
+              fileWriter.write(blob)

@@ -3,7 +3,12 @@ Pixel Editor
 
 Editing pixels in your browser.
 
+
     require "hotkeys"
+
+    require "./lib/canvas-to-blob"
+    saveAs = require "./lib/file_saver"
+
     TouchCanvas = require "touch-canvas"
 
     Command = require "./command"
@@ -19,7 +24,7 @@ Editing pixels in your browser.
 
     template = require "./templates/editor"
 
-    {Grid} = require "./util"
+    {Grid, download} = require "./util"
 
     Editor = (I={}, self) ->
       tools = Tools()
@@ -43,6 +48,12 @@ Editing pixels in your browser.
 
       self.extend
         activeIndex: activeIndex
+
+        download: ->
+          # TODO: Save in correct pixel scale
+          canvas.element().toBlob (blob) ->
+            saveAs blob, prompt("File name", "image.png")
+
         draw: ({x, y}) ->
           lastCommand.push Command.ChangePixel
             x: x
