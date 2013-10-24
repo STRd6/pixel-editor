@@ -50,8 +50,17 @@ Editing pixels in your browser.
         activeIndex: activeIndex
 
         download: ->
-          # TODO: Save in correct pixel scale
-          canvas.element().toBlob (blob) ->
+          outputCanvas = TouchCanvas pixelExtent
+
+          pixels.each (index, x, y) ->
+            outputCanvas.drawRect
+              x: x
+              y: y
+              width: 1
+              height: 1
+              color: palette[index]
+
+          outputCanvas.element().toBlob (blob) ->
             saveAs blob, prompt("File name", "image.png")
 
         draw: ({x, y}) ->

@@ -7,7 +7,6 @@ Hotkeys for the pixel editor.
       self.extend
         addHotkey: (key, method) ->
           $(document).bind "keydown", key, ->
-            console.log key, method
             self[method]()
 
       hotkeys =
