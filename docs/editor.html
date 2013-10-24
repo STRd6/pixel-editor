@@ -41,6 +41,7 @@ TouchCanvas = require <span class="string">"touch-canvas"</span>
 Command = require <span class="string">"./command"</span>
 Undo = require <span class="string">"./undo"</span>
 Hotkeys = require <span class="string">"./hotkeys"</span>
+Tools = require <span class="string">"./tools"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
@@ -50,15 +51,19 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
-{line, Grid} = require <span class="string">"./util"</span>
+{Grid} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
+  tools = Tools()
+
   activeIndex = Observable(<span class="number">0</span>)
+  activeTool = Observable tools.line
 
   pixelSize = <span class="number">20</span>
   canvasSize = <span class="number">320</span>
   palette = Palette.defaults
 
+  canvas = <span class="literal">null</span>
   lastCommand = <span class="literal">null</span>
 
   self ?= Model(I)
@@ -69,8 +74,16 @@ template = require <span class="string">"./templates/editor"</span>
   pixels = Grid(<span class="number">16</span>, <span class="number">16</span>, <span class="number">1</span>)
 
   self.extend
+    activeIndex: activeIndex
+    draw: ({x, y}) -&gt;
+      lastCommand.push Command.ChangePixel
+        x: x
+        y: y
+        index: activeIndex()
+      , self
+
     changePixel: ({x, y, index})-&gt;
-      pixels.set(x, y, index)
+      pixels.set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
       canvas.drawRect
         x: x * pixelSize
@@ -82,38 +95,71 @@ template = require <span class="string">"./templates/editor"</span>
     getPixel: ({x, y}) -&gt;
       x: x
       y: y
-      index: pixels.get(x, y)
+      index: pixels.get(x, y)</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>This preview function is a little nuts, but I&#39;m not sure how to clean it up.</p>
+<p>It makes a copy of the current command chunk for undoing, sets the canvas
+equal to the preview canvas, then executes the passed in function.</p>
+<p>We&#39;ll probably want to use a whole preview layer, so we don&#39;t need to worry about
+accidentally setting the pixel values during the preview.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">    preview: (fn) -&gt;
+      realCommand = lastCommand
+      lastCommand = Command.Composite()
+      realCanvas = canvas
+      canvas = previewCanvas
+
+      canvas.clear()
+
+      fn()
+
+      canvas = realCanvas
+      lastCommand = realCommand
 
   $(<span class="string">'body'</span>).append template
     colors: palette
     pickColor: activeIndex
 
   canvas = TouchCanvas
-    width: <span class="number">320</span>
-    height: <span class="number">320</span>
+    width: canvasSize
+    height: canvasSize
+
+  previewCanvas = TouchCanvas
+    width: canvasSize
+    height: canvasSize
 
   $(<span class="string">'.viewport'</span>).append canvas.element()
-
-  <span class="function"><span class="title">draw</span></span> = ({x, y}) -&gt;
-    lastCommand.push Command.ChangePixel
-      x: x
-      y: y
-      index: activeIndex()
-    , self
+  $(<span class="string">".viewport"</span>).append $(previewCanvas.element()).addClass(<span class="string">"preview"</span>)
 
   canvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     lastCommand = Command.Composite()
     self.execute lastCommand
 
-    draw(position.scale(canvasSize / pixelSize).floor())
+    activeTool().touch
+      position: position.scale(canvasSize / pixelSize).floor()
+      editor: self
 
   canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
-    start = previousPosition.scale(canvasSize / pixelSize).floor()
-    end = position.scale(canvasSize / pixelSize).floor()
-
-    line start, end, draw
+    activeTool().move
+      position: position.scale(canvasSize / pixelSize).floor()
+      previousPosition: previousPosition.scale(canvasSize / pixelSize).floor()
+      editor: self
 
   canvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
+    activeTool().release
+      position: position.scale(canvasSize / pixelSize).floor()
+      editor: self
+
+    previewCanvas.clear()
 
   <span class="keyword">return</span> self
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>tools</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="tools">Tools</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">{line, circle} = require <span class="string">"./util"</span>
+
+Command = require <span class="string">"./command"</span>
+
+module.<span class="function"><span class="title">exports</span></span> = -&gt;
+  circle: <span class="keyword">do</span> -&gt;
+    start = <span class="literal">null</span>
+
+    touch: ({editor, position}) -&gt;
+      start = position
+
+      editor.preview -&gt;
+        circle start, position, editor.draw
+
+    move: ({editor, position}) -&gt;
+      editor.preview -&gt;
+        circle start, position, editor.draw
+
+    release: ({editor, position}) -&gt;
+      circle start, position, editor.draw</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Draw a line when moving while touching.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  line:
+    touch: ({position, editor})-&gt;
+      editor.draw position
+    move: ({editor, position, previousPosition})-&gt;
+      line previousPosition, position, editor.draw
+    release: -&gt;</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Draw a straight line on release.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  line2: <span class="keyword">do</span> -&gt;
+    start = <span class="literal">null</span>
+
+    touch: ({position, editor})-&gt;
+      start = position
+
+    move: ({editor, position, previousPosition})-&gt;
+      editor.preview -&gt;
+        editor.draw start
+        line start, position, editor.draw
+
+    release: ({position, editor}) -&gt;
+      editor.draw start
+      line start, position, editor.draw</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
+<script src="http://strd6.github.io/require/v0.2.0.js"></script><script src="package.js"></script>
+</body>
+</html>

@@ -59,6 +59,9 @@
         grid[y]?[x]
 
       set: (x, y, value) -&gt;
+        <span class="keyword">return</span> <span class="keyword">if</span> x &lt; <span class="number">0</span> <span class="keyword">or</span> x &gt;= width
+        <span class="keyword">return</span> <span class="keyword">if</span> y &lt; <span class="number">0</span> <span class="keyword">or</span> y &gt;= height
+
         grid[y][x] = value
 
       each: (iterator) -&gt;
@@ -105,6 +108,54 @@
       iterator
         x: x0
         y: y0</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>gross code courtesy of <a href="http://en.wikipedia.org/wiki/Midpoint_circle_algorithm">http://en.wikipedia.org/wiki/Midpoint_circle_algorithm</a></p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  circle: (center, endPoint, iterator) -&gt;
+    {x:x0, y:y0} = center
+    {x:x1, y:y1} = endPoint
+
+    radius = endPoint.subtract(center).magnitude().floor()
+
+    f = <span class="number">1</span> - radius
+    ddFx = <span class="number">1</span>
+    ddFy = -<span class="number">2</span> * radius
+
+    x = <span class="number">0</span>
+    y = radius
+
+    iterator Point(x0, y0 + radius)
+    iterator Point(x0, y0 - radius)
+    iterator Point(x0 + radius, y0)
+    iterator Point(x0 - radius, y0)
+
+    <span class="keyword">while</span> x &lt; y
+      <span class="keyword">if</span> f &gt; <span class="number">0</span>
+        y--
+        ddFy += <span class="number">2</span>
+        f += ddFy
+
+      x++
+      ddFx += <span class="number">2</span>
+      f += ddFx
+
+      iterator Point(x0 + x, y0 + y)
+      iterator Point(x0 - x, y0 + y)
+      iterator Point(x0 + x, y0 - y)
+      iterator Point(x0 - x, y0 - y)
+      iterator Point(x0 + y, y0 + x)
+      iterator Point(x0 - y, y0 + x)
+      iterator Point(x0 + y, y0 - x)
+      iterator Point(x0 - y, y0 - x)</code></pre>
 </div>
         </li>
         
