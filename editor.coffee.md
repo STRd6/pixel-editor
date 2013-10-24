@@ -98,6 +98,16 @@ accidentally setting the pixel values during the preview.
         width: canvasSize
         height: canvasSize
 
+      # TODO: Tempest should have an easier way to do this
+      updateActiveColor = (newIndex) ->
+        color = palette[newIndex]
+
+        $(".palette .current").css
+          backgroundColor: color
+
+      updateActiveColor(activeIndex())
+      activeIndex.observe updateActiveColor
+
       $('.viewport').append canvas.element()
       $(".viewport").append $(previewCanvas.element()).addClass("preview")
 
