@@ -82,8 +82,17 @@ template = require <span class="string">"./templates/editor"</span>
     activeIndex: activeIndex
 
     download: -&gt;
-      <span class="comment"># TODO: Save in correct pixel scale</span>
-      canvas.element().toBlob (blob) -&gt;
+      outputCanvas = TouchCanvas pixelExtent
+
+      pixels.each (index, x, y) -&gt;
+        outputCanvas.drawRect
+          x: x
+          y: y
+          width: <span class="number">1</span>
+          height: <span class="number">1</span>
+          color: palette[index]
+
+      outputCanvas.element().toBlob (blob) -&gt;
         saveAs blob, prompt(<span class="string">"File name"</span>, <span class="string">"image.png"</span>)
 
     draw: ({x, y}) -&gt;

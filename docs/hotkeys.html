@@ -39,7 +39,6 @@
   self.extend
     addHotkey: (key, method) -&gt;
       $(document).bind <span class="string">"keydown"</span>, key, -&gt;
-        console.log key, method
         self[method]()
 
   hotkeys =
