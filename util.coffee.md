@@ -18,8 +18,11 @@ A 2d grid of values.
             grid[y]?[x]
 
           set: (x, y, value) ->
+            return if x < 0 or x >= width
+            return if y < 0 or y >= height
+
             grid[y][x] = value
-  
+
           each: (iterator) ->
             grid.forEach (row, y) ->
               row.forEach (value, x) ->
@@ -55,3 +58,42 @@ Call an iterator for each integer point on a line between two integer points.
           iterator
             x: x0
             y: y0
+
+gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+
+      circle: (center, endPoint, iterator) ->
+        {x:x0, y:y0} = center
+        {x:x1, y:y1} = endPoint
+
+        radius = endPoint.subtract(center).magnitude().floor()
+
+        f = 1 - radius
+        ddFx = 1
+        ddFy = -2 * radius
+
+        x = 0
+        y = radius
+
+        iterator Point(x0, y0 + radius)
+        iterator Point(x0, y0 - radius)
+        iterator Point(x0 + radius, y0)
+        iterator Point(x0 - radius, y0)
+
+        while x < y
+          if f > 0
+            y--
+            ddFy += 2
+            f += ddFy
+
+          x++
+          ddFx += 2
+          f += ddFx
+
+          iterator Point(x0 + x, y0 + y)
+          iterator Point(x0 - x, y0 + y)
+          iterator Point(x0 + x, y0 - y)
+          iterator Point(x0 - x, y0 - y)
+          iterator Point(x0 + y, y0 + x)
+          iterator Point(x0 - y, y0 + x)
+          iterator Point(x0 + y, y0 - x)
+          iterator Point(x0 - y, y0 - x)
