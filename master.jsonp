@@ -28,7 +28,7 @@ window["STRd6/pixel-editor:master"]({
     "hotkeys.coffee.md": {
       "path": "hotkeys.coffee.md",
       "mode": "100644",
-      "content": "Hotkeys\n=======\n\nHotkeys for the pixel editor.\n\n    module.exports = (I={}, self)->\n      self.extend\n        addHotkey: (key, method) ->\n          $(document).bind \"keydown\", key, ->\n            console.log key, method\n            self[method]()\n\n      hotkeys =\n        \"ctrl+z\": \"undo\"\n        \"ctrl+y\": \"redo\"\n        \"ctrl+s\": \"download\"\n\n      Object.keys(hotkeys).forEach (key) ->\n        console.log \"Adding\", key\n        self.addHotkey(key, hotkeys[key])\n\n      return self\n",
+      "content": "Hotkeys\n=======\n\nHotkeys for the pixel editor.\n\n    module.exports = (I={}, self)->\n      self.extend\n        addHotkey: (key, method) ->\n          $(document).bind \"keydown\", key, ->\n            console.log key, method\n            self[method]()\n\n      hotkeys =\n        \"ctrl+z\": \"undo\"\n        \"ctrl+y\": \"redo\"\n        \"ctrl+s\": \"download\"\n\n      Object.keys(hotkeys).forEach (key) ->\n        self.addHotkey(key, hotkeys[key])\n\n      return self\n",
       "type": "blob"
     },
     "palette.coffee.md": {
@@ -105,7 +105,7 @@ window["STRd6/pixel-editor:master"]({
     },
     "hotkeys": {
       "path": "hotkeys",
-      "content": "(function() {\n  module.exports = function(I, self) {\n    var hotkeys;\n    if (I == null) {\n      I = {};\n    }\n    self.extend({\n      addHotkey: function(key, method) {\n        return $(document).bind(\"keydown\", key, function() {\n          console.log(key, method);\n          return self[method]();\n        });\n      }\n    });\n    hotkeys = {\n      \"ctrl+z\": \"undo\",\n      \"ctrl+y\": \"redo\",\n      \"ctrl+s\": \"download\"\n    };\n    Object.keys(hotkeys).forEach(function(key) {\n      console.log(\"Adding\", key);\n      return self.addHotkey(key, hotkeys[key]);\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=hotkeys.coffee",
+      "content": "(function() {\n  module.exports = function(I, self) {\n    var hotkeys;\n    if (I == null) {\n      I = {};\n    }\n    self.extend({\n      addHotkey: function(key, method) {\n        return $(document).bind(\"keydown\", key, function() {\n          console.log(key, method);\n          return self[method]();\n        });\n      }\n    });\n    hotkeys = {\n      \"ctrl+z\": \"undo\",\n      \"ctrl+y\": \"redo\",\n      \"ctrl+s\": \"download\"\n    };\n    Object.keys(hotkeys).forEach(function(key) {\n      return self.addHotkey(key, hotkeys[key]);\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=hotkeys.coffee",
       "type": "blob"
     },
     "palette": {
