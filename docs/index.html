@@ -36,6 +36,10 @@
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"hotkeys"</span>
+
+require <span class="string">"./lib/canvas-to-blob"</span>
+saveAs = require <span class="string">"./lib/file_saver"</span>
+
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 
 Command = require <span class="string">"./command"</span>
@@ -51,7 +55,7 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
-{Grid} = require <span class="string">"./util"</span>
+{Grid, download} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
   tools = Tools()
@@ -75,6 +79,12 @@ template = require <span class="string">"./templates/editor"</span>
 
   self.extend
     activeIndex: activeIndex
+
+    download: -&gt;
+      <span class="comment"># TODO: Save in correct pixel scale</span>
+      canvas.element().toBlob (blob) -&gt;
+        saveAs blob, prompt(<span class="string">"File name"</span>, <span class="string">"image.png"</span>)
+
     draw: ({x, y}) -&gt;
       lastCommand.push Command.ChangePixel
         x: x
