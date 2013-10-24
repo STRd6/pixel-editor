@@ -55,7 +55,7 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
-{Grid, download} = require <span class="string">"./util"</span>
+{Grid, Size, download} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
   tools = Tools()
@@ -63,8 +63,9 @@ template = require <span class="string">"./templates/editor"</span>
   activeIndex = Observable(<span class="number">0</span>)
   activeTool = Observable tools.line
 
+  pixelExtent = Size(<span class="number">16</span>, <span class="number">16</span>)
   pixelSize = <span class="number">20</span>
-  canvasSize = <span class="number">320</span>
+  canvasSize = pixelExtent.scale(pixelSize)
   palette = Palette.defaults
 
   canvas = <span class="literal">null</span>
@@ -75,7 +76,7 @@ template = require <span class="string">"./templates/editor"</span>
   self.include Undo
   self.include Hotkeys
 
-  pixels = Grid(<span class="number">16</span>, <span class="number">16</span>, <span class="number">1</span>)
+  pixels = Grid(pixelExtent.width, pixelExtent.height, <span class="number">1</span>)
 
   self.extend
     activeIndex: activeIndex
@@ -139,13 +140,8 @@ accidentally setting the pixel values during the preview.</p>
     colors: palette
     pickColor: activeIndex
 
-  canvas = TouchCanvas
-    width: canvasSize
-    height: canvasSize
-
-  previewCanvas = TouchCanvas
-    width: canvasSize
-    height: canvasSize
+  canvas = TouchCanvas canvasSize
+  previewCanvas = TouchCanvas canvasSize
 
   <span class="comment"># TODO: Tempest should have an easier way to do this</span>
   <span class="function"><span class="title">updateActiveColor</span></span> = (newIndex) -&gt;
@@ -165,18 +161,18 @@ accidentally setting the pixel values during the preview.</p>
     self.execute lastCommand
 
     activeTool().touch
-      position: position.scale(canvasSize / pixelSize).floor()
+      position: position.scale(pixelExtent).floor()
       editor: self
 
   canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
     activeTool().move
-      position: position.scale(canvasSize / pixelSize).floor()
-      previousPosition: previousPosition.scale(canvasSize / pixelSize).floor()
+      position: position.scale(pixelExtent).floor()
+      previousPosition: previousPosition.scale(pixelExtent).floor()
       editor: self
 
   canvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
     activeTool().release
-      position: position.scale(canvasSize / pixelSize).floor()
+      position: position.scale(pixelExtent).floor()
       editor: self
 
     previewCanvas.clear()
@@ -193,7 +189,7 @@ Editor()</code></pre>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
 <script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb.js?"></script>
 <script src="http://strd6.github.io/require/v0.2.0.js"></script><script src="package.js"></script>
 </body>
 </html>
