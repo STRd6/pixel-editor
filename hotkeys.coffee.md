@@ -16,7 +16,6 @@ Hotkeys for the pixel editor.
         "ctrl+s": "download"
 
       Object.keys(hotkeys).forEach (key) ->
-        console.log "Adding", key
         self.addHotkey(key, hotkeys[key])
 
       return self
