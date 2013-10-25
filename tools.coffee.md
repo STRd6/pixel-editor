@@ -7,7 +7,7 @@ Tools
       [
         Point(point.x, point.y-1)
         Point(point.x-1, point.y)
-        Point(point.x+1, point.y-1)
+        Point(point.x+1, point.y)
         Point(point.x, point.y+1)
       ]
 
