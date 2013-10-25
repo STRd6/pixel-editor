@@ -13,6 +13,7 @@ Hotkeys for the pixel editor.
         "ctrl+z": "undo"
         "ctrl+y": "redo"
         "ctrl+s": "download"
+        "ctrl+b": "toDataURL"
 
       Object.keys(hotkeys).forEach (key) ->
         self.addHotkey(key, hotkeys[key])

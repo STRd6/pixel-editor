@@ -49,7 +49,7 @@ Editing pixels in your browser.
       self.extend
         activeIndex: activeIndex
 
-        download: ->
+        outputCanvas: ->
           outputCanvas = TouchCanvas pixelExtent
 
           pixels.each (index, x, y) ->
@@ -60,8 +60,14 @@ Editing pixels in your browser.
               height: 1
               color: palette[index]
 
-          outputCanvas.element().toBlob (blob) ->
+          outputCanvas.element()
+
+        download: ->
+          self.outputCanvas().toBlob (blob) ->
             saveAs blob, prompt("File name", "image.png")
+
+        toDataURL: ->
+          console.log self.outputCanvas().toDataURL("image/png")
 
         draw: ({x, y}) ->
           lastCommand.push Command.ChangePixel
