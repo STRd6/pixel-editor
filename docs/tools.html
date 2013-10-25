@@ -34,7 +34,15 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">{line, circle} = require <span class="string">"./util"</span></code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">{line, circle} = require <span class="string">"./util"</span>
+
+<span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
+  [
+    Point(point.x, point.y-<span class="number">1</span>)
+    Point(point.x-<span class="number">1</span>, point.y)
+    Point(point.x+<span class="number">1</span>, point.y-<span class="number">1</span>)
+    Point(point.x, point.y+<span class="number">1</span>)
+  ]</code></pre>
 </div>
         </li>
         
@@ -65,6 +73,29 @@
       editor.draw position
     move: ({editor, position, previousPosition})-&gt;
       line previousPosition, position, editor.draw
+    release: -&gt;
+
+  fill:
+    touch: ({position, editor}) -&gt;
+      index = editor.activeIndex()
+      targetIndex = editor.getPixel(position).index
+
+      <span class="keyword">return</span> <span class="keyword">if</span> index <span class="keyword">is</span> targetIndex
+
+      queue = [position]
+      editor.draw position
+
+      <span class="keyword">while</span>(queue.length)
+        position = queue.pop()
+
+        neighbors(position).forEach (position) -&gt;
+          <span class="keyword">if</span> editor.getPixel(position)?.index <span class="keyword">is</span> targetIndex
+            editor.draw position
+            queue.push(position)
+
+      <span class="keyword">return</span>
+
+    move: -&gt;
     release: -&gt;</code></pre>
 </div>
         </li>

@@ -41,8 +41,7 @@
     - each @tools, (tool) -&gt;
       .tool
         -on &quot;click&quot;, (e) -&gt;
-          - activeTool(tool)
-          - $(e.currentTarget).takeClass(&quot;active&quot;)</code></pre>
+          - activeTool(tool)</code></pre>
 </div>
         </li>
         
@@ -52,10 +51,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>Our layers and preview canvases are placed in the viewport.</p>
+              <p>TODO: This whole activation and tracking should be made easier in Tempest.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">  .viewport</code></pre>
+            <div class="content"><pre><code class="lang-haml">          - $(e.currentTarget).takeClass(&quot;active&quot;)</code></pre>
 </div>
         </li>
         
@@ -64,6 +63,19 @@
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Our layers and preview canvases are placed in the viewport.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-haml">  .viewport</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <p>The palette holds our colors.</p>
 
