@@ -43,7 +43,7 @@
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js?\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\nwidth: 480\nheight: 320\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\nwidth: 480\nheight: 320\n",
       "type": "blob"
     },
     "style.styl": {
@@ -118,7 +118,7 @@
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js?\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"jquery-utils\":\"STRd6/jquery-utils:v0.1.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\",\"commando\":\"STRd6/commando:v0.9.0\"},\"width\":480,\"height\":320};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"jquery-utils\":\"STRd6/jquery-utils:v0.1.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\",\"commando\":\"STRd6/commando:v0.9.0\"},\"width\":480,\"height\":320};",
       "type": "blob"
     },
     "style": {
@@ -1093,7 +1093,7 @@
   },
   "remoteDependencies": [
     "//code.jquery.com/jquery-1.10.1.min.js",
-    "http://strd6.github.io/tempest/javascripts/envweb.js?",
+    "http://strd6.github.io/tempest/javascripts/envweb.js",
     "http://strd6.github.io/require/v0.2.0.js"
   ],
   "progenitor": {
