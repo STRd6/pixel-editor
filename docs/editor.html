@@ -35,7 +35,7 @@
               <p>Editing pixels in your browser.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"hotkeys"</span>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"jquery-utils"</span>
 
 require <span class="string">"./lib/canvas-to-blob"</span>
 saveAs = require <span class="string">"./lib/file_saver"</span>
@@ -58,10 +58,7 @@ template = require <span class="string">"./templates/editor"</span>
 {Grid, Size, download} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
-  tools = Tools()
-
   activeIndex = Observable(<span class="number">0</span>)
-  activeTool = Observable tools.line
 
   pixelExtent = Size(<span class="number">16</span>, <span class="number">16</span>)
   pixelSize = <span class="number">20</span>
@@ -75,6 +72,9 @@ template = require <span class="string">"./templates/editor"</span>
 
   self.include Undo
   self.include Hotkeys
+  self.include Tools
+
+  activeTool = self.activeTool
 
   pixels = Grid(pixelExtent.width, pixelExtent.height, <span class="number">1</span>)
 
@@ -115,7 +115,9 @@ template = require <span class="string">"./templates/editor"</span>
     getPixel: ({x, y}) -&gt;
       x: x
       y: y
-      index: pixels.get(x, y)</code></pre>
+      index: pixels.get(x, y)
+
+    palette: Observable(palette)</code></pre>
 </div>
         </li>
         
@@ -145,9 +147,7 @@ accidentally setting the pixel values during the preview.</p>
       canvas = realCanvas
       lastCommand = realCommand
 
-  $(<span class="string">'body'</span>).append template
-    colors: palette
-    pickColor: activeIndex
+  $(<span class="string">'body'</span>).append template self
 
   canvas = TouchCanvas canvasSize
   previewCanvas = TouchCanvas canvasSize

@@ -21,16 +21,59 @@
               <p>Editor template</p>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">- pickColor = @pickColor
-.editor
-  .toolbar
-  .viewport
-  .palette
+            <div class="content"><pre><code class="lang-haml">- activeIndex = @activeIndex
+- activeTool = @activeTool
+
+.editor</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>The toolbar holds our tools.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-haml">  .toolbar
+    - each @tools, (tool) -&gt;
+      .tool
+        -on &quot;click&quot;, (e) -&gt;
+          - activeTool(tool)
+          - $(e.currentTarget).takeClass(&quot;active&quot;)</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Our layers and preview canvases are placed in the viewport.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-haml">  .viewport</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>The palette holds our colors.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-haml">  .palette
     .color.current
-    - each @colors, (color, index) -&gt;
+    - each @palette, (color, index) -&gt;
       .color(style=&quot;background-color: #{color}&quot;)
         - on &quot;click&quot;, -&gt;
-          - pickColor index</code></pre>
+          - activeIndex index</code></pre>
 </div>
         </li>
         

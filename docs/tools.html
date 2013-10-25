@@ -34,12 +34,51 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">{line, circle} = require <span class="string">"./util"</span>
+            <div class="content"><pre><code class="lang-coffeescript">{line, circle} = require <span class="string">"./util"</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Default tools.</p>
 
-Command = require <span class="string">"./command"</span>
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">TOOLS =</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Draw a line when moving while touching.</p>
 
-module.<span class="function"><span class="title">exports</span></span> = -&gt;
-  circle: <span class="keyword">do</span> -&gt;
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  line:
+    touch: ({position, editor})-&gt;
+      editor.draw position
+    move: ({editor, position, previousPosition})-&gt;
+      line previousPosition, position, editor.draw
+    release: -&gt;</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>A circle drawing tool.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  circle: <span class="keyword">do</span> -&gt;
     start = <span class="literal">null</span>
 
     touch: ({editor, position}) -&gt;
@@ -58,28 +97,10 @@ module.<span class="function"><span class="title">exports</span></span> = -&gt;
         </li>
         
         
-        <li id="section-3">
+        <li id="section-6">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>Draw a line when moving while touching.</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">  line:
-    touch: ({position, editor})-&gt;
-      editor.draw position
-    move: ({editor, position, previousPosition})-&gt;
-      line previousPosition, position, editor.draw
-    release: -&gt;</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>Draw a straight line on release.</p>
 
@@ -97,7 +118,23 @@ module.<span class="function"><span class="title">exports</span></span> = -&gt;
 
     release: ({position, editor}) -&gt;
       editor.draw start
-      line start, position, editor.draw</code></pre>
+      line start, position, editor.draw
+
+module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
+  self.extend
+    addTool: (tool) -&gt;
+      self.tools.push tool
+
+    activeTool: Observable()
+
+    tools: Observable []
+
+  Object.keys(TOOLS).forEach (name) -&gt;
+    self.addTool TOOLS[name]
+
+  self.activeTool(self.tools()[<span class="number">0</span>])
+
+  <span class="keyword">return</span> self</code></pre>
 </div>
         </li>
         
