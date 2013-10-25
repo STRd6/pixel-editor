@@ -16,10 +16,20 @@ html, body
   box-sizing: border-box
   height: 100%
   width: 40px
-  padding: 4px
   position: absolute
   top: 0
   left: 0
+
+  .tool
+    width: 36px
+    height: 36px
+    box-sizing: border-box
+    border: 1px solid rgba(0, 0, 0, 0.5)
+    border-radius: 2px
+    margin: 2px
+
+    &.active
+      border-color: green
 
 .palette
   background-color: white

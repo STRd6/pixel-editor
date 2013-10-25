@@ -3,7 +3,7 @@ Pixel Editor
 
 Editing pixels in your browser.
 
-    require "hotkeys"
+    require "jquery-utils"
 
     require "./lib/canvas-to-blob"
     saveAs = require "./lib/file_saver"
@@ -26,10 +26,7 @@ Editing pixels in your browser.
     {Grid, Size, download} = require "./util"
 
     Editor = (I={}, self) ->
-      tools = Tools()
-
       activeIndex = Observable(0)
-      activeTool = Observable tools.line
 
       pixelExtent = Size(16, 16)
       pixelSize = 20
@@ -43,6 +40,9 @@ Editing pixels in your browser.
 
       self.include Undo
       self.include Hotkeys
+      self.include Tools
+
+      activeTool = self.activeTool
 
       pixels = Grid(pixelExtent.width, pixelExtent.height, 1)
 
@@ -85,6 +85,8 @@ Editing pixels in your browser.
           y: y
           index: pixels.get(x, y)
 
+        palette: Observable(palette)
+
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
 It makes a copy of the current command chunk for undoing, sets the canvas
@@ -106,9 +108,7 @@ accidentally setting the pixel values during the preview.
           canvas = realCanvas
           lastCommand = realCommand
 
-      $('body').append template
-        colors: palette
-        pickColor: activeIndex
+      $('body').append template self
 
       canvas = TouchCanvas canvasSize
       previewCanvas = TouchCanvas canvasSize

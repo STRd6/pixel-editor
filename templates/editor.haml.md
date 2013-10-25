@@ -1,12 +1,28 @@
 Editor template
 
-    - pickColor = @pickColor
+    - activeIndex = @activeIndex
+    - activeTool = @activeTool
+
     .editor
+
+The toolbar holds our tools.
+
       .toolbar
+        - each @tools, (tool) ->
+          .tool
+            -on "click", (e) ->
+              - activeTool(tool)
+              - $(e.currentTarget).takeClass("active")
+
+Our layers and preview canvases are placed in the viewport.
+
       .viewport
+
+The palette holds our colors.
+
       .palette
         .color.current
-        - each @colors, (color, index) ->
+        - each @palette, (color, index) ->
           .color(style="background-color: #{color}")
             - on "click", ->
-              - pickColor index
+              - activeIndex index

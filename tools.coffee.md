@@ -3,9 +3,21 @@ Tools
 
     {line, circle} = require "./util"
 
-    Command = require "./command"
+Default tools.
 
-    module.exports = ->
+    TOOLS =
+
+Draw a line when moving while touching.
+
+      line:
+        touch: ({position, editor})->
+          editor.draw position
+        move: ({editor, position, previousPosition})->
+          line previousPosition, position, editor.draw
+        release: ->
+
+A circle drawing tool.
+
       circle: do ->
         start = null
 
@@ -21,15 +33,6 @@ Tools
 
         release: ({editor, position}) ->
           circle start, position, editor.draw
-
-Draw a line when moving while touching.
-
-      line:
-        touch: ({position, editor})->
-          editor.draw position
-        move: ({editor, position, previousPosition})->
-          line previousPosition, position, editor.draw
-        release: ->
       
 Draw a straight line on release.
 
@@ -47,3 +50,19 @@ Draw a straight line on release.
         release: ({position, editor}) ->
           editor.draw start
           line start, position, editor.draw
+
+    module.exports = (I={}, self=Core(I)) ->
+      self.extend
+        addTool: (tool) ->
+          self.tools.push tool
+
+        activeTool: Observable()
+
+        tools: Observable []
+
+      Object.keys(TOOLS).forEach (name) ->
+        self.addTool TOOLS[name]
+
+      self.activeTool(self.tools()[0])
+
+      return self
