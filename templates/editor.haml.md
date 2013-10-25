@@ -12,6 +12,9 @@ The toolbar holds our tools.
           .tool
             -on "click", (e) ->
               - activeTool(tool)
+
+TODO: This whole activation and tracking should be made easier in Tempest.
+
               - $(e.currentTarget).takeClass("active")
 
 Our layers and preview canvases are placed in the viewport.

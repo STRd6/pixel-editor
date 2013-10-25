@@ -48,11 +48,17 @@ A 2d grid of values.
 
       Grid: (width, height, defaultValue) ->
         grid =
-          [0...height].map ->
-            [0...width].map ->
-              defaultValue
+          [0...height].map (y) ->
+            [0...width].map (x) ->
+              if typeof defaultValue is "function"
+                defaultValue(x, y)
+              else
+                defaultValue
 
         self =
+          copy: ->
+            Grid(width, height, self.get)
+
           get: (x, y) ->
             grid[y]?[x]
 

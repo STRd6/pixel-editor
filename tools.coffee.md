@@ -3,6 +3,14 @@ Tools
 
     {line, circle} = require "./util"
 
+    neighbors = (point) ->
+      [
+        Point(point.x, point.y-1)
+        Point(point.x-1, point.y)
+        Point(point.x+1, point.y-1)
+        Point(point.x, point.y+1)
+      ]
+
 Default tools.
 
     TOOLS =
@@ -14,6 +22,29 @@ Draw a line when moving while touching.
           editor.draw position
         move: ({editor, position, previousPosition})->
           line previousPosition, position, editor.draw
+        release: ->
+
+      fill:
+        touch: ({position, editor}) ->
+          index = editor.activeIndex()
+          targetIndex = editor.getPixel(position).index
+
+          return if index is targetIndex
+
+          queue = [position]
+          editor.draw position
+
+          while(queue.length)
+            position = queue.pop()
+
+            neighbors(position).forEach (position) ->
+              if editor.getPixel(position)?.index is targetIndex
+                editor.draw position
+                queue.push(position)
+      
+          return
+    
+        move: ->
         release: ->
 
 A circle drawing tool.
