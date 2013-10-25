@@ -40,6 +40,10 @@
 require <span class="string">"./lib/canvas-to-blob"</span>
 saveAs = require <span class="string">"./lib/file_saver"</span>
 
+runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
+runtime.boot()
+runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
+
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 
 Command = require <span class="string">"./command"</span>
@@ -48,17 +52,13 @@ Hotkeys = require <span class="string">"./hotkeys"</span>
 Tools = require <span class="string">"./tools"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
-runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
-
-runtime.boot()
-runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 template = require <span class="string">"./templates/editor"</span>
 
 {Grid, Size, download} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
-  activeIndex = Observable(<span class="number">0</span>)
+  activeIndex = Observable(<span class="number">1</span>)
 
   pixelExtent = Size(<span class="number">16</span>, <span class="number">16</span>)
   pixelSize = <span class="number">20</span>
@@ -76,7 +76,7 @@ template = require <span class="string">"./templates/editor"</span>
 
   activeTool = self.activeTool
 
-  pixels = Grid(pixelExtent.width, pixelExtent.height, <span class="number">1</span>)
+  pixels = Grid(pixelExtent.width, pixelExtent.height, <span class="number">0</span>)
 
   self.extend
     activeIndex: activeIndex
@@ -111,12 +111,21 @@ template = require <span class="string">"./templates/editor"</span>
     changePixel: ({x, y, index})-&gt;
       pixels.set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
-      canvas.drawRect
-        x: x * pixelSize
-        y: y * pixelSize
-        width: pixelSize
-        height: pixelSize
-        color: palette[index]
+      color = palette[index]
+
+      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+        canvas.clear
+          x: x * pixelSize
+          y: y * pixelSize
+          width: pixelSize
+          height: pixelSize
+      <span class="keyword">else</span>
+        canvas.drawRect
+          x: x * pixelSize
+          y: y * pixelSize
+          width: pixelSize
+          height: pixelSize
+          color: color
 
     getPixel: ({x, y}) -&gt;
       x: x
@@ -204,7 +213,6 @@ Editor()</code></pre>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
 <script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
-<script src="http://strd6.github.io/require/v0.2.0.js"></script><script src="package.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script><script src="package.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n    saveAs = require \"./lib/file_saver\"\n\n    TouchCanvas = require \"touch-canvas\"\n\n    Command = require \"./command\"\n    Undo = require \"./undo\"\n    Hotkeys = require \"./hotkeys\"\n    Tools = require \"./tools\"\n\n    Palette = require(\"./palette\")\n    runtime = require(\"runtime\")(PACKAGE)\n\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    template = require \"./templates/editor\"\n\n    {Grid, Size, download} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeIndex = Observable(0)\n\n      pixelExtent = Size(16, 16)\n      pixelSize = 20\n      canvasSize = pixelExtent.scale(pixelSize)\n      palette = Palette.defaults\n\n      canvas = null\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Undo\n      self.include Hotkeys\n      self.include Tools\n\n      activeTool = self.activeTool\n\n      pixels = Grid(pixelExtent.width, pixelExtent.height, 1)\n\n      self.extend\n        activeIndex: activeIndex\n\n        outputCanvas: ->\n          outputCanvas = TouchCanvas pixelExtent\n\n          pixels.each (index, x, y) ->\n            outputCanvas.drawRect\n              x: x\n              y: y\n              width: 1\n              height: 1\n              color: palette[index]\n\n          outputCanvas.element()\n\n        download: ->\n          self.outputCanvas().toBlob (blob) ->\n            saveAs blob, prompt(\"File name\", \"image.png\")\n\n        toDataURL: ->\n          console.log self.outputCanvas().toDataURL(\"image/png\")\n\n        draw: ({x, y}) ->\n          lastCommand.push Command.ChangePixel\n            x: x\n            y: y\n            index: activeIndex()\n          , self\n\n        changePixel: ({x, y, index})->\n          pixels.set(x, y, index) unless canvas is previewCanvas\n\n          canvas.drawRect\n            x: x * pixelSize\n            y: y * pixelSize\n            width: pixelSize\n            height: pixelSize\n            color: palette[index]\n\n        getPixel: ({x, y}) ->\n          x: x\n          y: y\n          index: pixels.get(x, y)\n\n        palette: Observable(palette)\n\nThis preview function is a little nuts, but I'm not sure how to clean it up.\n\nIt makes a copy of the current command chunk for undoing, sets the canvas\nequal to the preview canvas, then executes the passed in function.\n\nWe'll probably want to use a whole preview layer, so we don't need to worry about\naccidentally setting the pixel values during the preview.\n\n        preview: (fn) ->\n          realCommand = lastCommand\n          lastCommand = Command.Composite()\n          realCanvas = canvas\n          canvas = previewCanvas\n\n          canvas.clear()\n\n          fn()\n\n          canvas = realCanvas\n          lastCommand = realCommand\n\n      $('body').append template self\n\n      canvas = TouchCanvas canvasSize\n      previewCanvas = TouchCanvas canvasSize\n\n      # TODO: Tempest should have an easier way to do this\n      updateActiveColor = (newIndex) ->\n        color = palette[newIndex]\n\n        $(\".palette .current\").css\n          backgroundColor: color\n\n      updateActiveColor(activeIndex())\n      activeIndex.observe updateActiveColor\n\n      $('.viewport').append canvas.element()\n      $(\".viewport\").append $(previewCanvas.element()).addClass(\"preview\")\n\n      canvas.on \"touch\", (position) ->\n        lastCommand = Command.Composite()\n        self.execute lastCommand\n\n        activeTool().touch\n          position: position.scale(pixelExtent).floor()\n          editor: self\n\n      canvas.on \"move\", (position, previousPosition) ->\n        activeTool().move\n          position: position.scale(pixelExtent).floor()\n          previousPosition: previousPosition.scale(pixelExtent).floor()\n          editor: self\n\n      canvas.on \"release\", (position) ->\n        activeTool().release\n          position: position.scale(pixelExtent).floor()\n          editor: self\n\n        previewCanvas.clear()\n\n      return self\n\n    Editor()\n",
+      "content": "Pixel Editor\n============\n\nEditing pixels in your browser.\n\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n    saveAs = require \"./lib/file_saver\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    TouchCanvas = require \"touch-canvas\"\n\n    Command = require \"./command\"\n    Undo = require \"./undo\"\n    Hotkeys = require \"./hotkeys\"\n    Tools = require \"./tools\"\n\n    Palette = require(\"./palette\")\n\n    template = require \"./templates/editor\"\n\n    {Grid, Size, download} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeIndex = Observable(1)\n\n      pixelExtent = Size(16, 16)\n      pixelSize = 20\n      canvasSize = pixelExtent.scale(pixelSize)\n      palette = Palette.defaults\n\n      canvas = null\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Undo\n      self.include Hotkeys\n      self.include Tools\n\n      activeTool = self.activeTool\n\n      pixels = Grid(pixelExtent.width, pixelExtent.height, 0)\n\n      self.extend\n        activeIndex: activeIndex\n\n        outputCanvas: ->\n          outputCanvas = TouchCanvas pixelExtent\n\n          pixels.each (index, x, y) ->\n            outputCanvas.drawRect\n              x: x\n              y: y\n              width: 1\n              height: 1\n              color: palette[index]\n\n          outputCanvas.element()\n\n        download: ->\n          self.outputCanvas().toBlob (blob) ->\n            saveAs blob, prompt(\"File name\", \"image.png\")\n\n        toDataURL: ->\n          console.log self.outputCanvas().toDataURL(\"image/png\")\n\n        draw: ({x, y}) ->\n          lastCommand.push Command.ChangePixel\n            x: x\n            y: y\n            index: activeIndex()\n          , self\n\n        changePixel: ({x, y, index})->\n          pixels.set(x, y, index) unless canvas is previewCanvas\n\n          color = palette[index]\n\n          if color is \"transparent\"\n            canvas.clear\n              x: x * pixelSize\n              y: y * pixelSize\n              width: pixelSize\n              height: pixelSize\n          else\n            canvas.drawRect\n              x: x * pixelSize\n              y: y * pixelSize\n              width: pixelSize\n              height: pixelSize\n              color: color\n\n        getPixel: ({x, y}) ->\n          x: x\n          y: y\n          index: pixels.get(x, y)\n\n        palette: Observable(palette)\n\nThis preview function is a little nuts, but I'm not sure how to clean it up.\n\nIt makes a copy of the current command chunk for undoing, sets the canvas\nequal to the preview canvas, then executes the passed in function.\n\nWe'll probably want to use a whole preview layer, so we don't need to worry about\naccidentally setting the pixel values during the preview.\n\n        preview: (fn) ->\n          realCommand = lastCommand\n          lastCommand = Command.Composite()\n          realCanvas = canvas\n          canvas = previewCanvas\n\n          canvas.clear()\n\n          fn()\n\n          canvas = realCanvas\n          lastCommand = realCommand\n\n      $('body').append template self\n\n      canvas = TouchCanvas canvasSize\n      previewCanvas = TouchCanvas canvasSize\n\n      # TODO: Tempest should have an easier way to do this\n      updateActiveColor = (newIndex) ->\n        color = palette[newIndex]\n\n        $(\".palette .current\").css\n          backgroundColor: color\n\n      updateActiveColor(activeIndex())\n      activeIndex.observe updateActiveColor\n\n      $('.viewport').append canvas.element()\n      $(\".viewport\").append $(previewCanvas.element()).addClass(\"preview\")\n\n      canvas.on \"touch\", (position) ->\n        lastCommand = Command.Composite()\n        self.execute lastCommand\n\n        activeTool().touch\n          position: position.scale(pixelExtent).floor()\n          editor: self\n\n      canvas.on \"move\", (position, previousPosition) ->\n        activeTool().move\n          position: position.scale(pixelExtent).floor()\n          previousPosition: previousPosition.scale(pixelExtent).floor()\n          editor: self\n\n      canvas.on \"release\", (position) ->\n        activeTool().release\n          position: position.scale(pixelExtent).floor()\n          editor: self\n\n        previewCanvas.clear()\n\n      return self\n\n    Editor()\n",
       "type": "blob"
     },
     "hotkeys.coffee.md": {
@@ -37,25 +37,25 @@
     "palette.coffee.md": {
       "path": "palette.coffee.md",
       "mode": "100644",
-      "content": "Palette\n=======\n\n    Palette =\n\n      defaults:\n        [\n          \"#000000\"\n          \"#FFFFFF\"\n          \"#666666\"\n          \"#DCDCDC\"\n          \"#EB070E\"\n          \"#F69508\"\n          \"#FFDE49\"\n          \"#388326\"\n          \"#0246E3\"\n          \"#563495\"\n          \"#58C4F5\"\n          \"#E5AC99\"\n          \"#5B4635\"\n          \"#FFFEE9\"\n        ]\n\n    module.exports = Palette\n",
+      "content": "Palette\n=======\n\n    Palette =\n\n      defaults:\n        [\n          \"transparent\"\n          \"#000000\"\n          \"#FFFFFF\"\n          \"#666666\"\n          \"#DCDCDC\"\n          \"#EB070E\"\n          \"#F69508\"\n          \"#FFDE49\"\n          \"#388326\"\n          \"#0246E3\"\n          \"#563495\"\n          \"#58C4F5\"\n          \"#E5AC99\"\n          \"#5B4635\"\n          \"#FFFEE9\"\n        ]\n\n    module.exports = Palette\n",
       "type": "blob"
     },
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.0.js\"\n]\ndependencies:\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.0\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\nwidth: 480\nheight: 320\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\ndependencies:\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.1.1\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\nwidth: 480\nheight: 320\n",
       "type": "blob"
     },
     "style.styl": {
       "path": "style.styl",
       "mode": "100644",
-      "content": "html, body\n  margin: 0\n  height: 100%\n\n.editor\n  background-color: lightgray\n  box-sizing: border-box\n  height: 100%\n  padding: 0 40px\n  position: relative\n  user-select: none\n  overflow: hidden\n\n.toolbar\n  background-color: white\n  box-sizing: border-box\n  height: 100%\n  width: 40px\n  position: absolute\n  top: 0\n  left: 0\n\n  .tool\n    width: 36px\n    height: 36px\n    box-sizing: border-box\n    border: 1px solid rgba(0, 0, 0, 0.5)\n    border-radius: 2px\n    margin: 2px\n\n    &.active\n      border-color: green\n\n.palette\n  background-color: white\n  box-sizing: border-box\n  height: 100%\n  width: 40px\n  position: absolute\n  top: 0\n  right: 0\n  font-size: 0\n\n  .color\n    box-sizing: border-box\n    border: 1px solid rgba(0, 0, 0, 0.5)\n    border-radius: 2px\n    float: left\n    width: 16px\n    height: 16px\n    margin: 2px\n\n    &.current\n      float: none\n      width: 36px\n      height: 36px\n\n.viewport\n  background-color: white\n  border: 1px solid gray\n  height: 320px\n  width: 320px\n  \n  position: absolute\n  top: 0\n  bottom: 0\n  left: 0\n  right: 0\n  margin: auto\n\n  canvas\n    background-color: transparent\n    position: absolute\n\n    &.preview\n      pointer-events: none\n",
+      "content": "html, body\n  margin: 0\n  height: 100%\n\n.editor\n  background-color: lightgray\n  box-sizing: border-box\n  height: 100%\n  padding: 0 40px\n  position: relative\n  user-select: none\n  overflow: hidden\n\n.toolbar\n  background-color: white\n  box-sizing: border-box\n  height: 100%\n  width: 40px\n  position: absolute\n  top: 0\n  left: 0\n\n  .tool\n    background-color: lightgray\n    background-position: center\n    background-repeat: no-repeat\n    width: 36px\n    height: 36px\n    box-sizing: border-box\n    border: 1px solid rgba(0, 0, 0, 0.5)\n    border-radius: 2px\n    margin: 2px\n\n    &.active\n      background-color: white\n      border-color: green\n\n.palette\n  background-color: white\n  box-sizing: border-box\n  height: 100%\n  width: 40px\n  position: absolute\n  top: 0\n  right: 0\n  font-size: 0\n\n  .color\n    box-sizing: border-box\n    border: 1px solid rgba(0, 0, 0, 0.5)\n    border-radius: 2px\n    float: left\n    width: 16px\n    height: 16px\n    margin: 2px\n\n    &.current\n      float: none\n      width: 36px\n      height: 36px\n\n.viewport\n  background-color: white\n  border: 1px solid gray\n  height: 320px\n  width: 320px\n  \n  position: absolute\n  top: 0\n  bottom: 0\n  left: 0\n  right: 0\n  margin: auto\n\n  canvas\n    background-color: transparent\n    position: absolute\n\n    &.preview\n      pointer-events: none\n",
       "type": "blob"
     },
     "templates/editor.haml.md": {
       "path": "templates/editor.haml.md",
       "mode": "100644",
-      "content": "Editor template\n\n    - activeIndex = @activeIndex\n    - activeTool = @activeTool\n\n    .editor\n\nThe toolbar holds our tools.\n\n      .toolbar\n        - each @tools, (tool) ->\n          .tool\n            -on \"click\", (e) ->\n              - activeTool(tool)\n\nTODO: This whole activation and tracking should be made easier in Tempest.\n\n              - $(e.currentTarget).takeClass(\"active\")\n\nOur layers and preview canvases are placed in the viewport.\n\n      .viewport\n\nThe palette holds our colors.\n\n      .palette\n        .color.current\n        - each @palette, (color, index) ->\n          .color(style=\"background-color: #{color}\")\n            - on \"click\", ->\n              - activeIndex index\n",
+      "content": "Editor template\n\n    - activeIndex = @activeIndex\n    - activeTool = @activeTool\n\n    .editor\n\nThe toolbar holds our tools.\n\n      .toolbar\n        - each @tools, (tool) ->\n          .tool(style=\"background-image: url(#{tool.iconUrl})\")\n            -on \"click\", (e) ->\n              - activeTool(tool)\n\nTODO: This whole activation and tracking should be made easier in Tempest.\n\n              - $(e.currentTarget).takeClass(\"active\")\n\nOur layers and preview canvases are placed in the viewport.\n\n      .viewport\n\nThe palette holds our colors.\n\n      .palette\n        .color.current\n        - each @palette, (color, index) ->\n          .color(style=\"background-color: #{color}\")\n            - on \"click\", ->\n              - activeIndex index\n",
       "type": "blob"
     },
     "test/editor.coffee": {
@@ -79,7 +79,7 @@
     "tools.coffee.md": {
       "path": "tools.coffee.md",
       "mode": "100644",
-      "content": "Tools\n=====\n\n    {line, circle} = require \"./util\"\n\n    neighbors = (point) ->\n      [\n        Point(point.x, point.y-1)\n        Point(point.x-1, point.y)\n        Point(point.x+1, point.y)\n        Point(point.x, point.y+1)\n      ]\n\nDefault tools.\n\n    TOOLS =\n\nDraw a line when moving while touching.\n\n      line:\n        touch: ({position, editor})->\n          editor.draw position\n        move: ({editor, position, previousPosition})->\n          line previousPosition, position, editor.draw\n        release: ->\n\n      fill:\n        touch: ({position, editor}) ->\n          index = editor.activeIndex()\n          targetIndex = editor.getPixel(position).index\n\n          return if index is targetIndex\n\n          queue = [position]\n          editor.draw position\n\n          while(queue.length)\n            position = queue.pop()\n\n            neighbors(position).forEach (position) ->\n              if editor.getPixel(position)?.index is targetIndex\n                editor.draw position\n                queue.push(position)\n      \n          return\n    \n        move: ->\n        release: ->\n\nA circle drawing tool.\n\n      circle: do ->\n        start = null\n\n        touch: ({editor, position}) ->\n          start = position\n\n          editor.preview ->\n            circle start, position, editor.draw\n\n        move: ({editor, position}) ->\n          editor.preview ->\n            circle start, position, editor.draw\n\n        release: ({editor, position}) ->\n          circle start, position, editor.draw\n      \nDraw a straight line on release.\n\n      line2: do ->\n        start = null\n\n        touch: ({position, editor})->\n          start = position\n\n        move: ({editor, position, previousPosition})->\n          editor.preview ->\n            editor.draw start\n            line start, position, editor.draw\n\n        release: ({position, editor}) ->\n          editor.draw start\n          line start, position, editor.draw\n\n    module.exports = (I={}, self=Core(I)) ->\n      self.extend\n        addTool: (tool) ->\n          self.tools.push tool\n\n        activeTool: Observable()\n\n        tools: Observable []\n\n      Object.keys(TOOLS).forEach (name) ->\n        self.addTool TOOLS[name]\n\n      self.activeTool(self.tools()[0])\n\n      return self\n",
+      "content": "Tools\n=====\n\n    {line, circle} = require \"./util\"\n\n    neighbors = (point) ->\n      [\n        Point(point.x, point.y-1)\n        Point(point.x-1, point.y)\n        Point(point.x+1, point.y)\n        Point(point.x, point.y+1)\n      ]\n\nDefault tools.\n\n    TOOLS =\n\nDraw a line when moving while touching.\n\n      line:\n        iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII=\"\n        touch: ({position, editor})->\n          editor.draw position\n        move: ({editor, position, previousPosition})->\n          line previousPosition, position, editor.draw\n        release: ->\n\n      fill:\n        iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII=\"\n        touch: ({position, editor}) ->\n          index = editor.activeIndex()\n          targetIndex = editor.getPixel(position).index\n\n          return if index is targetIndex\n\n          queue = [position]\n          editor.draw position\n\n          while(queue.length)\n            position = queue.pop()\n\n            neighbors(position).forEach (position) ->\n              if editor.getPixel(position)?.index is targetIndex\n                editor.draw position\n                queue.push(position)\n      \n          return\n    \n        move: ->\n        release: ->\n\nA circle drawing tool.\n\n      circle: do ->\n        start = null\n\n        iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII=\"\n        touch: ({editor, position}) ->\n          start = position\n\n          editor.preview ->\n            circle start, position, editor.draw\n\n        move: ({editor, position}) ->\n          editor.preview ->\n            circle start, position, editor.draw\n\n        release: ({editor, position}) ->\n          circle start, position, editor.draw\n      \nDraw a straight line on release.\n\n      line2: do ->\n        start = null\n\n        iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC\"\n        touch: ({position, editor})->\n          start = position\n\n        move: ({editor, position, previousPosition})->\n          editor.preview ->\n            editor.draw start\n            line start, position, editor.draw\n\n        release: ({position, editor}) ->\n          editor.draw start\n          line start, position, editor.draw\n\n    module.exports = (I={}, self=Core(I)) ->\n      self.extend\n        addTool: (tool) ->\n          self.tools.push tool\n\n        activeTool: Observable()\n\n        tools: Observable []\n\n      Object.keys(TOOLS).forEach (name) ->\n        self.addTool TOOLS[name]\n\n      self.activeTool(self.tools()[0])\n\n      return self\n",
       "type": "blob"
     },
     "lib/file_saver.js": {
@@ -103,7 +103,7 @@
     },
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var Command, Editor, Grid, Hotkeys, Palette, Size, Tools, TouchCanvas, Undo, download, runtime, saveAs, template, _ref;\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  saveAs = require(\"./lib/file_saver\");\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"./undo\");\n\n  Hotkeys = require(\"./hotkeys\");\n\n  Tools = require(\"./tools\");\n\n  Palette = require(\"./palette\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  template = require(\"./templates/editor\");\n\n  _ref = require(\"./util\"), Grid = _ref.Grid, Size = _ref.Size, download = _ref.download;\n\n  Editor = function(I, self) {\n    var activeIndex, activeTool, canvas, canvasSize, lastCommand, palette, pixelExtent, pixelSize, pixels, previewCanvas, updateActiveColor;\n    if (I == null) {\n      I = {};\n    }\n    activeIndex = Observable(0);\n    pixelExtent = Size(16, 16);\n    pixelSize = 20;\n    canvasSize = pixelExtent.scale(pixelSize);\n    palette = Palette.defaults;\n    canvas = null;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Undo);\n    self.include(Hotkeys);\n    self.include(Tools);\n    activeTool = self.activeTool;\n    pixels = Grid(pixelExtent.width, pixelExtent.height, 1);\n    self.extend({\n      activeIndex: activeIndex,\n      outputCanvas: function() {\n        var outputCanvas;\n        outputCanvas = TouchCanvas(pixelExtent);\n        pixels.each(function(index, x, y) {\n          return outputCanvas.drawRect({\n            x: x,\n            y: y,\n            width: 1,\n            height: 1,\n            color: palette[index]\n          });\n        });\n        return outputCanvas.element();\n      },\n      download: function() {\n        return self.outputCanvas().toBlob(function(blob) {\n          return saveAs(blob, prompt(\"File name\", \"image.png\"));\n        });\n      },\n      toDataURL: function() {\n        return console.log(self.outputCanvas().toDataURL(\"image/png\"));\n      },\n      draw: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return lastCommand.push(Command.ChangePixel({\n          x: x,\n          y: y,\n          index: activeIndex()\n        }, self));\n      },\n      changePixel: function(_arg) {\n        var index, x, y;\n        x = _arg.x, y = _arg.y, index = _arg.index;\n        if (canvas !== previewCanvas) {\n          pixels.set(x, y, index);\n        }\n        return canvas.drawRect({\n          x: x * pixelSize,\n          y: y * pixelSize,\n          width: pixelSize,\n          height: pixelSize,\n          color: palette[index]\n        });\n      },\n      getPixel: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return {\n          x: x,\n          y: y,\n          index: pixels.get(x, y)\n        };\n      },\n      palette: Observable(palette),\n      preview: function(fn) {\n        var realCanvas, realCommand;\n        realCommand = lastCommand;\n        lastCommand = Command.Composite();\n        realCanvas = canvas;\n        canvas = previewCanvas;\n        canvas.clear();\n        fn();\n        canvas = realCanvas;\n        return lastCommand = realCommand;\n      }\n    });\n    $('body').append(template(self));\n    canvas = TouchCanvas(canvasSize);\n    previewCanvas = TouchCanvas(canvasSize);\n    updateActiveColor = function(newIndex) {\n      var color;\n      color = palette[newIndex];\n      return $(\".palette .current\").css({\n        backgroundColor: color\n      });\n    };\n    updateActiveColor(activeIndex());\n    activeIndex.observe(updateActiveColor);\n    $('.viewport').append(canvas.element());\n    $(\".viewport\").append($(previewCanvas.element()).addClass(\"preview\"));\n    canvas.on(\"touch\", function(position) {\n      lastCommand = Command.Composite();\n      self.execute(lastCommand);\n      return activeTool().touch({\n        position: position.scale(pixelExtent).floor(),\n        editor: self\n      });\n    });\n    canvas.on(\"move\", function(position, previousPosition) {\n      return activeTool().move({\n        position: position.scale(pixelExtent).floor(),\n        previousPosition: previousPosition.scale(pixelExtent).floor(),\n        editor: self\n      });\n    });\n    canvas.on(\"release\", function(position) {\n      activeTool().release({\n        position: position.scale(pixelExtent).floor(),\n        editor: self\n      });\n      return previewCanvas.clear();\n    });\n    return self;\n  };\n\n  Editor();\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "content": "(function() {\n  var Command, Editor, Grid, Hotkeys, Palette, Size, Tools, TouchCanvas, Undo, download, runtime, saveAs, template, _ref;\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  saveAs = require(\"./lib/file_saver\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"./undo\");\n\n  Hotkeys = require(\"./hotkeys\");\n\n  Tools = require(\"./tools\");\n\n  Palette = require(\"./palette\");\n\n  template = require(\"./templates/editor\");\n\n  _ref = require(\"./util\"), Grid = _ref.Grid, Size = _ref.Size, download = _ref.download;\n\n  Editor = function(I, self) {\n    var activeIndex, activeTool, canvas, canvasSize, lastCommand, palette, pixelExtent, pixelSize, pixels, previewCanvas, updateActiveColor;\n    if (I == null) {\n      I = {};\n    }\n    activeIndex = Observable(1);\n    pixelExtent = Size(16, 16);\n    pixelSize = 20;\n    canvasSize = pixelExtent.scale(pixelSize);\n    palette = Palette.defaults;\n    canvas = null;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Undo);\n    self.include(Hotkeys);\n    self.include(Tools);\n    activeTool = self.activeTool;\n    pixels = Grid(pixelExtent.width, pixelExtent.height, 0);\n    self.extend({\n      activeIndex: activeIndex,\n      outputCanvas: function() {\n        var outputCanvas;\n        outputCanvas = TouchCanvas(pixelExtent);\n        pixels.each(function(index, x, y) {\n          return outputCanvas.drawRect({\n            x: x,\n            y: y,\n            width: 1,\n            height: 1,\n            color: palette[index]\n          });\n        });\n        return outputCanvas.element();\n      },\n      download: function() {\n        return self.outputCanvas().toBlob(function(blob) {\n          return saveAs(blob, prompt(\"File name\", \"image.png\"));\n        });\n      },\n      toDataURL: function() {\n        return console.log(self.outputCanvas().toDataURL(\"image/png\"));\n      },\n      draw: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return lastCommand.push(Command.ChangePixel({\n          x: x,\n          y: y,\n          index: activeIndex()\n        }, self));\n      },\n      changePixel: function(_arg) {\n        var color, index, x, y;\n        x = _arg.x, y = _arg.y, index = _arg.index;\n        if (canvas !== previewCanvas) {\n          pixels.set(x, y, index);\n        }\n        color = palette[index];\n        if (color === \"transparent\") {\n          return canvas.clear({\n            x: x * pixelSize,\n            y: y * pixelSize,\n            width: pixelSize,\n            height: pixelSize\n          });\n        } else {\n          return canvas.drawRect({\n            x: x * pixelSize,\n            y: y * pixelSize,\n            width: pixelSize,\n            height: pixelSize,\n            color: color\n          });\n        }\n      },\n      getPixel: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return {\n          x: x,\n          y: y,\n          index: pixels.get(x, y)\n        };\n      },\n      palette: Observable(palette),\n      preview: function(fn) {\n        var realCanvas, realCommand;\n        realCommand = lastCommand;\n        lastCommand = Command.Composite();\n        realCanvas = canvas;\n        canvas = previewCanvas;\n        canvas.clear();\n        fn();\n        canvas = realCanvas;\n        return lastCommand = realCommand;\n      }\n    });\n    $('body').append(template(self));\n    canvas = TouchCanvas(canvasSize);\n    previewCanvas = TouchCanvas(canvasSize);\n    updateActiveColor = function(newIndex) {\n      var color;\n      color = palette[newIndex];\n      return $(\".palette .current\").css({\n        backgroundColor: color\n      });\n    };\n    updateActiveColor(activeIndex());\n    activeIndex.observe(updateActiveColor);\n    $('.viewport').append(canvas.element());\n    $(\".viewport\").append($(previewCanvas.element()).addClass(\"preview\"));\n    canvas.on(\"touch\", function(position) {\n      lastCommand = Command.Composite();\n      self.execute(lastCommand);\n      return activeTool().touch({\n        position: position.scale(pixelExtent).floor(),\n        editor: self\n      });\n    });\n    canvas.on(\"move\", function(position, previousPosition) {\n      return activeTool().move({\n        position: position.scale(pixelExtent).floor(),\n        previousPosition: previousPosition.scale(pixelExtent).floor(),\n        editor: self\n      });\n    });\n    canvas.on(\"release\", function(position) {\n      activeTool().release({\n        position: position.scale(pixelExtent).floor(),\n        editor: self\n      });\n      return previewCanvas.clear();\n    });\n    return self;\n  };\n\n  Editor();\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
       "type": "blob"
     },
     "hotkeys": {
@@ -113,22 +113,22 @@
     },
     "palette": {
       "path": "palette",
-      "content": "(function() {\n  var Palette;\n\n  Palette = {\n    defaults: [\"#000000\", \"#FFFFFF\", \"#666666\", \"#DCDCDC\", \"#EB070E\", \"#F69508\", \"#FFDE49\", \"#388326\", \"#0246E3\", \"#563495\", \"#58C4F5\", \"#E5AC99\", \"#5B4635\", \"#FFFEE9\"]\n  };\n\n  module.exports = Palette;\n\n}).call(this);\n\n//# sourceURL=palette.coffee",
+      "content": "(function() {\n  var Palette;\n\n  Palette = {\n    defaults: [\"transparent\", \"#000000\", \"#FFFFFF\", \"#666666\", \"#DCDCDC\", \"#EB070E\", \"#F69508\", \"#FFDE49\", \"#388326\", \"#0246E3\", \"#563495\", \"#58C4F5\", \"#E5AC99\", \"#5B4635\", \"#FFFEE9\"]\n  };\n\n  module.exports = Palette;\n\n}).call(this);\n\n//# sourceURL=palette.coffee",
       "type": "blob"
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.0.js\"],\"dependencies\":{\"jquery-utils\":\"STRd6/jquery-utils:v0.1.0\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\",\"commando\":\"STRd6/commando:v0.9.0\"},\"width\":480,\"height\":320};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.2.js\"],\"dependencies\":{\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.1.1\",\"commando\":\"STRd6/commando:v0.9.0\"},\"width\":480,\"height\":320};",
       "type": "blob"
     },
     "style": {
       "path": "style",
-      "content": "module.exports = \"html,\\nbody {\\n  margin: 0;\\n  height: 100%;\\n}\\n\\n.editor {\\n  background-color: lightgray;\\n  height: 100%;\\n  padding: 0 40px;\\n  position: relative;\\n  overflow: hidden;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n  -ms-user-select: none;\\n  -moz-user-select: none;\\n  -webkit-user-select: none;\\n  user-select: none;\\n}\\n\\n.toolbar {\\n  background-color: white;\\n  height: 100%;\\n  width: 40px;\\n  position: absolute;\\n  top: 0;\\n  left: 0;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.toolbar .tool.active {\\n  border-color: green;\\n}\\n\\n.toolbar .tool {\\n  width: 36px;\\n  height: 36px;\\n  border: 1px solid rgba(0, 0, 0, 0.5);\\n  border-radius: 2px;\\n  margin: 2px;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.palette {\\n  background-color: white;\\n  height: 100%;\\n  width: 40px;\\n  position: absolute;\\n  top: 0;\\n  right: 0;\\n  font-size: 0;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.palette .color.current {\\n  float: none;\\n  width: 36px;\\n  height: 36px;\\n}\\n\\n.palette .color {\\n  border: 1px solid rgba(0, 0, 0, 0.5);\\n  border-radius: 2px;\\n  float: left;\\n  width: 16px;\\n  height: 16px;\\n  margin: 2px;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.viewport {\\n  background-color: white;\\n  border: 1px solid gray;\\n  height: 320px;\\n  width: 320px;\\n  position: absolute;\\n  top: 0;\\n  bottom: 0;\\n  left: 0;\\n  right: 0;\\n  margin: auto;\\n}\\n\\n.viewport canvas.preview {\\n  pointer-events: none;\\n}\\n\\n.viewport canvas {\\n  background-color: transparent;\\n  position: absolute;\\n}\";",
+      "content": "module.exports = \"html,\\nbody {\\n  margin: 0;\\n  height: 100%;\\n}\\n\\n.editor {\\n  background-color: lightgray;\\n  height: 100%;\\n  padding: 0 40px;\\n  position: relative;\\n  overflow: hidden;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n  -ms-user-select: none;\\n  -moz-user-select: none;\\n  -webkit-user-select: none;\\n  user-select: none;\\n}\\n\\n.toolbar {\\n  background-color: white;\\n  height: 100%;\\n  width: 40px;\\n  position: absolute;\\n  top: 0;\\n  left: 0;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.toolbar .tool.active {\\n  background-color: white;\\n  border-color: green;\\n}\\n\\n.toolbar .tool {\\n  background-color: lightgray;\\n  background-position: center;\\n  background-repeat: no-repeat;\\n  width: 36px;\\n  height: 36px;\\n  border: 1px solid rgba(0, 0, 0, 0.5);\\n  border-radius: 2px;\\n  margin: 2px;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.palette {\\n  background-color: white;\\n  height: 100%;\\n  width: 40px;\\n  position: absolute;\\n  top: 0;\\n  right: 0;\\n  font-size: 0;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.palette .color.current {\\n  float: none;\\n  width: 36px;\\n  height: 36px;\\n}\\n\\n.palette .color {\\n  border: 1px solid rgba(0, 0, 0, 0.5);\\n  border-radius: 2px;\\n  float: left;\\n  width: 16px;\\n  height: 16px;\\n  margin: 2px;\\n  -ms-box-sizing: border-box;\\n  -moz-box-sizing: border-box;\\n  -webkit-box-sizing: border-box;\\n  box-sizing: border-box;\\n}\\n\\n.viewport {\\n  background-color: white;\\n  border: 1px solid gray;\\n  height: 320px;\\n  width: 320px;\\n  position: absolute;\\n  top: 0;\\n  bottom: 0;\\n  left: 0;\\n  right: 0;\\n  margin: auto;\\n}\\n\\n.viewport canvas.preview {\\n  pointer-events: none;\\n}\\n\\n.viewport canvas {\\n  background-color: transparent;\\n  position: absolute;\\n}\";",
       "type": "blob"
     },
     "templates/editor": {
       "path": "templates/editor",
-      "content": "module.exports = (function(data) {\n  return (function() {\n    var activeIndex, activeTool, __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    activeIndex = this.activeIndex;\n    activeTool = this.activeTool;\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __each(this.tools, function(tool) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"tool\");\n      __on(\"click\", function(e) {\n        activeTool(tool);\n        return $(e.currentTarget).takeClass(\"active\");\n      });\n      return __pop();\n    });\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"color current\");\n    __pop();\n    __each(this.palette, function(color, index) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: \" + color);\n      __on(\"click\", function() {\n        return activeIndex(index);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
+      "content": "module.exports = (function(data) {\n  return (function() {\n    var activeIndex, activeTool, __attribute, __each, __element, __filter, __on, __pop, __push, __render, __text, __with, _ref;\n    _ref = HAMLjr.Runtime(this), __push = _ref.__push, __pop = _ref.__pop, __attribute = _ref.__attribute, __filter = _ref.__filter, __text = _ref.__text, __on = _ref.__on, __each = _ref.__each, __with = _ref.__with, __render = _ref.__render;\n    __push(document.createDocumentFragment());\n    activeIndex = this.activeIndex;\n    activeTool = this.activeTool;\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"editor\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"toolbar\");\n    __each(this.tools, function(tool) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"tool\");\n      __attribute(__element, \"style\", \"background-image: url(\" + tool.iconUrl + \")\");\n      __on(\"click\", function(e) {\n        activeTool(tool);\n        return $(e.currentTarget).takeClass(\"active\");\n      });\n      return __pop();\n    });\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"viewport\");\n    __pop();\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"palette\");\n    __element = document.createElement(\"div\");\n    __push(__element);\n    __attribute(__element, \"class\", \"color current\");\n    __pop();\n    __each(this.palette, function(color, index) {\n      __element = document.createElement(\"div\");\n      __push(__element);\n      __attribute(__element, \"class\", \"color\");\n      __attribute(__element, \"style\", \"background-color: \" + color);\n      __on(\"click\", function() {\n        return activeIndex(index);\n      });\n      return __pop();\n    });\n    __pop();\n    __pop();\n    return __pop();\n  }).call(data);\n});\n;",
       "type": "blob"
     },
     "test/editor": {
@@ -148,7 +148,7 @@
     },
     "tools": {
       "path": "tools",
-      "content": "(function() {\n  var TOOLS, circle, line, neighbors, _ref;\n\n  _ref = require(\"./util\"), line = _ref.line, circle = _ref.circle;\n\n  neighbors = function(point) {\n    return [Point(point.x, point.y - 1), Point(point.x - 1, point.y), Point(point.x + 1, point.y), Point(point.x, point.y + 1)];\n  };\n\n  TOOLS = {\n    line: {\n      touch: function(_arg) {\n        var editor, position;\n        position = _arg.position, editor = _arg.editor;\n        return editor.draw(position);\n      },\n      move: function(_arg) {\n        var editor, position, previousPosition;\n        editor = _arg.editor, position = _arg.position, previousPosition = _arg.previousPosition;\n        return line(previousPosition, position, editor.draw);\n      },\n      release: function() {}\n    },\n    fill: {\n      touch: function(_arg) {\n        var editor, index, position, queue, targetIndex;\n        position = _arg.position, editor = _arg.editor;\n        index = editor.activeIndex();\n        targetIndex = editor.getPixel(position).index;\n        if (index === targetIndex) {\n          return;\n        }\n        queue = [position];\n        editor.draw(position);\n        while (queue.length) {\n          position = queue.pop();\n          neighbors(position).forEach(function(position) {\n            var _ref1;\n            if (((_ref1 = editor.getPixel(position)) != null ? _ref1.index : void 0) === targetIndex) {\n              editor.draw(position);\n              return queue.push(position);\n            }\n          });\n        }\n      },\n      move: function() {},\n      release: function() {}\n    },\n    circle: (function() {\n      var start;\n      start = null;\n      return {\n        touch: function(_arg) {\n          var editor, position;\n          editor = _arg.editor, position = _arg.position;\n          start = position;\n          return editor.preview(function() {\n            return circle(start, position, editor.draw);\n          });\n        },\n        move: function(_arg) {\n          var editor, position;\n          editor = _arg.editor, position = _arg.position;\n          return editor.preview(function() {\n            return circle(start, position, editor.draw);\n          });\n        },\n        release: function(_arg) {\n          var editor, position;\n          editor = _arg.editor, position = _arg.position;\n          return circle(start, position, editor.draw);\n        }\n      };\n    })(),\n    line2: (function() {\n      var start;\n      start = null;\n      return {\n        touch: function(_arg) {\n          var editor, position;\n          position = _arg.position, editor = _arg.editor;\n          return start = position;\n        },\n        move: function(_arg) {\n          var editor, position, previousPosition;\n          editor = _arg.editor, position = _arg.position, previousPosition = _arg.previousPosition;\n          return editor.preview(function() {\n            editor.draw(start);\n            return line(start, position, editor.draw);\n          });\n        },\n        release: function(_arg) {\n          var editor, position;\n          position = _arg.position, editor = _arg.editor;\n          editor.draw(start);\n          return line(start, position, editor.draw);\n        }\n      };\n    })()\n  };\n\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    self.extend({\n      addTool: function(tool) {\n        return self.tools.push(tool);\n      },\n      activeTool: Observable(),\n      tools: Observable([])\n    });\n    Object.keys(TOOLS).forEach(function(name) {\n      return self.addTool(TOOLS[name]);\n    });\n    self.activeTool(self.tools()[0]);\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=tools.coffee",
+      "content": "(function() {\n  var TOOLS, circle, line, neighbors, _ref;\n\n  _ref = require(\"./util\"), line = _ref.line, circle = _ref.circle;\n\n  neighbors = function(point) {\n    return [Point(point.x, point.y - 1), Point(point.x - 1, point.y), Point(point.x + 1, point.y), Point(point.x, point.y + 1)];\n  };\n\n  TOOLS = {\n    line: {\n      iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII=\",\n      touch: function(_arg) {\n        var editor, position;\n        position = _arg.position, editor = _arg.editor;\n        return editor.draw(position);\n      },\n      move: function(_arg) {\n        var editor, position, previousPosition;\n        editor = _arg.editor, position = _arg.position, previousPosition = _arg.previousPosition;\n        return line(previousPosition, position, editor.draw);\n      },\n      release: function() {}\n    },\n    fill: {\n      iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII=\",\n      touch: function(_arg) {\n        var editor, index, position, queue, targetIndex;\n        position = _arg.position, editor = _arg.editor;\n        index = editor.activeIndex();\n        targetIndex = editor.getPixel(position).index;\n        if (index === targetIndex) {\n          return;\n        }\n        queue = [position];\n        editor.draw(position);\n        while (queue.length) {\n          position = queue.pop();\n          neighbors(position).forEach(function(position) {\n            var _ref1;\n            if (((_ref1 = editor.getPixel(position)) != null ? _ref1.index : void 0) === targetIndex) {\n              editor.draw(position);\n              return queue.push(position);\n            }\n          });\n        }\n      },\n      move: function() {},\n      release: function() {}\n    },\n    circle: (function() {\n      var start;\n      start = null;\n      return {\n        iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII=\",\n        touch: function(_arg) {\n          var editor, position;\n          editor = _arg.editor, position = _arg.position;\n          start = position;\n          return editor.preview(function() {\n            return circle(start, position, editor.draw);\n          });\n        },\n        move: function(_arg) {\n          var editor, position;\n          editor = _arg.editor, position = _arg.position;\n          return editor.preview(function() {\n            return circle(start, position, editor.draw);\n          });\n        },\n        release: function(_arg) {\n          var editor, position;\n          editor = _arg.editor, position = _arg.position;\n          return circle(start, position, editor.draw);\n        }\n      };\n    })(),\n    line2: (function() {\n      var start;\n      start = null;\n      return {\n        iconUrl: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC\",\n        touch: function(_arg) {\n          var editor, position;\n          position = _arg.position, editor = _arg.editor;\n          return start = position;\n        },\n        move: function(_arg) {\n          var editor, position, previousPosition;\n          editor = _arg.editor, position = _arg.position, previousPosition = _arg.previousPosition;\n          return editor.preview(function() {\n            editor.draw(start);\n            return line(start, position, editor.draw);\n          });\n        },\n        release: function(_arg) {\n          var editor, position;\n          position = _arg.position, editor = _arg.editor;\n          editor.draw(start);\n          return line(start, position, editor.draw);\n        }\n      };\n    })()\n  };\n\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    self.extend({\n      addTool: function(tool) {\n        return self.tools.push(tool);\n      },\n      activeTool: Observable(),\n      tools: Observable([])\n    });\n    Object.keys(TOOLS).forEach(function(name) {\n      return self.addTool(TOOLS[name]);\n    });\n    self.activeTool(self.tools()[0]);\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=tools.coffee",
       "type": "blob"
     },
     "lib/file_saver": {
@@ -165,7 +165,7 @@
   "entryPoint": "editor",
   "dependencies": {
     "jquery-utils": {
-      "version": "0.1.0",
+      "version": "0.1.2",
       "source": {
         "LICENSE": {
           "path": "LICENSE",
@@ -182,13 +182,13 @@
         "main.coffee.md": {
           "path": "main.coffee.md",
           "mode": "100644",
-          "content": "    require \"hotkeys\"\n    require \"./take_class\"\n",
+          "content": "    require \"hotkeys\"\n    require \"image-reader\"\n    require \"./take_class\"\n",
           "type": "blob"
         },
         "pixie.cson": {
           "path": "pixie.cson",
           "mode": "100644",
-          "content": "version: \"0.1.0\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.1.0.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n",
+          "content": "version: \"0.1.2\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb.js\"\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\ndependencies:\n  hotkeys: \"STRd6/jquery.hotkeys:v0.9.0\"\n  \"image-reader\": \"STRd6/jquery-image_reader:v0.1.3\"\n",
           "type": "blob"
         },
         "take_class.coffee.md": {
@@ -200,19 +200,25 @@
         "test/take_class.coffee": {
           "path": "test/take_class.coffee",
           "mode": "100644",
-          "content": "require \"../main\"\n\ndescribe \"$.takeClass\", ->\n  it \"should exist\", ->\n    assert $.fn.takeClass\n",
+          "content": "require \"../main\"\n\ndescribe \"jQuery#takeClass\", ->\n  it \"should exist\", ->\n    assert $.fn.takeClass\n",
+          "type": "blob"
+        },
+        "test/image_reader.coffee": {
+          "path": "test/image_reader.coffee",
+          "mode": "100644",
+          "content": "require \"../main\"\n\ndescribe \"jQuery#pasteImageReader\", ->\n  it \"should exist\", ->\n    assert $.fn.pasteImageReader\n\ndescribe \"jQuery#dropImageReader\", ->\n  it \"should exist\", ->\n    assert $.fn.dropImageReader\n",
           "type": "blob"
         }
       },
       "distribution": {
         "main": {
           "path": "main",
-          "content": "(function() {\n  require(\"hotkeys\");\n\n  require(\"./take_class\");\n\n}).call(this);\n\n//# sourceURL=main.coffee",
+          "content": "(function() {\n  require(\"hotkeys\");\n\n  require(\"image-reader\");\n\n  require(\"./take_class\");\n\n}).call(this);\n\n//# sourceURL=main.coffee",
           "type": "blob"
         },
         "pixie": {
           "path": "pixie",
-          "content": "module.exports = {\"version\":\"0.1.0\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.1.0.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\"}};",
+          "content": "module.exports = {\"version\":\"0.1.2\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb.js\",\"http://strd6.github.io/require/v0.2.2.js\"],\"dependencies\":{\"hotkeys\":\"STRd6/jquery.hotkeys:v0.9.0\",\"image-reader\":\"STRd6/jquery-image_reader:v0.1.3\"}};",
           "type": "blob"
         },
         "take_class": {
@@ -222,7 +228,12 @@
         },
         "test/take_class": {
           "path": "test/take_class",
-          "content": "(function() {\n  require(\"../main\");\n\n  describe(\"$.takeClass\", function() {\n    return it(\"should exist\", function() {\n      return assert($.fn.takeClass);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/take_class.coffee",
+          "content": "(function() {\n  require(\"../main\");\n\n  describe(\"jQuery#takeClass\", function() {\n    return it(\"should exist\", function() {\n      return assert($.fn.takeClass);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/take_class.coffee",
+          "type": "blob"
+        },
+        "test/image_reader": {
+          "path": "test/image_reader",
+          "content": "(function() {\n  require(\"../main\");\n\n  describe(\"jQuery#pasteImageReader\", function() {\n    return it(\"should exist\", function() {\n      return assert($.fn.pasteImageReader);\n    });\n  });\n\n  describe(\"jQuery#dropImageReader\", function() {\n    return it(\"should exist\", function() {\n      return assert($.fn.dropImageReader);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/image_reader.coffee",
           "type": "blob"
         }
       },
@@ -384,12 +395,188 @@
           "progenitor": {
             "url": "http://strd6.github.io/editor/"
           }
+        },
+        "image-reader": {
+          "version": "0.1.3",
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "Copyright (c) 2012 Daniel X. Moore\n\nMIT License\n\nPermission is hereby granted, free of charge, to any person obtaining\na copy of this software and associated documentation files (the\n\"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to\npermit persons to whom the Software is furnished to do so, subject to\nthe following conditions:\n\nThe above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\nNONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE\nLIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\nOF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION\nWITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "# Jquery::ImageReader\n\nHelpful jQuery plugins for dropping and pasting image data.\n\n## Usage\n\n```coffeescript\n$(\"html\").pasteImageReader ({name, dataURL, file, event}) ->\n  $(\"body\").css\n    backgroundImage: \"url(#{dataURL})\"\n\n$(\"html\").dropImageReader ({name, dataURL, file, event}) ->\n  $(\"body\").css\n    backgroundImage: \"url(#{dataURL})\"\n```\n\n## Contributing\n\n1. Fork it\n2. Create your feature branch (`git checkout -b my-new-feature`)\n3. Commit your changes (`git commit -am 'Added some feature'`)\n4. Push to the branch (`git push origin my-new-feature`)\n5. Create new Pull Request\n",
+              "type": "blob"
+            },
+            "test/image_reader.coffee": {
+              "path": "test/image_reader.coffee",
+              "mode": "100644",
+              "content": "require \"../main\"\n\n$(\"html\").pasteImageReader ({name, dataURL, file, event}) ->\n  $(\"body\").css\n    backgroundImage: \"url(#{dataURL})\"\n\n$(\"html\").dropImageReader ({name, dataURL, file, event}) ->\n  $(\"body\").css\n    backgroundImage: \"url(#{dataURL})\"\n",
+              "type": "blob"
+            },
+            "paste.coffee.md": {
+              "path": "paste.coffee.md",
+              "mode": "100644",
+              "content": "Paste\n=====\n\n    (($) ->\n      $.event.fix = ((originalFix) ->\n        (event) ->\n          event = originalFix.apply(this, arguments)\n    \n          if event.type.indexOf('copy') == 0 || event.type.indexOf('paste') == 0\n            event.clipboardData = event.originalEvent.clipboardData\n    \n          return event\n    \n      )($.event.fix)\n    \n      defaults =\n        callback: $.noop\n        matchType: /image.*/\n    \n      $.fn.pasteImageReader = (options) ->\n        if typeof options == \"function\"\n          options =\n            callback: options\n    \n        options = $.extend({}, defaults, options)\n    \n        @each ->\n          element = this\n          $this = $(this)\n    \n          $this.bind 'paste', (event) ->\n            found = false\n            clipboardData = event.clipboardData\n    \n            Array::forEach.call clipboardData.types, (type, i) ->\n              return if found\n    \n              if type.match(options.matchType) or (clipboardData.items && clipboardData.items[i].type.match(options.matchType))\n                file = clipboardData.items[i].getAsFile()\n    \n                reader = new FileReader()\n    \n                reader.onload = (evt) ->\n                  options.callback.call element,\n                    dataURL: evt.target.result\n                    event: evt\n                    file: file\n                    name: file.name\n    \n                reader.readAsDataURL(file)\n    \n                found = true\n    \n    )(jQuery)\n",
+              "type": "blob"
+            },
+            "drop.coffee.md": {
+              "path": "drop.coffee.md",
+              "mode": "100644",
+              "content": "Drop\n====\n\n    (($) ->\n      $.event.fix = ((originalFix) ->\n        (event) ->\n          event = originalFix.apply(this, arguments)\n    \n          if event.type.indexOf('drag') == 0 || event.type.indexOf('drop') == 0\n            event.dataTransfer = event.originalEvent.dataTransfer\n    \n          event\n    \n      )($.event.fix)\n    \n      defaults =\n        callback: $.noop\n        matchType: /image.*/\n    \n      $.fn.dropImageReader = (options) ->\n        if typeof options == \"function\"\n          options =\n            callback: options\n    \n        options = $.extend({}, defaults, options)\n    \n        stopFn = (event) ->\n          event.stopPropagation()\n          event.preventDefault()\n    \n        this.each ->\n          element = this\n          $this = $(this)\n    \n          $this.bind 'dragenter dragover dragleave', stopFn\n    \n          $this.bind 'drop', (event) ->\n            stopFn(event)\n    \n            Array::forEach.call event.dataTransfer.files, (file) ->\n              return unless file.type.match(options.matchType)\n    \n              reader = new FileReader()\n    \n              reader.onload = (evt) ->\n                options.callback.call element,\n                  dataURL: evt.target.result\n                  event: evt\n                  file: file\n                  name: file.name\n    \n              reader.readAsDataURL(file)\n    \n    )(jQuery)\n",
+              "type": "blob"
+            },
+            "main.coffee.md": {
+              "path": "main.coffee.md",
+              "mode": "100644",
+              "content": "\n    require \"./paste\"\n    require \"./drop\"\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "version: \"0.1.3\"\nentryPoint: \"main\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "test/image_reader": {
+              "path": "test/image_reader",
+              "content": "(function() {\n  require(\"../main\");\n\n  $(\"html\").pasteImageReader(function(_arg) {\n    var dataURL, event, file, name;\n    name = _arg.name, dataURL = _arg.dataURL, file = _arg.file, event = _arg.event;\n    return $(\"body\").css({\n      backgroundImage: \"url(\" + dataURL + \")\"\n    });\n  });\n\n  $(\"html\").dropImageReader(function(_arg) {\n    var dataURL, event, file, name;\n    name = _arg.name, dataURL = _arg.dataURL, file = _arg.file, event = _arg.event;\n    return $(\"body\").css({\n      backgroundImage: \"url(\" + dataURL + \")\"\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/image_reader.coffee",
+              "type": "blob"
+            },
+            "paste": {
+              "path": "paste",
+              "content": "(function() {\n  (function($) {\n    var defaults;\n    $.event.fix = (function(originalFix) {\n      return function(event) {\n        event = originalFix.apply(this, arguments);\n        if (event.type.indexOf('copy') === 0 || event.type.indexOf('paste') === 0) {\n          event.clipboardData = event.originalEvent.clipboardData;\n        }\n        return event;\n      };\n    })($.event.fix);\n    defaults = {\n      callback: $.noop,\n      matchType: /image.*/\n    };\n    return $.fn.pasteImageReader = function(options) {\n      if (typeof options === \"function\") {\n        options = {\n          callback: options\n        };\n      }\n      options = $.extend({}, defaults, options);\n      return this.each(function() {\n        var $this, element;\n        element = this;\n        $this = $(this);\n        return $this.bind('paste', function(event) {\n          var clipboardData, found;\n          found = false;\n          clipboardData = event.clipboardData;\n          return Array.prototype.forEach.call(clipboardData.types, function(type, i) {\n            var file, reader;\n            if (found) {\n              return;\n            }\n            if (type.match(options.matchType) || (clipboardData.items && clipboardData.items[i].type.match(options.matchType))) {\n              file = clipboardData.items[i].getAsFile();\n              reader = new FileReader();\n              reader.onload = function(evt) {\n                return options.callback.call(element, {\n                  dataURL: evt.target.result,\n                  event: evt,\n                  file: file,\n                  name: file.name\n                });\n              };\n              reader.readAsDataURL(file);\n              return found = true;\n            }\n          });\n        });\n      });\n    };\n  })(jQuery);\n\n}).call(this);\n\n//# sourceURL=paste.coffee",
+              "type": "blob"
+            },
+            "drop": {
+              "path": "drop",
+              "content": "(function() {\n  (function($) {\n    var defaults;\n    $.event.fix = (function(originalFix) {\n      return function(event) {\n        event = originalFix.apply(this, arguments);\n        if (event.type.indexOf('drag') === 0 || event.type.indexOf('drop') === 0) {\n          event.dataTransfer = event.originalEvent.dataTransfer;\n        }\n        return event;\n      };\n    })($.event.fix);\n    defaults = {\n      callback: $.noop,\n      matchType: /image.*/\n    };\n    return $.fn.dropImageReader = function(options) {\n      var stopFn;\n      if (typeof options === \"function\") {\n        options = {\n          callback: options\n        };\n      }\n      options = $.extend({}, defaults, options);\n      stopFn = function(event) {\n        event.stopPropagation();\n        return event.preventDefault();\n      };\n      return this.each(function() {\n        var $this, element;\n        element = this;\n        $this = $(this);\n        $this.bind('dragenter dragover dragleave', stopFn);\n        return $this.bind('drop', function(event) {\n          stopFn(event);\n          return Array.prototype.forEach.call(event.dataTransfer.files, function(file) {\n            var reader;\n            if (!file.type.match(options.matchType)) {\n              return;\n            }\n            reader = new FileReader();\n            reader.onload = function(evt) {\n              return options.callback.call(element, {\n                dataURL: evt.target.result,\n                event: evt,\n                file: file,\n                name: file.name\n              });\n            };\n            return reader.readAsDataURL(file);\n          });\n        });\n      });\n    };\n  })(jQuery);\n\n}).call(this);\n\n//# sourceURL=drop.coffee",
+              "type": "blob"
+            },
+            "main": {
+              "path": "main",
+              "content": "(function() {\n  require(\"./paste\");\n\n  require(\"./drop\");\n\n}).call(this);\n\n//# sourceURL=main.coffee",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"version\":\"0.1.3\",\"entryPoint\":\"main\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/require/v0.2.2.js\"]};",
+              "type": "blob"
+            }
+          },
+          "entryPoint": "main",
+          "dependencies": {},
+          "remoteDependencies": [
+            "//code.jquery.com/jquery-1.10.1.min.js",
+            "http://strd6.github.io/require/v0.2.2.js"
+          ],
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "repository": {
+            "id": 4527535,
+            "name": "jquery-image_reader",
+            "full_name": "STRd6/jquery-image_reader",
+            "owner": {
+              "login": "STRd6",
+              "id": 18894,
+              "avatar_url": "https://1.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
+              "gravatar_id": "33117162fff8a9cf50544a604f60c045",
+              "url": "https://api.github.com/users/STRd6",
+              "html_url": "https://github.com/STRd6",
+              "followers_url": "https://api.github.com/users/STRd6/followers",
+              "following_url": "https://api.github.com/users/STRd6/following{/other_user}",
+              "gists_url": "https://api.github.com/users/STRd6/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/STRd6/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/STRd6/subscriptions",
+              "organizations_url": "https://api.github.com/users/STRd6/orgs",
+              "repos_url": "https://api.github.com/users/STRd6/repos",
+              "events_url": "https://api.github.com/users/STRd6/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/STRd6/received_events",
+              "type": "User",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/STRd6/jquery-image_reader",
+            "description": "Paste and Drop images into web apps",
+            "fork": false,
+            "url": "https://api.github.com/repos/STRd6/jquery-image_reader",
+            "forks_url": "https://api.github.com/repos/STRd6/jquery-image_reader/forks",
+            "keys_url": "https://api.github.com/repos/STRd6/jquery-image_reader/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/STRd6/jquery-image_reader/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/STRd6/jquery-image_reader/teams",
+            "hooks_url": "https://api.github.com/repos/STRd6/jquery-image_reader/hooks",
+            "issue_events_url": "https://api.github.com/repos/STRd6/jquery-image_reader/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/STRd6/jquery-image_reader/events",
+            "assignees_url": "https://api.github.com/repos/STRd6/jquery-image_reader/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/STRd6/jquery-image_reader/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/STRd6/jquery-image_reader/tags",
+            "blobs_url": "https://api.github.com/repos/STRd6/jquery-image_reader/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/STRd6/jquery-image_reader/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/STRd6/jquery-image_reader/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/STRd6/jquery-image_reader/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/STRd6/jquery-image_reader/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/STRd6/jquery-image_reader/languages",
+            "stargazers_url": "https://api.github.com/repos/STRd6/jquery-image_reader/stargazers",
+            "contributors_url": "https://api.github.com/repos/STRd6/jquery-image_reader/contributors",
+            "subscribers_url": "https://api.github.com/repos/STRd6/jquery-image_reader/subscribers",
+            "subscription_url": "https://api.github.com/repos/STRd6/jquery-image_reader/subscription",
+            "commits_url": "https://api.github.com/repos/STRd6/jquery-image_reader/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/STRd6/jquery-image_reader/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/STRd6/jquery-image_reader/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/STRd6/jquery-image_reader/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/STRd6/jquery-image_reader/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/STRd6/jquery-image_reader/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/STRd6/jquery-image_reader/merges",
+            "archive_url": "https://api.github.com/repos/STRd6/jquery-image_reader/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/STRd6/jquery-image_reader/downloads",
+            "issues_url": "https://api.github.com/repos/STRd6/jquery-image_reader/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/STRd6/jquery-image_reader/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/STRd6/jquery-image_reader/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/STRd6/jquery-image_reader/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/STRd6/jquery-image_reader/labels{/name}",
+            "created_at": "2012-06-02T07:12:27Z",
+            "updated_at": "2013-08-29T08:31:21Z",
+            "pushed_at": "2013-04-17T16:28:05Z",
+            "git_url": "git://github.com/STRd6/jquery-image_reader.git",
+            "ssh_url": "git@github.com:STRd6/jquery-image_reader.git",
+            "clone_url": "https://github.com/STRd6/jquery-image_reader.git",
+            "svn_url": "https://github.com/STRd6/jquery-image_reader",
+            "homepage": null,
+            "size": 160,
+            "watchers_count": 4,
+            "language": "JavaScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 1,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 1,
+            "open_issues": 0,
+            "watchers": 4,
+            "master_branch": "master",
+            "default_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "network_count": 1,
+            "branch": "v0.1.3",
+            "defaultBranch": "master"
+          }
         }
       },
       "remoteDependencies": [
         "//code.jquery.com/jquery-1.10.1.min.js",
         "http://strd6.github.io/tempest/javascripts/envweb.js",
-        "http://strd6.github.io/require/v0.1.0.js"
+        "http://strd6.github.io/require/v0.2.2.js"
       ],
       "progenitor": {
         "url": "http://strd6.github.io/editor/"
@@ -457,14 +644,14 @@
         "notifications_url": "https://api.github.com/repos/STRd6/jquery-utils/notifications{?since,all,participating}",
         "labels_url": "https://api.github.com/repos/STRd6/jquery-utils/labels{/name}",
         "created_at": "2013-09-29T00:25:09Z",
-        "updated_at": "2013-09-29T00:31:42Z",
-        "pushed_at": "2013-09-29T00:31:41Z",
+        "updated_at": "2013-10-25T00:40:45Z",
+        "pushed_at": "2013-10-25T00:40:42Z",
         "git_url": "git://github.com/STRd6/jquery-utils.git",
         "ssh_url": "git@github.com:STRd6/jquery-utils.git",
         "clone_url": "https://github.com/STRd6/jquery-utils.git",
         "svn_url": "https://github.com/STRd6/jquery-utils",
         "homepage": null,
-        "size": 192,
+        "size": 376,
         "watchers_count": 0,
         "language": "CoffeeScript",
         "has_issues": true,
@@ -484,7 +671,7 @@
           "pull": true
         },
         "network_count": 0,
-        "branch": "v0.1.0",
+        "branch": "v0.1.2",
         "defaultBranch": "master"
       }
     },
@@ -1094,7 +1281,7 @@
   "remoteDependencies": [
     "//code.jquery.com/jquery-1.10.1.min.js",
     "http://strd6.github.io/tempest/javascripts/envweb.js",
-    "http://strd6.github.io/require/v0.2.0.js"
+    "http://strd6.github.io/require/v0.2.2.js"
   ],
   "progenitor": {
     "url": "http://strd6.github.io/editor/"
