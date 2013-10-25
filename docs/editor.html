@@ -81,7 +81,7 @@ template = require <span class="string">"./templates/editor"</span>
   self.extend
     activeIndex: activeIndex
 
-    download: -&gt;
+    outputCanvas: -&gt;
       outputCanvas = TouchCanvas pixelExtent
 
       pixels.each (index, x, y) -&gt;
@@ -92,8 +92,14 @@ template = require <span class="string">"./templates/editor"</span>
           height: <span class="number">1</span>
           color: palette[index]
 
-      outputCanvas.element().toBlob (blob) -&gt;
+      outputCanvas.element()
+
+    download: -&gt;
+      self.outputCanvas().toBlob (blob) -&gt;
         saveAs blob, prompt(<span class="string">"File name"</span>, <span class="string">"image.png"</span>)
+
+    toDataURL: -&gt;
+      console.log self.outputCanvas().toDataURL(<span class="string">"image/png"</span>)
 
     draw: ({x, y}) -&gt;
       lastCommand.push Command.ChangePixel
