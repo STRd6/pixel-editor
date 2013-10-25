@@ -8,6 +8,10 @@ Editing pixels in your browser.
     require "./lib/canvas-to-blob"
     saveAs = require "./lib/file_saver"
 
+    runtime = require("runtime")(PACKAGE)
+    runtime.boot()
+    runtime.applyStyleSheet(require('./style'))
+
     TouchCanvas = require "touch-canvas"
 
     Command = require "./command"
@@ -16,17 +20,13 @@ Editing pixels in your browser.
     Tools = require "./tools"
 
     Palette = require("./palette")
-    runtime = require("runtime")(PACKAGE)
-
-    runtime.boot()
-    runtime.applyStyleSheet(require('./style'))
 
     template = require "./templates/editor"
 
     {Grid, Size, download} = require "./util"
 
     Editor = (I={}, self) ->
-      activeIndex = Observable(0)
+      activeIndex = Observable(1)
 
       pixelExtent = Size(16, 16)
       pixelSize = 20
@@ -44,7 +44,7 @@ Editing pixels in your browser.
 
       activeTool = self.activeTool
 
-      pixels = Grid(pixelExtent.width, pixelExtent.height, 1)
+      pixels = Grid(pixelExtent.width, pixelExtent.height, 0)
 
       self.extend
         activeIndex: activeIndex
@@ -79,12 +79,21 @@ Editing pixels in your browser.
         changePixel: ({x, y, index})->
           pixels.set(x, y, index) unless canvas is previewCanvas
 
-          canvas.drawRect
-            x: x * pixelSize
-            y: y * pixelSize
-            width: pixelSize
-            height: pixelSize
-            color: palette[index]
+          color = palette[index]
+
+          if color is "transparent"
+            canvas.clear
+              x: x * pixelSize
+              y: y * pixelSize
+              width: pixelSize
+              height: pixelSize
+          else
+            canvas.drawRect
+              x: x * pixelSize
+              y: y * pixelSize
+              width: pixelSize
+              height: pixelSize
+              color: color
 
         getPixel: ({x, y}) ->
           x: x

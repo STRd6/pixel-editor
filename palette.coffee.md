@@ -5,6 +5,7 @@ Palette
 
       defaults:
         [
+          "transparent"
           "#000000"
           "#FFFFFF"
           "#666666"

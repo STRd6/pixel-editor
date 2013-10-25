@@ -9,7 +9,7 @@ The toolbar holds our tools.
 
       .toolbar
         - each @tools, (tool) ->
-          .tool
+          .tool(style="background-image: url(#{tool.iconUrl})")
             -on "click", (e) ->
               - activeTool(tool)
 

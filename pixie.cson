@@ -3,10 +3,10 @@ entryPoint: "editor"
 remoteDependencies: [
   "//code.jquery.com/jquery-1.10.1.min.js"
   "http://strd6.github.io/tempest/javascripts/envweb.js"
-  "http://strd6.github.io/require/v0.2.0.js"
+  "http://strd6.github.io/require/v0.2.2.js"
 ]
 dependencies:
-  "jquery-utils": "STRd6/jquery-utils:v0.1.0"
+  "jquery-utils": "STRd6/jquery-utils:v0.1.2"
   runtime: "STRd6/runtime:v0.1.1"
   "touch-canvas": "STRd6/touch-canvas:v0.1.1"
   "commando": "STRd6/commando:v0.9.0"
