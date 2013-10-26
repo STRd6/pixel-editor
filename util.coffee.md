@@ -104,6 +104,13 @@ Call an iterator for each integer point on a line between two integer points.
             x: x0
             y: y0
 
+      rect: (start, end, iterator) ->
+        [start.y..end.y].forEach (y) ->
+          [start.x..end.x].forEach (x) ->
+            iterator
+              x: x
+              y: y
+
 gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
       circle: (center, endPoint, iterator) ->
@@ -154,14 +161,14 @@ A download utility using the webkit file system.
           fs.root.getFile name, {create: true}, (fileEntry) ->
             fileEntry.createWriter (fileWriter) ->
               arr = new Uint8Array(3)
-  
+
               arr[0] = 97
               arr[1] = 98
               arr[2] = 99
-  
+
               blob = new Blob [arr],
                 type: type
-  
+
               fileWriter.addEventListener "writeend", ->
                 # Download by navigating to url
                 location.href = fileEntry.toURL()

@@ -1,7 +1,7 @@
 Tools
 =====
 
-    {line, circle} = require "./util"
+    {line, circle, rect} = require "./util"
 
     neighbors = (point) ->
       [
@@ -43,9 +43,9 @@ Draw a line when moving while touching.
               if editor.getPixel(position)?.index is targetIndex
                 editor.draw position
                 queue.push(position)
-      
+
           return
-    
+
         move: ->
         release: ->
 
@@ -67,7 +67,21 @@ A circle drawing tool.
 
         release: ({editor, position}) ->
           circle start, position, editor.draw
-      
+
+      rect: do ->
+        start = null
+
+        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
+        touch: ({position})->
+          start = position
+
+        move: ({editor, position})->
+          editor.preview ->
+            rect start, position, editor.draw
+
+        release: ({position, editor}) ->
+          rect start, position, editor.draw
+
 Draw a straight line on release.
 
       line2: do ->
