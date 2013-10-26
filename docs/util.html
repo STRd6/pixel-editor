@@ -214,7 +214,14 @@ Size.prototype =
 
       iterator
         x: x0
-        y: y0</code></pre>
+        y: y0
+
+  rect: (start, end, iterator) -&gt;
+    [start.y..end.y].forEach (y) -&gt;
+      [start.x..end.x].forEach (x) -&gt;
+        iterator
+          x: x
+          y: y</code></pre>
 </div>
         </li>
         
