@@ -62,8 +62,8 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
   activeIndex = Observable(<span class="number">1</span>)
 
-  pixelExtent = Size(<span class="number">16</span>, <span class="number">16</span>)
-  pixelSize = <span class="number">20</span>
+  pixelExtent = Size(<span class="number">32</span>, <span class="number">32</span>)
+  pixelSize = <span class="number">8</span>
   canvasSize = pixelExtent.scale(pixelSize)
   palette = Palette.defaults
 
@@ -180,8 +180,12 @@ accidentally setting the pixel values during the preview.</p>
   updateActiveColor(activeIndex())
   activeIndex.observe updateActiveColor
 
-  $(<span class="string">'.viewport'</span>).append canvas.element()
-  $(<span class="string">".viewport"</span>).append $(previewCanvas.element()).addClass(<span class="string">"preview"</span>)
+  $(<span class="string">".viewport"</span>)
+    .css
+      width: canvasSize.width
+      height: canvasSize.height
+    .append(canvas.element())
+    .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     lastCommand = Command.Composite()
