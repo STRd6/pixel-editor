@@ -34,7 +34,7 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">{line, circle, rect} = require <span class="string">"./util"</span>
+            <div class="content"><pre><code class="lang-coffeescript">{line, circle, rect, rectOutline} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
   [
@@ -42,7 +42,21 @@
     Point(point.x-<span class="number">1</span>, point.y)
     Point(point.x+<span class="number">1</span>, point.y)
     Point(point.x, point.y+<span class="number">1</span>)
-  ]</code></pre>
+  ]
+
+<span class="function"><span class="title">shapeTool</span></span> = (fn, icon) -&gt;
+  start = <span class="literal">null</span>
+
+  iconUrl: icon
+  touch: ({position})-&gt;
+    start = position
+
+  move: ({editor, position})-&gt;
+    editor.preview -&gt;
+      fn start, position, editor.draw
+
+  release: ({position, editor}) -&gt;
+    fn start, position, editor.draw</code></pre>
 </div>
         </li>
         
@@ -111,36 +125,14 @@
               <p>A circle drawing tool.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  circle: <span class="keyword">do</span> -&gt;
-    start = <span class="literal">null</span>
+            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
 
-    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
-    touch: ({editor, position}) -&gt;
-      start = position
+  rect: shapeTool rect,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
 
-      editor.preview -&gt;
-        circle start, position, editor.draw
-
-    move: ({editor, position}) -&gt;
-      editor.preview -&gt;
-        circle start, position, editor.draw
-
-    release: ({editor, position}) -&gt;
-      circle start, position, editor.draw
-
-  rect: <span class="keyword">do</span> -&gt;
-    start = <span class="literal">null</span>
-
-    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
-    touch: ({position})-&gt;
-      start = position
-
-    move: ({editor, position})-&gt;
-      editor.preview -&gt;
-        rect start, position, editor.draw
-
-    release: ({position, editor}) -&gt;
-      rect start, position, editor.draw</code></pre>
+  rectOutline: shapeTool rectOutline,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span></code></pre>
 </div>
         </li>
         

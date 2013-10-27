@@ -221,6 +221,22 @@ Size.prototype =
       [start.x..end.x].forEach (x) -&gt;
         iterator
           x: x
+          y: y
+
+  rectOutline: (start, end, iterator) -&gt;
+    [start.y..end.y].forEach (y) -&gt;
+      <span class="keyword">if</span> y <span class="keyword">is</span> start.y <span class="keyword">or</span> y <span class="keyword">is</span> end.y
+        [start.x..end.x].forEach (x) -&gt;
+          iterator
+            x: x
+            y: y
+      <span class="keyword">else</span>
+        iterator
+          x: start.x
+          y: y
+
+        iterator
+          x: end.x
           y: y</code></pre>
 </div>
         </li>
