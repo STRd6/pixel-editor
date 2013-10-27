@@ -19,7 +19,8 @@ TODO: This whole activation and tracking should be made easier in Tempest.
 
 Our layers and preview canvases are placed in the viewport.
 
-      .viewport
+      .main
+        .viewport
 
 The palette holds our colors.
 
@@ -32,6 +33,6 @@ The palette holds our colors.
 
       .actions
         - each @actions, (action) ->
-          .action
+          .action(style="background-image: url(#{action.iconUrl})")
             - on "click", ->
               - action.perform()
