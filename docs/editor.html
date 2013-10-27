@@ -189,10 +189,9 @@ accidentally setting the pixel values during the preview.</p>
       position: position.scale(pixelExtent).floor()
       editor: self
 
-  previewCanvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
+  previewCanvas.<span class="literal">on</span> <span class="string">"move"</span>, (position) -&gt;
     activeTool().move
       position: position.scale(pixelExtent).floor()
-      previousPosition: previousPosition.scale(pixelExtent).floor()
       editor: self
 
   previewCanvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;

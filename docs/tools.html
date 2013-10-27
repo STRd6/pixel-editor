@@ -36,6 +36,10 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">{line, circle, rect, rectOutline} = require <span class="string">"./util"</span>
 
+<span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
+  fn start
+  line start, end, fn
+
 <span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
   [
     Point(point.x, point.y-<span class="number">1</span>)
@@ -82,12 +86,16 @@
               <p>Draw a line when moving while touching.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  pencil:
+            <div class="content"><pre><code class="lang-coffeescript">  pencil: <span class="keyword">do</span> -&gt;
+    previousPosition = <span class="literal">null</span>
+
     iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
     touch: ({position, editor})-&gt;
       editor.draw position
-    move: ({editor, position, previousPosition})-&gt;
+      previousPosition = position
+    move: ({editor, position})-&gt;
       line previousPosition, position, editor.draw
+      previousPosition = position
     release: -&gt;
 
   fill:
@@ -122,17 +130,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>A circle drawing tool.</p>
+              <h2 id="shapes">Shapes</h2>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle,
-    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
-
-  rect: shapeTool rect,
-    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
-
-  rectOutline: shapeTool rectOutline,
-    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span></code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
 </div>
         </li>
         
@@ -142,24 +144,19 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
-              <p>Draw a straight line on release.</p>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  line2: <span class="keyword">do</span> -&gt;
-    start = <span class="literal">null</span>
+            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
 
-    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
-    touch: ({position, editor})-&gt;
-      start = position
+  rect: shapeTool rect,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
 
-    move: ({editor, position, previousPosition})-&gt;
-      editor.preview -&gt;
-        editor.draw start
-        line start, position, editor.draw
+  rectOutline: shapeTool rectOutline,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span>
 
-    release: ({position, editor}) -&gt;
-      editor.draw start
-      line start, position, editor.draw
+  line2: shapeTool line2,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
