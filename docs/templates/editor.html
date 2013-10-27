@@ -67,7 +67,8 @@
               <p>Our layers and preview canvases are placed in the viewport.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">  .viewport</code></pre>
+            <div class="content"><pre><code class="lang-haml">  .main
+    .viewport</code></pre>
 </div>
         </li>
         
@@ -89,7 +90,7 @@
 
   .actions
     - each @actions, (action) -&gt;
-      .action
+      .action(style=&quot;background-image: url(#{action.iconUrl})&quot;)
         - on &quot;click&quot;, -&gt;
           - action.perform()</code></pre>
 </div>
