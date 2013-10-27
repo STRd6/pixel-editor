@@ -50,6 +50,7 @@ Command = require <span class="string">"./command"</span>
 Undo = require <span class="string">"./undo"</span>
 Hotkeys = require <span class="string">"./hotkeys"</span>
 Tools = require <span class="string">"./tools"</span>
+Actions = require <span class="string">"./actions"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 
@@ -74,6 +75,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
   self.include Undo
   self.include Hotkeys
   self.include Tools
+  self.include Actions
 
   activeTool = self.activeTool
 

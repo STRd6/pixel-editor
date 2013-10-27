@@ -167,6 +167,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     tools: Observable []
 
+  <span class="comment"># TODO: Probably want to let the editor add its own tools so this is more</span>
+  <span class="comment"># reusable</span>
   Object.keys(TOOLS).forEach (name) -&gt;
     self.addTool TOOLS[name]
 

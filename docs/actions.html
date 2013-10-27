@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>hotkeys</title>
+  <title>actions</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,7 +18,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="hotkeys">Hotkeys</h1>
+              <h1 id="actions">Actions</h1>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">
@@ -32,17 +32,50 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Hotkeys for the pixel editor.</p>
-<p>TODO: Add methods that can be functions rather than names of editor methods.</p>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self)-&gt;
+            <div class="content"><pre><code class="lang-coffeescript">module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
-    addHotkey: (key, method) -&gt;
-      $(document).bind <span class="string">"keydown"</span>, key, -&gt;
+    addAction: (action) -&gt;
+      self.actions.push action
+
+    actions: Observable []
+
+  Object.keys(Actions.defaults).forEach (hotkey) -&gt;
+    {method, icon} = Actions.defaults[hotkey]
+
+    self.addAction 
+      perform: -&gt;
         self[method]()
 
+    self.addHotkey hotkey, method
+
   <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>TODO: Consolidate actions with hotkeys</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">Actions.defaults =
+  <span class="string">"ctrl+z"</span>:
+    method: <span class="string">"undo"</span>
+    icon: <span class="literal">null</span>
+  <span class="string">"ctrl+y"</span>:
+    method: <span class="string">"redo"</span>
+    icon: <span class="literal">null</span>
+  <span class="string">"ctrl+s"</span>:
+    method: <span class="string">"download"</span>
+    icon: <span class="literal">null</span>
+  <span class="string">"ctrl+b"</span>:
+    method: <span class="string">"toDataURL"</span>
+    icon: <span class="literal">null</span></code></pre>
 </div>
         </li>
         

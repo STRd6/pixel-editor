@@ -85,7 +85,13 @@
     - each @palette, (color, index) -&gt;
       .color(style=&quot;background-color: #{color}&quot;)
         - on &quot;click&quot;, -&gt;
-          - activeIndex index</code></pre>
+          - activeIndex index
+
+  .actions
+    - each @actions, (action) -&gt;
+      .action
+        - on &quot;click&quot;, -&gt;
+          - action.perform()</code></pre>
 </div>
         </li>
         
