@@ -18,6 +18,7 @@ Editing pixels in your browser.
     Undo = require "./undo"
     Hotkeys = require "./hotkeys"
     Tools = require "./tools"
+    Actions = require "./actions"
 
     Palette = require("./palette")
 
@@ -42,6 +43,7 @@ Editing pixels in your browser.
       self.include Undo
       self.include Hotkeys
       self.include Tools
+      self.include Actions
 
       activeTool = self.activeTool
 

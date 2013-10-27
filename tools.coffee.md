@@ -95,6 +95,8 @@ Shapes
 
         tools: Observable []
 
+      # TODO: Probably want to let the editor add its own tools so this is more
+      # reusable
       Object.keys(TOOLS).forEach (name) ->
         self.addTool TOOLS[name]
 

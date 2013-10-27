@@ -29,3 +29,9 @@ The palette holds our colors.
           .color(style="background-color: #{color}")
             - on "click", ->
               - activeIndex index
+
+      .actions
+        - each @actions, (action) ->
+          .action
+            - on "click", ->
+              - action.perform()

@@ -3,19 +3,12 @@ Hotkeys
 
 Hotkeys for the pixel editor.
 
+TODO: Add methods that can be functions rather than names of editor methods.
+
     module.exports = (I={}, self)->
       self.extend
         addHotkey: (key, method) ->
           $(document).bind "keydown", key, ->
             self[method]()
-
-      hotkeys =
-        "ctrl+z": "undo"
-        "ctrl+y": "redo"
-        "ctrl+s": "download"
-        "ctrl+b": "toDataURL"
-
-      Object.keys(hotkeys).forEach (key) ->
-        self.addHotkey(key, hotkeys[key])
 
       return self
