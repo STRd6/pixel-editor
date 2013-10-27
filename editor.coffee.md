@@ -142,7 +142,7 @@ accidentally setting the pixel values during the preview.
       $('.viewport').append canvas.element()
       $(".viewport").append $(previewCanvas.element()).addClass("preview")
 
-      canvas.on "touch", (position) ->
+      previewCanvas.on "touch", (position) ->
         lastCommand = Command.Composite()
         self.execute lastCommand
 
@@ -150,13 +150,13 @@ accidentally setting the pixel values during the preview.
           position: position.scale(pixelExtent).floor()
           editor: self
 
-      canvas.on "move", (position, previousPosition) ->
+      previewCanvas.on "move", (position, previousPosition) ->
         activeTool().move
           position: position.scale(pixelExtent).floor()
           previousPosition: previousPosition.scale(pixelExtent).floor()
           editor: self
 
-      canvas.on "release", (position) ->
+      previewCanvas.on "release", (position) ->
         activeTool().release
           position: position.scale(pixelExtent).floor()
           editor: self
