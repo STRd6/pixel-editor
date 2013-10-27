@@ -54,6 +54,7 @@ Tools = require <span class="string">"./tools"</span>
 Palette = require(<span class="string">"./palette"</span>)
 
 template = require <span class="string">"./templates/editor"</span>
+debugTemplate = require <span class="string">"./templates/debug"</span>
 
 {Grid, Size, download} = require <span class="string">"./util"</span>
 
@@ -200,6 +201,9 @@ accidentally setting the pixel values during the preview.</p>
       editor: self
 
     previewCanvas.clear()
+
+  debuggableItems = Observable [<span class="string">"yolo"</span>, <span class="string">"radical"</span>]
+  $(<span class="string">"body"</span>).append debugTemplate(items: debuggableItems)
 
   <span class="keyword">return</span> self
 
