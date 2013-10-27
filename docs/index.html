@@ -181,7 +181,7 @@ accidentally setting the pixel values during the preview.</p>
   $(<span class="string">'.viewport'</span>).append canvas.element()
   $(<span class="string">".viewport"</span>).append $(previewCanvas.element()).addClass(<span class="string">"preview"</span>)
 
-  canvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
+  previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     lastCommand = Command.Composite()
     self.execute lastCommand
 
@@ -189,13 +189,13 @@ accidentally setting the pixel values during the preview.</p>
       position: position.scale(pixelExtent).floor()
       editor: self
 
-  canvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
+  previewCanvas.<span class="literal">on</span> <span class="string">"move"</span>, (position, previousPosition) -&gt;
     activeTool().move
       position: position.scale(pixelExtent).floor()
       previousPosition: previousPosition.scale(pixelExtent).floor()
       editor: self
 
-  canvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
+  previewCanvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
     activeTool().release
       position: position.scale(pixelExtent).floor()
       editor: self
