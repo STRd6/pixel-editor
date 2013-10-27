@@ -22,6 +22,7 @@ Editing pixels in your browser.
     Palette = require("./palette")
 
     template = require "./templates/editor"
+    debugTemplate = require "./templates/debug"
 
     {Grid, Size, download} = require "./util"
 
@@ -161,6 +162,9 @@ accidentally setting the pixel values during the preview.
           editor: self
 
         previewCanvas.clear()
+
+      debuggableItems = Observable ["yolo", "radical"]
+      $("body").append debugTemplate(items: debuggableItems)
 
       return self
 
