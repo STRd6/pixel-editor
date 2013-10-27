@@ -165,6 +165,8 @@ accidentally setting the pixel values during the preview.
 
       debuggableItems = Observable ["yolo", "radical"]
       $("body").append debugTemplate(items: debuggableItems)
+      
+      canvas.debug = debuggableItems
 
       return self
 
