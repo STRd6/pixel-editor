@@ -8,7 +8,7 @@ remoteDependencies: [
 dependencies:
   "jquery-utils": "STRd6/jquery-utils:v0.1.2"
   runtime: "STRd6/runtime:v0.1.1"
-  "touch-canvas": "STRd6/touch-canvas:v0.2.0-alpha.13"
+  "touch-canvas": "STRd6/touch-canvas:v0.2.0-alpha.15"
   "commando": "STRd6/commando:v0.9.0"
 width: 480
 height: 320
