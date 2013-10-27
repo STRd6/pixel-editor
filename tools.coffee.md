@@ -1,7 +1,7 @@
 Tools
 =====
 
-    {line, circle, rect} = require "./util"
+    {line, circle, rect, rectOutline} = require "./util"
 
     neighbors = (point) ->
       [
@@ -10,6 +10,20 @@ Tools
         Point(point.x+1, point.y)
         Point(point.x, point.y+1)
       ]
+
+    shapeTool = (fn, icon) ->
+      start = null
+
+      iconUrl: icon
+      touch: ({position})->
+        start = position
+
+      move: ({editor, position})->
+        editor.preview ->
+          fn start, position, editor.draw
+
+      release: ({position, editor}) ->
+        fn start, position, editor.draw
 
 Default tools.
 
@@ -51,36 +65,14 @@ Draw a line when moving while touching.
 
 A circle drawing tool.
 
-      circle: do ->
-        start = null
+      circle: shapeTool circle,
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
 
-        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
-        touch: ({editor, position}) ->
-          start = position
+      rect: shapeTool rect,
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
 
-          editor.preview ->
-            circle start, position, editor.draw
-
-        move: ({editor, position}) ->
-          editor.preview ->
-            circle start, position, editor.draw
-
-        release: ({editor, position}) ->
-          circle start, position, editor.draw
-
-      rect: do ->
-        start = null
-
-        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
-        touch: ({position})->
-          start = position
-
-        move: ({editor, position})->
-          editor.preview ->
-            rect start, position, editor.draw
-
-        release: ({position, editor}) ->
-          rect start, position, editor.draw
+      rectOutline: shapeTool rectOutline,
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="
 
 Draw a straight line on release.
 

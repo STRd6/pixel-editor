@@ -111,6 +111,22 @@ Call an iterator for each integer point on a line between two integer points.
               x: x
               y: y
 
+      rectOutline: (start, end, iterator) ->
+        [start.y..end.y].forEach (y) ->
+          if y is start.y or y is end.y
+            [start.x..end.x].forEach (x) ->
+              iterator
+                x: x
+                y: y
+          else
+            iterator
+              x: start.x
+              y: y
+
+            iterator
+              x: end.x
+              y: y
+
 gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
       circle: (center, endPoint, iterator) ->
