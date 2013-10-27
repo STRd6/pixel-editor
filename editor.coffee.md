@@ -150,10 +150,9 @@ accidentally setting the pixel values during the preview.
           position: position.scale(pixelExtent).floor()
           editor: self
 
-      previewCanvas.on "move", (position, previousPosition) ->
+      previewCanvas.on "move", (position) ->
         activeTool().move
           position: position.scale(pixelExtent).floor()
-          previousPosition: previousPosition.scale(pixelExtent).floor()
           editor: self
 
       previewCanvas.on "release", (position) ->

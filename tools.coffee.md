@@ -3,6 +3,10 @@ Tools
 
     {line, circle, rect, rectOutline} = require "./util"
 
+    line2 = (start, end, fn) ->
+      fn start
+      line start, end, fn
+
     neighbors = (point) ->
       [
         Point(point.x, point.y-1)
@@ -31,12 +35,16 @@ Default tools.
 
 Draw a line when moving while touching.
 
-      pencil:
+      pencil: do ->
+        previousPosition = null
+        
         iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="
         touch: ({position, editor})->
           editor.draw position
-        move: ({editor, position, previousPosition})->
+          previousPosition = position
+        move: ({editor, position})->
           line previousPosition, position, editor.draw
+          previousPosition = position
         release: ->
 
       fill:
@@ -63,7 +71,8 @@ Draw a line when moving while touching.
         move: ->
         release: ->
 
-A circle drawing tool.
+Shapes
+------
 
       circle: shapeTool circle,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
@@ -74,23 +83,8 @@ A circle drawing tool.
       rectOutline: shapeTool rectOutline,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="
 
-Draw a straight line on release.
-
-      line2: do ->
-        start = null
-
-        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"
-        touch: ({position, editor})->
-          start = position
-
-        move: ({editor, position, previousPosition})->
-          editor.preview ->
-            editor.draw start
-            line start, position, editor.draw
-
-        release: ({position, editor}) ->
-          editor.draw start
-          line start, position, editor.draw
+      line2: shapeTool line2,
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"
 
     module.exports = (I={}, self=Core(I)) ->
       self.extend
