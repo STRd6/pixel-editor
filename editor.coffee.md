@@ -30,8 +30,8 @@ Editing pixels in your browser.
     Editor = (I={}, self) ->
       activeIndex = Observable(1)
 
-      pixelExtent = Size(16, 16)
-      pixelSize = 20
+      pixelExtent = Size(32, 32)
+      pixelSize = 8
       canvasSize = pixelExtent.scale(pixelSize)
       palette = Palette.defaults
 
@@ -141,8 +141,12 @@ accidentally setting the pixel values during the preview.
       updateActiveColor(activeIndex())
       activeIndex.observe updateActiveColor
 
-      $('.viewport').append canvas.element()
-      $(".viewport").append $(previewCanvas.element()).addClass("preview")
+      $(".viewport")
+        .css
+          width: canvasSize.width
+          height: canvasSize.height
+        .append(canvas.element())
+        .append($(previewCanvas.element()).addClass("preview"))
 
       previewCanvas.on "touch", (position) ->
         lastCommand = Command.Composite()
