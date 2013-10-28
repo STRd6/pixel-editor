@@ -11,7 +11,7 @@ Actions
       Object.keys(Actions.defaults).forEach (hotkey) ->
         {method, icon} = Actions.defaults[hotkey]
 
-        self.addAction 
+        self.addAction
           perform: ->
             self[method]()
           iconUrl: icon
