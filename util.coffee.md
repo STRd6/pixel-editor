@@ -13,6 +13,9 @@ Size
 A 2d extent.
 
     Size = (width, height) ->
+      if isObject(width)
+        {width, height} = width
+
       width: width
       height: height
       __proto__: Size.prototype

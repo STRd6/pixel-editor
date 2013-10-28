@@ -13,12 +13,14 @@ Editing pixels in your browser.
     runtime.applyStyleSheet(require('./style'))
 
     TouchCanvas = require "touch-canvas"
+    GridGen = require "grid-gen"
 
     Command = require "./command"
     Undo = require "./undo"
     Hotkeys = require "./hotkeys"
     Tools = require "./tools"
     Actions = require "./actions"
+    Layer = require "./layer"
 
     Palette = require("./palette")
 
@@ -147,6 +149,13 @@ accidentally setting the pixel values during the preview.
           height: canvasSize.height
         .append(canvas.element())
         .append($(previewCanvas.element()).addClass("preview"))
+
+      $(".overlay").css
+        width: canvasSize.width
+        height: canvasSize.height
+        backgroundImage: GridGen(
+          # TODO: Grid size options and matching pixel size/extent
+        ).backgroundImage()
 
       previewCanvas.on "touch", (position) ->
         lastCommand = Command.Composite()

@@ -21,6 +21,7 @@ Our layers and preview canvases are placed in the viewport.
 
       .main
         .viewport
+          .overlay
 
 The palette holds our colors.
 
