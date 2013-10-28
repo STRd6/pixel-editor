@@ -45,12 +45,14 @@ runtime.boot()
 runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
+GridGen = require <span class="string">"grid-gen"</span>
 
 Command = require <span class="string">"./command"</span>
 Undo = require <span class="string">"./undo"</span>
 Hotkeys = require <span class="string">"./hotkeys"</span>
 Tools = require <span class="string">"./tools"</span>
 Actions = require <span class="string">"./actions"</span>
+Layer = require <span class="string">"./layer"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 
@@ -186,6 +188,13 @@ accidentally setting the pixel values during the preview.</p>
       height: canvasSize.height
     .append(canvas.element())
     .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
+
+  $(<span class="string">".overlay"</span>).css
+    width: canvasSize.width
+    height: canvasSize.height
+    backgroundImage: GridGen(
+      <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
+    ).backgroundImage()
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     lastCommand = Command.Composite()

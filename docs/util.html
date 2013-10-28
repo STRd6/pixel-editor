@@ -77,6 +77,9 @@
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Size</span></span> = (width, height) -&gt;
+  <span class="keyword">if</span> isObject(width)
+    {width, height} = width
+
   width: width
   height: height
   __proto__: Size.prototype
