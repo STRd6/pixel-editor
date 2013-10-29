@@ -27,7 +27,7 @@ Editing pixels in your browser.
     template = require "./templates/editor"
     debugTemplate = require "./templates/debug"
 
-    {Grid, Size, download} = require "./util"
+    {Size, download} = require "./util"
 
     Editor = (I={}, self) ->
       activeIndex = Observable(1)
@@ -49,7 +49,7 @@ Editing pixels in your browser.
 
       activeTool = self.activeTool
 
-      pixels = Grid(pixelExtent.width, pixelExtent.height, 0)
+      pixels = Layer pixelExtent
 
       self.extend
         activeIndex: activeIndex
