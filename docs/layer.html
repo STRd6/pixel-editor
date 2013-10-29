@@ -35,9 +35,10 @@
               <p>A layer is a 2d set of pixels.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Layer</span></span> = -&gt;
+            <div class="content"><pre><code class="lang-coffeescript">{Grid} = require <span class="string">"./util"</span>
 
-
+<span class="function"><span class="title">Layer</span></span> = ({width, height}) -&gt;
+  Grid(width, height, <span class="number">0</span>)
 
 module.exports = Layer</code></pre>
 </div>

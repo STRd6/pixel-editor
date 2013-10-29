@@ -59,7 +59,7 @@ Palette = require(<span class="string">"./palette"</span>)
 template = require <span class="string">"./templates/editor"</span>
 debugTemplate = require <span class="string">"./templates/debug"</span>
 
-{Grid, Size, download} = require <span class="string">"./util"</span>
+{Size, download} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
   activeIndex = Observable(<span class="number">1</span>)
@@ -81,7 +81,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   activeTool = self.activeTool
 
-  pixels = Grid(pixelExtent.width, pixelExtent.height, <span class="number">0</span>)
+  pixels = Layer pixelExtent
 
   self.extend
     activeIndex: activeIndex
