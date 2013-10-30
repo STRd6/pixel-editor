@@ -15,6 +15,8 @@ Editing pixels in your browser.
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
 
+    require "./drop"
+
     Command = require "./command"
     Undo = require "./undo"
     Hotkeys = require "./hotkeys"
