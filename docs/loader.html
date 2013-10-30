@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>loader</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="loader">Loader</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Loader</span></span> = (I={}, self=Core(I)) -&gt;
+  self.extend
+    load: (dataURL) -&gt;
+      deferred = Deferred()
+
+      context = document.createElement(<span class="string">'canvas'</span>).getContext(<span class="string">'2d'</span>)
+
+      maxDimension = <span class="number">256</span>
+
+      image = document.createElement(<span class="string">"image"</span>)
+
+      image.<span class="function"><span class="title">onload</span></span> = -&gt;
+        console.log <span class="string">"onload"</span>
+        {width, height} = image
+
+        context.drawImage(image, <span class="number">0</span>, <span class="number">0</span>)
+        imageData = context.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
+
+        <span class="function"><span class="title">getColor</span></span> = (x, y) -&gt;
+          index = (x + y * imageData.width) * <span class="number">4</span>
+
+          pieces = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
+            imageData.data[index + n]
+
+          pieces[<span class="number">3</span>] /= <span class="number">255</span>
+
+          rgba = <span class="string">"rgba(<span class="subst">#{pieces.join(",")}</span>)"</span>
+
+          <span class="keyword">return</span> rgba
+
+        colorFrequency = {}
+
+        colors = [<span class="number">0.</span>..height].map (y) -&gt;
+          [<span class="number">0.</span>..width].map (x) -&gt;
+            color = getColor(x, y)
+
+            colorFrequency[color] ?= <span class="number">0</span>
+            colorFrequency[color] += <span class="number">1</span>
+
+            color
+
+        table = Object.keys(colorFrequency).sort (a, b) -&gt;
+          colorFrequency[b] - colorFrequency[a]
+        .reduce (table, color, index) -&gt;
+          table[color] = index
+
+          table
+        , {}
+
+        palette = Object.keys(table)
+
+        data = [<span class="number">0.</span>..height].map (y) -&gt;
+          [<span class="number">0.</span>..width].map (x) -&gt;
+            table[colors[y][x]]
+
+        deferred.resolve
+          palette: palette
+          width: width
+          height: height
+          data: data
+
+      image.src = dataURL
+
+      <span class="keyword">return</span> deferred.promise()
+
+module.exports = Loader</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">intToRGBA</span></span> = (number) -&gt;
+  bitmask = <span class="number">0xff</span>
+
+  numbers = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
+    bitshift = n * <span class="number">8</span>
+    (number &amp; (bitmask &lt;&lt; bitshift)) &gt;&gt; bitshift
+
+  numbers[<span class="number">3</span>] /= <span class="number">255</span>
+
+  <span class="string">"rgba(<span class="subst">#{numbers.join(",")}</span>)"</span></code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script><script src="package.js"></script>
+</body>
+</html>
