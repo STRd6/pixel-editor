@@ -36,14 +36,16 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">Loader = require <span class="string">"./loader"</span>
 
-<span class="function"><span class="title">callback</span></span> = ({dataURL}) -&gt;
-  console.log <span class="string">"event"</span>
-  Loader().load(dataURL)
-  .<span class="keyword">then</span> (data) -&gt;
-    console.log data
+<span class="function"><span class="title">Drop</span></span> = (I={}, self=Core(I)) -&gt;
+  <span class="function"><span class="title">callback</span></span> = ({dataURL}) -&gt;
+    Loader().load(dataURL)
+    .<span class="keyword">then</span> self.handlePaste <span class="comment"># TODO This coupling seems a little too tight</span>
 
-$(<span class="string">"html"</span>).dropImageReader callback
-$(document).pasteImageReader callback</code></pre>
+  <span class="comment"># TODO: Scope these events to the editor, not the entire page</span>
+  $(<span class="string">"html"</span>).dropImageReader callback
+  $(document).pasteImageReader callback
+
+module.exports = Drop</code></pre>
 </div>
         </li>
         

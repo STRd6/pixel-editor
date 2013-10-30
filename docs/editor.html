@@ -47,7 +47,7 @@ runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
 
-require <span class="string">"./drop"</span>
+Drop = require <span class="string">"./drop"</span>
 
 Command = require <span class="string">"./command"</span>
 Undo = require <span class="string">"./undo"</span>
@@ -69,7 +69,6 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
   pixelExtent = Size(<span class="number">32</span>, <span class="number">32</span>)
   pixelSize = <span class="number">8</span>
   canvasSize = pixelExtent.scale(pixelSize)
-  palette = Palette.defaults
 
   canvas = <span class="literal">null</span>
   lastCommand = <span class="literal">null</span>
@@ -80,6 +79,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
   self.include Hotkeys
   self.include Tools
   self.include Actions
+  self.include Drop
 
   activeTool = self.activeTool
 
@@ -87,6 +87,16 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   self.extend
     activeIndex: activeIndex
+
+    handlePaste: (data) -&gt;
+      {palette} = data
+      self.palette palette
+
+      pixels = Layer data
+
+      <span class="comment"># TODO: Undoable?</span>
+
+      self.repaint()
 
     outputCanvas: -&gt;
       outputCanvas = TouchCanvas pixelExtent
@@ -97,7 +107,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
           y: y
           width: <span class="number">1</span>
           height: <span class="number">1</span>
-          color: palette[index]
+          color: self.palette()[index]
 
       outputCanvas.element()
 
@@ -108,6 +118,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     toDataURL: -&gt;
       console.log self.outputCanvas().toDataURL(<span class="string">"image/png"</span>)
 
+    repaint: -&gt;
+      pixels.each (index, x, y) -&gt;
+        self.colorPixel {x, y, index}
+
     draw: ({x, y}) -&gt;
       lastCommand.push Command.ChangePixel
         x: x
@@ -115,10 +129,15 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
         index: activeIndex()
       , self
 
-    changePixel: ({x, y, index})-&gt;
+    changePixel: (params)-&gt;
+      {x, y, index} = params
+
       pixels.set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
-      color = palette[index]
+      self.colorPixel(params)
+
+    colorPixel: ({x, y, index}) -&gt;
+      color = self.palette()[index]
 
       <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
         canvas.clear
@@ -139,7 +158,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       y: y
       index: pixels.get(x, y)
 
-    palette: Observable(palette)</code></pre>
+    palette: Observable(Palette.defaults)</code></pre>
 </div>
         </li>
         
@@ -176,7 +195,7 @@ accidentally setting the pixel values during the preview.</p>
 
   <span class="comment"># TODO: Tempest should have an easier way to do this</span>
   <span class="function"><span class="title">updateActiveColor</span></span> = (newIndex) -&gt;
-    color = palette[newIndex]
+    color = self.palette()[newIndex]
 
     $(<span class="string">".palette .current"</span>).css
       backgroundColor: color

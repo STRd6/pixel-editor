@@ -37,8 +37,12 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">{Grid} = require <span class="string">"./util"</span>
 
-<span class="function"><span class="title">Layer</span></span> = ({width, height}) -&gt;
-  Grid(width, height, <span class="number">0</span>)
+<span class="function"><span class="title">Layer</span></span> = ({width, height, data}) -&gt;
+  Grid width, height, (x, y) -&gt;
+    <span class="keyword">if</span> data
+      data[y][x]
+    <span class="keyword">else</span>
+      <span class="number">0</span>
 
 module.exports = Layer</code></pre>
 </div>
