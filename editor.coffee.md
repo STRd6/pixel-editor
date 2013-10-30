@@ -15,7 +15,7 @@ Editing pixels in your browser.
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
 
-    require "./drop"
+    Drop = require "./drop"
 
     Command = require "./command"
     Undo = require "./undo"
@@ -37,7 +37,6 @@ Editing pixels in your browser.
       pixelExtent = Size(32, 32)
       pixelSize = 8
       canvasSize = pixelExtent.scale(pixelSize)
-      palette = Palette.defaults
 
       canvas = null
       lastCommand = null
@@ -48,6 +47,7 @@ Editing pixels in your browser.
       self.include Hotkeys
       self.include Tools
       self.include Actions
+      self.include Drop
 
       activeTool = self.activeTool
 
@@ -55,6 +55,16 @@ Editing pixels in your browser.
 
       self.extend
         activeIndex: activeIndex
+
+        handlePaste: (data) ->
+          {palette} = data
+          self.palette palette
+
+          pixels = Layer data
+
+          # TODO: Undoable?
+
+          self.repaint()
 
         outputCanvas: ->
           outputCanvas = TouchCanvas pixelExtent
@@ -65,7 +75,7 @@ Editing pixels in your browser.
               y: y
               width: 1
               height: 1
-              color: palette[index]
+              color: self.palette()[index]
 
           outputCanvas.element()
 
@@ -76,6 +86,10 @@ Editing pixels in your browser.
         toDataURL: ->
           console.log self.outputCanvas().toDataURL("image/png")
 
+        repaint: ->
+          pixels.each (index, x, y) ->
+            self.colorPixel {x, y, index}
+
         draw: ({x, y}) ->
           lastCommand.push Command.ChangePixel
             x: x
@@ -83,10 +97,15 @@ Editing pixels in your browser.
             index: activeIndex()
           , self
 
-        changePixel: ({x, y, index})->
-          pixels.set(x, y, index) unless canvas is previewCanvas
+        changePixel: (params)->
+          {x, y, index} = params
 
-          color = palette[index]
+          pixels.set(x, y, index) unless canvas is previewCanvas
+        
+          self.colorPixel(params)
+
+        colorPixel: ({x, y, index}) ->
+          color = self.palette()[index]
 
           if color is "transparent"
             canvas.clear
@@ -107,7 +126,7 @@ Editing pixels in your browser.
           y: y
           index: pixels.get(x, y)
 
-        palette: Observable(palette)
+        palette: Observable(Palette.defaults)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
@@ -137,7 +156,7 @@ accidentally setting the pixel values during the preview.
 
       # TODO: Tempest should have an easier way to do this
       updateActiveColor = (newIndex) ->
-        color = palette[newIndex]
+        color = self.palette()[newIndex]
 
         $(".palette .current").css
           backgroundColor: color

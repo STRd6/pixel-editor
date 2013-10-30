@@ -3,11 +3,13 @@ Drop and Paste Events
 
     Loader = require "./loader"
 
-    callback = ({dataURL}) ->
-      console.log "event"
-      Loader().load(dataURL)
-      .then (data) ->
-        console.log data
+    Drop = (I={}, self=Core(I)) ->
+      callback = ({dataURL}) ->
+        Loader().load(dataURL)
+        .then self.handlePaste # TODO This coupling seems a little too tight
 
-    $("html").dropImageReader callback
-    $(document).pasteImageReader callback
+      # TODO: Scope these events to the editor, not the entire page
+      $("html").dropImageReader callback
+      $(document).pasteImageReader callback
+
+    module.exports = Drop
