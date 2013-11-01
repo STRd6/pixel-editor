@@ -44,13 +44,15 @@
       image = document.createElement(<span class="string">"image"</span>)
 
       image.<span class="function"><span class="title">onload</span></span> = -&gt;
-        console.log <span class="string">"onload"</span>
         {width, height} = image
 
         context.drawImage(image, <span class="number">0</span>, <span class="number">0</span>)
         imageData = context.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
 
         deferred.resolve imageData
+
+      image.<span class="function"><span class="title">onerror</span></span> = -&gt;
+        deferred.reject <span class="string">"Error loading image data"</span>
 
       image.src = dataURL
 
@@ -59,23 +61,16 @@
     fromImageData: (imageData) -&gt;
       {width, height} = imageData
 
-      <span class="function"><span class="title">getColor</span></span> = (x, y) -&gt;
-        index = (x + y * width) * <span class="number">4</span>
-
-        pieces = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
-          imageData.data[index + n]
-
-        pieces[<span class="number">3</span>] /= <span class="number">255</span>
-
-        rgba = <span class="string">"rgba(<span class="subst">#{pieces.join(",")}</span>)"</span>
-
-        <span class="keyword">return</span> rgba
-
       colorFrequency = {}
 
       colors = [<span class="number">0.</span>..height].map (y) -&gt;
+        console.log y
         [<span class="number">0.</span>..width].map (x) -&gt;
-          color = getColor(x, y)
+          pieces = getColor(imageData, x, y)
+
+          pieces[<span class="number">3</span>] /= <span class="number">255</span>
+
+          color = arrayToHex(pieces)
 
           colorFrequency[color] ?= <span class="number">0</span>
           colorFrequency[color] += <span class="number">1</span>
@@ -100,6 +95,16 @@
       width: width
       height: height
       data: data
+
+    fromImageDataWithPalette: (imageData, palette) -&gt;
+      {width, height} = imageData
+      paletteData = palette.map colorToRGB
+
+      width: width
+      height: height
+      data: [<span class="number">0.</span>..height].map (y) -&gt;
+        [<span class="number">0.</span>..width].map (x) -&gt;
+          nearestColorIndex(getColor(imageData, x, y), paletteData)
 
 module.exports = Loader</code></pre>
 </div>
@@ -127,7 +132,10 @@ module.exports = Loader</code></pre>
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">intToRGBA</span></span> = (number) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">arrayToHex</span></span> = (parts) -&gt;
+  <span class="string">"#<span class="subst">#{parts.map numberToHex}</span>"</span>
+
+<span class="function"><span class="title">intToRGBA</span></span> = (number) -&gt;
   bitmask = <span class="number">0xff</span>
 
   numbers = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
@@ -136,7 +144,32 @@ module.exports = Loader</code></pre>
 
   numbers[<span class="number">3</span>] /= <span class="number">255</span>
 
-  <span class="string">"rgba(<span class="subst">#{numbers.join(",")}</span>)"</span></code></pre>
+  <span class="string">"rgba(<span class="subst">#{numbers.join(",")}</span>)"</span>
+
+<span class="function"><span class="title">colorToRGB</span></span> = (colorString) -&gt;
+  colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
+    parseInt part, <span class="number">0x10</span>
+
+<span class="function"><span class="title">distanceSquared</span></span> = (a, b) -&gt;
+  a.map (n, index) -&gt;
+    delta = n - b[index]
+
+    delta * delta
+  .sum()
+
+<span class="function"><span class="title">nearestColorIndex</span></span> = (colorData, paletteData) -&gt;
+  paletteColor = paletteData.minimum (paletteEntry) -&gt;
+    distanceSquared(paletteEntry, colorData)
+
+  paletteData.indexOf(paletteColor)
+
+<span class="function"><span class="title">getColor</span></span> = (imageData, x, y) -&gt;
+  index = (x + y * imageData.width) * <span class="number">4</span>
+
+  Array::slice.call imageData.data, index, index + <span class="number">4</span>
+
+<span class="function"><span class="title">numberToHex</span></span> = (n) -&gt;
+  <span class="string">"0<span class="subst">#{n.toString(<span class="number">0x10</span>)}</span>"</span>.slice(-<span class="number">2</span>).toUpperCase()</code></pre>
 </div>
         </li>
         

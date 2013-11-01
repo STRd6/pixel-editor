@@ -90,7 +90,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
     handlePaste: (data) -&gt;
       {palette} = data
-      self.palette palette
+      self.palette palette <span class="keyword">if</span> palette
 
       pixels = Layer data
 

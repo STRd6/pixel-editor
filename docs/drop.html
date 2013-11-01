@@ -36,18 +36,47 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">Loader = require <span class="string">"./loader"</span>
 
+loader = Loader()
+
 <span class="function"><span class="title">Drop</span></span> = (I={}, self=Core(I)) -&gt;
   <span class="function"><span class="title">callback</span></span> = ({dataURL}) -&gt;
-    Loader().load(dataURL)
+    loader.load(dataURL)
     .<span class="keyword">then</span> (imageData) -&gt;
       <span class="comment"># TODO This coupling seems a little too tight</span>
-      self.handlePaste Loader().fromImageData(imageData)
+      self.handlePaste loader.fromImageDataWithPalette(imageData, self.palette())
 
   <span class="comment"># TODO: Scope these events to the editor, not the entire page</span>
   $(<span class="string">"html"</span>).dropImageReader callback
   $(document).pasteImageReader callback
 
 module.exports = Drop</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">logError</span></span> = (message) -&gt;
+  console.error message</code></pre>
 </div>
         </li>
         
