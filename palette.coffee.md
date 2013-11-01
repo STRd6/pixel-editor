@@ -1,6 +1,23 @@
 Palette
 =======
 
+Helpers
+-------
+
+    
+
+    fromStrings = (lines) ->
+      lines.split("\n").map (line) ->
+        "#" + line.split(" ").map (string) ->
+          numberToHex parseInt(string, 10)
+        .join("")
+
+    numberToHex = (n) ->
+      "0#{n.toString(0x10)}".slice(-2).toUpperCase()
+
+Palettes
+--------
+
     Palette =
 
       defaults:
@@ -21,5 +38,63 @@ Palette
           "#5B4635"
           "#FFFEE9"
         ]
+
+http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
+
+      dawnBringer16: fromStrings """
+        20 12 28
+        68 36 52
+        48 52 109
+        78 74 78
+        133 76 48
+        52 101 36
+        208 70 72
+        117 113 97
+        89 125 206
+        210 125 44
+        133 149 161
+        109 170 44
+        210 170 153
+        109 194 202
+        218 212 94
+        222 238 214
+      """
+
+http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
+
+      dawnBringer32: fromStrings """
+        0 0 0
+        34 32 52
+        69 40 60
+        102 57 49
+        143 86 59
+        223 113 38
+        217 160 102
+        238 195 154
+        251 242 54
+        153 229 80
+        106 190 48
+        55 148 110
+        75 105 47
+        82 75 36
+        50 60 57
+        63 63 116
+        48 96 130
+        91 110 225
+        99 155 255
+        95 205 228
+        203 219 252
+        255 255 255
+        155 173 183
+        132 126 135
+        105 106 106
+        89 86 82
+        118 66 138
+        172 50 50
+        217 87 99
+        215 123 186
+        143 151 74
+        138 111 48
+      """
 
     module.exports = Palette

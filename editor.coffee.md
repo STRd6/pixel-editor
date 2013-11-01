@@ -101,7 +101,7 @@ Editing pixels in your browser.
           {x, y, index} = params
 
           pixels.set(x, y, index) unless canvas is previewCanvas
-        
+
           self.colorPixel(params)
 
         colorPixel: ({x, y, index}) ->
@@ -126,7 +126,7 @@ Editing pixels in your browser.
           y: y
           index: pixels.get(x, y)
 
-        palette: Observable(Palette.defaults)
+        palette: Observable(Palette.dawnBringer32)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
