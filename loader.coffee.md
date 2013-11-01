@@ -12,7 +12,6 @@ TODO: Quantize Palette
           image = document.createElement("image")
 
           image.onload = ->
-            console.log "onload"
             {width, height} = image
 
             context.drawImage(image, 0, 0)
@@ -20,36 +19,32 @@ TODO: Quantize Palette
 
             deferred.resolve imageData
 
+          image.onerror = ->
+            deferred.reject "Error loading image data"
+
           image.src = dataURL
 
           return deferred.promise()
 
         fromImageData: (imageData) ->
           {width, height} = imageData
-    
-          getColor = (x, y) ->
-            index = (x + y * width) * 4
-      
-            pieces = [0..3].map (n) ->
-              imageData.data[index + n]
-      
-            pieces[3] /= 255
-      
-            rgba = "rgba(#{pieces.join(",")})"
-      
-            return rgba
-      
+
           colorFrequency = {}
-      
+
           colors = [0...height].map (y) ->
+            console.log y
             [0...width].map (x) ->
-              color = getColor(x, y)
-      
+              pieces = getColor(imageData, x, y)
+
+              pieces[3] /= 255
+
+              color = arrayToHex(pieces)
+
               colorFrequency[color] ?= 0
               colorFrequency[color] += 1
-      
+
               color
-      
+
           table = Object.keys(colorFrequency).sort (a, b) ->
             colorFrequency[b] - colorFrequency[a]
           .reduce (table, color, index) ->
@@ -69,10 +64,23 @@ TODO: Quantize Palette
           height: height
           data: data
 
+        fromImageDataWithPalette: (imageData, palette) ->
+          {width, height} = imageData
+          paletteData = palette.map colorToRGB
+
+          width: width
+          height: height
+          data: [0...height].map (y) ->
+            [0...width].map (x) ->
+              nearestColorIndex(getColor(imageData, x, y), paletteData)
+
     module.exports = Loader
 
 Helpers
 -------
+
+    arrayToHex = (parts) ->
+      "##{parts.map numberToHex}"
 
     intToRGBA = (number) ->
       bitmask = 0xff
@@ -84,3 +92,28 @@ Helpers
       numbers[3] /= 255
 
       "rgba(#{numbers.join(",")})"
+
+    colorToRGB = (colorString) ->
+      colorString.match(/([0-9A-F]{2})/g).map (part) ->
+        parseInt part, 0x10
+
+    distanceSquared = (a, b) ->
+      a.map (n, index) ->
+        delta = n - b[index]
+
+        delta * delta
+      .sum()
+
+    nearestColorIndex = (colorData, paletteData) ->
+      paletteColor = paletteData.minimum (paletteEntry) ->
+        distanceSquared(paletteEntry, colorData)
+
+      paletteData.indexOf(paletteColor)
+
+    getColor = (imageData, x, y) ->
+      index = (x + y * imageData.width) * 4
+
+      Array::slice.call imageData.data, index, index + 4
+
+    numberToHex = (n) ->
+      "0#{n.toString(0x10)}".slice(-2).toUpperCase()

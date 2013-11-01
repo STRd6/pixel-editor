@@ -58,7 +58,7 @@ Editing pixels in your browser.
 
         handlePaste: (data) ->
           {palette} = data
-          self.palette palette
+          self.palette palette if palette
 
           pixels = Layer data
 
