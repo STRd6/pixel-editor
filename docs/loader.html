@@ -32,7 +32,8 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              
+              <p>TODO: Quantize Palette</p>
+
             </div>
             <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Loader</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
@@ -40,9 +41,6 @@
       deferred = Deferred()
 
       context = document.createElement(<span class="string">'canvas'</span>).getContext(<span class="string">'2d'</span>)
-
-      maxDimension = <span class="number">256</span>
-
       image = document.createElement(<span class="string">"image"</span>)
 
       image.<span class="function"><span class="title">onload</span></span> = -&gt;
@@ -52,52 +50,56 @@
         context.drawImage(image, <span class="number">0</span>, <span class="number">0</span>)
         imageData = context.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
 
-        <span class="function"><span class="title">getColor</span></span> = (x, y) -&gt;
-          index = (x + y * imageData.width) * <span class="number">4</span>
-
-          pieces = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
-            imageData.data[index + n]
-
-          pieces[<span class="number">3</span>] /= <span class="number">255</span>
-
-          rgba = <span class="string">"rgba(<span class="subst">#{pieces.join(",")}</span>)"</span>
-
-          <span class="keyword">return</span> rgba
-
-        colorFrequency = {}
-
-        colors = [<span class="number">0.</span>..height].map (y) -&gt;
-          [<span class="number">0.</span>..width].map (x) -&gt;
-            color = getColor(x, y)
-
-            colorFrequency[color] ?= <span class="number">0</span>
-            colorFrequency[color] += <span class="number">1</span>
-
-            color
-
-        table = Object.keys(colorFrequency).sort (a, b) -&gt;
-          colorFrequency[b] - colorFrequency[a]
-        .reduce (table, color, index) -&gt;
-          table[color] = index
-
-          table
-        , {}
-
-        palette = Object.keys(table)
-
-        data = [<span class="number">0.</span>..height].map (y) -&gt;
-          [<span class="number">0.</span>..width].map (x) -&gt;
-            table[colors[y][x]]
-
-        deferred.resolve
-          palette: palette
-          width: width
-          height: height
-          data: data
+        deferred.resolve imageData
 
       image.src = dataURL
 
       <span class="keyword">return</span> deferred.promise()
+
+    fromImageData: (imageData) -&gt;
+      {width, height} = imageData
+
+      <span class="function"><span class="title">getColor</span></span> = (x, y) -&gt;
+        index = (x + y * width) * <span class="number">4</span>
+
+        pieces = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
+          imageData.data[index + n]
+
+        pieces[<span class="number">3</span>] /= <span class="number">255</span>
+
+        rgba = <span class="string">"rgba(<span class="subst">#{pieces.join(",")}</span>)"</span>
+
+        <span class="keyword">return</span> rgba
+
+      colorFrequency = {}
+
+      colors = [<span class="number">0.</span>..height].map (y) -&gt;
+        [<span class="number">0.</span>..width].map (x) -&gt;
+          color = getColor(x, y)
+
+          colorFrequency[color] ?= <span class="number">0</span>
+          colorFrequency[color] += <span class="number">1</span>
+
+          color
+
+      table = Object.keys(colorFrequency).sort (a, b) -&gt;
+        colorFrequency[b] - colorFrequency[a]
+      .reduce (table, color, index) -&gt;
+        table[color] = index
+
+        table
+      , {}
+
+      palette = Object.keys(table)
+
+      data = [<span class="number">0.</span>..height].map (y) -&gt;
+        [<span class="number">0.</span>..width].map (x) -&gt;
+          table[colors[y][x]]
+
+      palette: palette
+      width: width
+      height: height
+      data: data
 
 module.exports = Loader</code></pre>
 </div>
