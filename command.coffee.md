@@ -13,6 +13,13 @@ Commands that can be undone in the editor.
         undo: ->
           editor.changePixel(previous)
 
+      NewLayer: (data, editor) ->
+        execute: ->
+          editor.newLayer(data)
+
+        undo: ->
+          editor.removeLayer()
+
       Composite: ->
         commands = []
 

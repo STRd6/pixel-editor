@@ -51,31 +51,41 @@ Editing pixels in your browser.
 
       activeTool = self.activeTool
 
-      pixels = Layer pixelExtent
+      layers = [
+        Layer pixelExtent
+      ]
 
       self.extend
         activeIndex: activeIndex
 
         handlePaste: (data) ->
           {palette} = data
-          self.palette palette if palette
 
-          pixels = Layer data
+          self.execute Command.NewLayer(data, self)
 
-          # TODO: Undoable?
+        newLayer: (data) ->
+          layers.push Layer data
+
+          self.repaint()
+
+        removeLayer: ->
+          layers.pop()
 
           self.repaint()
 
         outputCanvas: ->
           outputCanvas = TouchCanvas pixelExtent
 
-          pixels.each (index, x, y) ->
-            outputCanvas.drawRect
-              x: x
-              y: y
-              width: 1
-              height: 1
-              color: self.palette()[index]
+          layers.forEach (layer) ->
+            # TODO: Only paint once per pixel, rather than once per pixel per layer.
+            # By being smarter about transparency
+            layer.each (index, x, y) ->
+              outputCanvas.drawRect
+                x: x
+                y: y
+                width: 1
+                height: 1
+                color: self.palette()[index]
 
           outputCanvas.element()
 
@@ -87,8 +97,11 @@ Editing pixels in your browser.
           console.log self.outputCanvas().toDataURL("image/png")
 
         repaint: ->
-          pixels.each (index, x, y) ->
-            self.colorPixel {x, y, index}
+          # TODO: Only paint once per pixel, rather than once per pixel per layer.
+          # By being smarter about transparency
+          layers.forEach (layer) ->
+            layer.each (index, x, y) ->
+              self.colorPixel {x, y, index}
 
         draw: ({x, y}) ->
           lastCommand.push Command.ChangePixel
@@ -98,11 +111,17 @@ Editing pixels in your browser.
           , self
 
         changePixel: (params)->
-          {x, y, index} = params
+          {x, y, index, layer} = params
 
-          pixels.set(x, y, index) unless canvas is previewCanvas
+          self.layer(layer).set(x, y, index) unless canvas is previewCanvas
 
           self.colorPixel(params)
+
+        layer: (index) ->
+          if index?
+            layers[index]
+          else
+            layers.last()
 
         colorPixel: ({x, y, index}) ->
           color = self.palette()[index]
@@ -121,10 +140,10 @@ Editing pixels in your browser.
               height: pixelSize
               color: color
 
-        getPixel: ({x, y}) ->
+        getPixel: ({x, y, layer}) ->
           x: x
           y: y
-          index: pixels.get(x, y)
+          index: self.layer(layer).get(x, y)
 
         palette: Observable(Palette.dawnBringer32)
 
