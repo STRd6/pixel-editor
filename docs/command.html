@@ -45,6 +45,13 @@
     undo: -&gt;
       editor.changePixel(previous)
 
+  NewLayer: (data, editor) -&gt;
+    execute: -&gt;
+      editor.newLayer(data)
+
+    undo: -&gt;
+      editor.removeLayer()
+
   Composite: -&gt;
     commands = []
 

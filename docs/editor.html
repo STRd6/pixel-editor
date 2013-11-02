@@ -83,31 +83,41 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   activeTool = self.activeTool
 
-  pixels = Layer pixelExtent
+  layers = [
+    Layer pixelExtent
+  ]
 
   self.extend
     activeIndex: activeIndex
 
     handlePaste: (data) -&gt;
       {palette} = data
-      self.palette palette <span class="keyword">if</span> palette
 
-      pixels = Layer data
+      self.execute Command.NewLayer(data, self)
 
-      <span class="comment"># TODO: Undoable?</span>
+    newLayer: (data) -&gt;
+      layers.push Layer data
+
+      self.repaint()
+
+    removeLayer: -&gt;
+      layers.pop()
 
       self.repaint()
 
     outputCanvas: -&gt;
       outputCanvas = TouchCanvas pixelExtent
 
-      pixels.each (index, x, y) -&gt;
-        outputCanvas.drawRect
-          x: x
-          y: y
-          width: <span class="number">1</span>
-          height: <span class="number">1</span>
-          color: self.palette()[index]
+      layers.forEach (layer) -&gt;
+        <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer.</span>
+        <span class="comment"># By being smarter about transparency</span>
+        layer.each (index, x, y) -&gt;
+          outputCanvas.drawRect
+            x: x
+            y: y
+            width: <span class="number">1</span>
+            height: <span class="number">1</span>
+            color: self.palette()[index]
 
       outputCanvas.element()
 
@@ -119,8 +129,11 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       console.log self.outputCanvas().toDataURL(<span class="string">"image/png"</span>)
 
     repaint: -&gt;
-      pixels.each (index, x, y) -&gt;
-        self.colorPixel {x, y, index}
+      <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer.</span>
+      <span class="comment"># By being smarter about transparency</span>
+      layers.forEach (layer) -&gt;
+        layer.each (index, x, y) -&gt;
+          self.colorPixel {x, y, index}
 
     draw: ({x, y}) -&gt;
       lastCommand.push Command.ChangePixel
@@ -130,11 +143,17 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       , self
 
     changePixel: (params)-&gt;
-      {x, y, index} = params
+      {x, y, index, layer} = params
 
-      pixels.set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
+      self.layer(layer).set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
       self.colorPixel(params)
+
+    layer: (index) -&gt;
+      <span class="keyword">if</span> index?
+        layers[index]
+      <span class="keyword">else</span>
+        layers.last()
 
     colorPixel: ({x, y, index}) -&gt;
       color = self.palette()[index]
@@ -153,10 +172,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
           height: pixelSize
           color: color
 
-    getPixel: ({x, y}) -&gt;
+    getPixel: ({x, y, layer}) -&gt;
       x: x
       y: y
-      index: pixels.get(x, y)
+      index: self.layer(layer).get(x, y)
 
     palette: Observable(Palette.dawnBringer32)</code></pre>
 </div>
