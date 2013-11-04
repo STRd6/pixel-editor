@@ -14,7 +14,7 @@ Layers
 
 Palette
   Load Palette
-  Export Palette
+  X Export Palette
 
 Animation Frames
   New Frame

@@ -51,7 +51,7 @@ Editing pixels in your browser.
 
       activeTool = self.activeTool
 
-      layers = [
+      layers = Observable [
         Layer pixelExtent
       ]
 
@@ -113,15 +113,20 @@ Editing pixels in your browser.
         changePixel: (params)->
           {x, y, index, layer} = params
 
-          self.layer(layer).set(x, y, index) unless canvas is previewCanvas
+          color = self.palette()[index]
+
+          self.layer(layer).set(x, y, index, color) unless canvas is previewCanvas
 
           self.colorPixel(params)
 
+        layers: layers
+
         layer: (index) ->
+          # TODO: Extend observable arrays with .get, .first, and .last
           if index?
-            layers[index]
+            layers()[index]
           else
-            layers.last()
+            layers()[layers().length - 1]
 
         colorPixel: ({x, y, index}) ->
           color = self.palette()[index]

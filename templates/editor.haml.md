@@ -29,6 +29,13 @@ The palette holds our colors.
             - on "click", ->
               - activeIndex index
 
+      .layers
+        - each @layers, (layer, index) ->
+          .layer
+            - on "click", ->
+              - console.log "Clicked layer #{index}"
+            = layer.previewCanvas
+
       .actions
         - each @actions, (action) ->
           .action(style="background-image: url(#{action.iconUrl})")
