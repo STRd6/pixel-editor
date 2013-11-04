@@ -39,7 +39,8 @@
             </div>
             <div class="content"><pre><code class="lang-haml">  .toolbar
     - each @tools, (tool) -&gt;
-      .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot;)
+      - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
+      .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass)
         -on &quot;click&quot;, (e) -&gt;
           - activeTool(tool)</code></pre>
 </div>
@@ -51,19 +52,6 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>TODO: This whole activation and tracking should be made easier in Tempest.</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-haml">          - $(e.currentTarget).takeClass(&quot;active&quot;)</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
-              </div>
               <p>Our layers and preview canvases are placed in the viewport.</p>
 
             </div>
@@ -74,10 +62,10 @@
         </li>
         
         
-        <li id="section-5">
+        <li id="section-4">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>The palette holds our colors.</p>
 
@@ -103,7 +91,7 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
 <script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.3.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js?"></script><script src="../package.js"></script>
 </body>
 </html>

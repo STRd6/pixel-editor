@@ -207,12 +207,6 @@ accidentally setting the pixel values during the preview.</p>
       canvas = realCanvas
       lastCommand = realCommand
 
-    exportPalette: -&gt;
-      paletteData = Palette.<span class="reserved">export</span> self.palette()
-      blob = <span class="keyword">new</span> Blob [paletteData],
-        type: <span class="string">"text/plain"</span>
-      saveAs blob, <span class="string">"palette.pal"</span>
-
   $(<span class="string">'body'</span>).append template self
 
   canvas = TouchCanvas canvasSize
@@ -276,7 +270,7 @@ Editor()</code></pre>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
 <script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.3.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js?"></script><script src="package.js"></script>
 </body>
 </html>
