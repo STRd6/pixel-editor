@@ -1,6 +1,9 @@
 Actions
 =======
 
+    Palette = require("./palette")
+    saveAs = require "./lib/file_saver"
+
     module.exports = Actions = (I={}, self=Core(I)) ->
       self.extend
         addAction: (action) ->
@@ -13,7 +16,11 @@ Actions
 
         self.addAction
           perform: ->
-            self[method]()
+            if typeof method is "function"
+              method
+                editor: self
+            else
+              self[method]()
           iconUrl: icon
 
         self.addHotkey hotkey, method
@@ -36,4 +43,8 @@ TODO: Consolidate actions with hotkeys
         method: "toDataURL"
         icon: null
       "ctrl+e":
-        method: "exportPalette"
+        method: ({editor}) -> 
+          paletteData = Palette.export editor.palette()
+          blob = new Blob [paletteData],
+            type: "text/plain"
+          saveAs blob, "palette.pal"
