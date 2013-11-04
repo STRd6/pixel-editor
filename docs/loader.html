@@ -68,8 +68,6 @@
         [<span class="number">0.</span>..width].map (x) -&gt;
           pieces = getColor(imageData, x, y)
 
-          pieces[<span class="number">3</span>] /= <span class="number">255</span>
-
           color = arrayToHex(pieces)
 
           colorFrequency[color] ?= <span class="number">0</span>
@@ -98,7 +96,7 @@
 
     fromImageDataWithPalette: (imageData, palette) -&gt;
       {width, height} = imageData
-      paletteData = palette.map colorToRGB
+      paletteData = palette.map colorToRGBA
 
       width: width
       height: height
@@ -133,31 +131,38 @@ module.exports = Loader</code></pre>
               
             </div>
             <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">arrayToHex</span></span> = (parts) -&gt;
-  <span class="string">"#<span class="subst">#{parts.map numberToHex}</span>"</span>
+  <span class="keyword">if</span> parts[<span class="number">3</span>]
+    <span class="string">"transparent"</span>
+  <span class="keyword">else</span>
+    <span class="string">"#<span class="subst">#{parts.map numberToHex}</span>"</span>
 
-<span class="function"><span class="title">intToRGBA</span></span> = (number) -&gt;
-  bitmask = <span class="number">0xff</span>
+<span class="comment"># HACK: Infinity keeps the transparent color from being closer than any other</span>
+<span class="comment"># color in the palette</span>
+TRANSPARENT_RGBA = [Infinity, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0xff</span>]
 
-  numbers = [<span class="number">0.</span><span class="number">.3</span>].map (n) -&gt;
-    bitshift = n * <span class="number">8</span>
-    (number &amp; (bitmask &lt;&lt; bitshift)) &gt;&gt; bitshift
-
-  numbers[<span class="number">3</span>] /= <span class="number">255</span>
-
-  <span class="string">"rgba(<span class="subst">#{numbers.join(",")}</span>)"</span>
-
-<span class="function"><span class="title">colorToRGB</span></span> = (colorString) -&gt;
-  colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
-    parseInt part, <span class="number">0x10</span>
+<span class="function"><span class="title">colorToRGBA</span></span> = (colorString) -&gt;
+  <span class="keyword">if</span> colorString <span class="keyword">is</span> <span class="string">"transparent"</span>
+    TRANSPARENT_RGBA
+  <span class="keyword">else</span>
+    colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
+      parseInt part, <span class="number">0x10</span>
+    .concat [<span class="number">0</span>]
 
 <span class="function"><span class="title">distanceSquared</span></span> = (a, b) -&gt;
-  a.map (n, index) -&gt;
+  a.slice(<span class="number">0</span>, <span class="number">3</span>).map (n, index) -&gt;
     delta = n - b[index]
 
     delta * delta
   .sum()
 
 <span class="function"><span class="title">nearestColorIndex</span></span> = (colorData, paletteData) -&gt;
+  <span class="comment"># TODO: Hack for transparent pixels</span>
+  <span class="comment"># Assumes 0 index is transparent</span>
+  <span class="comment"># 50% or more transparent then it is 100% transparent</span>
+  <span class="comment"># less than 50% it is fully opaque</span>
+  <span class="keyword">if</span> colorData[<span class="number">3</span>] &lt; <span class="number">128</span>
+    <span class="keyword">return</span> <span class="number">0</span>
+
   paletteColor = paletteData.minimum (paletteEntry) -&gt;
     distanceSquared(paletteEntry, colorData)
 
