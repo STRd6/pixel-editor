@@ -30,12 +30,20 @@ A layer is a 2d set of pixels.
       self.get = grid.get
 
       self.set = (x, y, value, color) ->
-        previewCanvas.drawRect
-          x: x * pixelSize
-          y: y * pixelSize
-          width: pixelSize
-          height: pixelSize
-          color: color
+        if color is "transparent"
+          previewCanvas.clear
+            x: x * pixelSize
+            y: y * pixelSize
+            width: pixelSize
+            height: pixelSize
+            color: color
+        else
+          previewCanvas.drawRect
+            x: x * pixelSize
+            y: y * pixelSize
+            width: pixelSize
+            height: pixelSize
+            color: color
 
         return grid.set x, y, value
 
@@ -48,4 +56,3 @@ Helpers
 
     previewCanvas = (width, height) ->
       canvas = document.createElement("canvas")
-      

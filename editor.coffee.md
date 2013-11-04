@@ -153,7 +153,8 @@ Editing pixels in your browser.
           y: y
           index: self.layer(layer).get(x, y)
 
-        palette: Observable(Palette.dawnBringer32)
+        # HACK: Adding in transparent to palette
+        palette: Observable(["transparent"].concat Palette.dawnBringer32)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
