@@ -1,6 +1,13 @@
 Util
 ====
 
+Deferred
+--------
+
+Use jQuery deferred
+
+    global.Deferred = jQuery.Deferred
+
 Helpers
 -------
 

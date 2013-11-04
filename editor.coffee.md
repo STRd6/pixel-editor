@@ -51,10 +51,6 @@ Editing pixels in your browser.
 
       activeTool = self.activeTool
 
-      layers = Observable [
-        Layer pixelExtent
-      ]
-
       self.extend
         activeIndex: activeIndex
 
@@ -64,22 +60,20 @@ Editing pixels in your browser.
           self.execute Command.NewLayer(data, self)
 
         newLayer: (data) ->
-          if data
-            layers.push Layer data
-          else
-            layers.push Layer pixelExtent
+          # TODO: Check layer width and height against canvas width and height.
+          makeLayer(data?.data)
 
           self.repaint()
 
         removeLayer: ->
-          layers.pop()
+          self.layers.pop()
 
           self.repaint()
 
         outputCanvas: ->
           outputCanvas = TouchCanvas pixelExtent
 
-          layers.forEach (layer) ->
+          self.layers.forEach (layer) ->
             # TODO: Only paint once per pixel, rather than once per pixel per layer.
             # By being smarter about transparency
             layer.each (index, x, y) ->
@@ -102,7 +96,7 @@ Editing pixels in your browser.
         repaint: ->
           # TODO: Only paint once per pixel, rather than once per pixel per layer.
           # By being smarter about transparency
-          layers.forEach (layer) ->
+          self.layers.forEach (layer) ->
             layer.each (index, x, y) ->
               self.colorPixel {x, y, index}
 
@@ -116,20 +110,18 @@ Editing pixels in your browser.
         changePixel: (params)->
           {x, y, index, layer} = params
 
-          color = self.palette()[index]
-
-          self.layer(layer).set(x, y, index, color) unless canvas is previewCanvas
+          self.layer(layer).set(x, y, index) unless canvas is previewCanvas
 
           self.colorPixel(params)
 
-        layers: layers
+        layers: Observable []
 
         layer: (index) ->
           # TODO: Extend observable arrays with .get, .first, and .last
           if index?
-            layers()[index]
+            self.layers()[index]
           else
-            layers()[layers().length - 1]
+            self.layers()[self.layers().length - 1]
 
         colorPixel: ({x, y, index}) ->
           color = self.palette()[index]
@@ -176,6 +168,15 @@ accidentally setting the pixel values during the preview.
 
           canvas = realCanvas
           lastCommand = realCommand
+
+      makeLayer = (data) ->
+        self.layers.push Layer
+          width: pixelExtent.width
+          height: pixelExtent.height
+          data: data
+          palette: self.palette
+
+      makeLayer()
 
       $('body').append template self
 

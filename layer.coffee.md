@@ -10,7 +10,7 @@ A layer is a 2d set of pixels.
     {Grid} = require "./util"
 
     Layer = (I={}, self=Core(I)) ->
-      {width, height, data} = I
+      {width, height, palette, data} = I
 
       pixelSize = 1
 
@@ -29,14 +29,15 @@ A layer is a 2d set of pixels.
       self.each = grid.each
       self.get = grid.get
 
-      self.set = (x, y, value, color) ->
+      paint = (x, y, index) ->
+        color = palette()[index]
+
         if color is "transparent"
           previewCanvas.clear
             x: x * pixelSize
             y: y * pixelSize
             width: pixelSize
             height: pixelSize
-            color: color
         else
           previewCanvas.drawRect
             x: x * pixelSize
@@ -45,7 +46,17 @@ A layer is a 2d set of pixels.
             height: pixelSize
             color: color
 
-        return grid.set x, y, value
+      self.set = (x, y, index) ->
+        paint(x, y, index)
+
+        return grid.set x, y, index
+
+      self.repaint = ->
+        grid.each (index, x, y) ->
+          paint(x, y, index)
+
+      if data
+        self.repaint()
 
       return self
 

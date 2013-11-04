@@ -36,8 +36,6 @@ TODO: Quantize Palette
             [0...width].map (x) ->
               pieces = getColor(imageData, x, y)
 
-              pieces[3] /= 255
-
               color = arrayToHex(pieces)
 
               colorFrequency[color] ?= 0
@@ -66,7 +64,7 @@ TODO: Quantize Palette
 
         fromImageDataWithPalette: (imageData, palette) ->
           {width, height} = imageData
-          paletteData = palette.map colorToRGB
+          paletteData = palette.map colorToRGBA
 
           width: width
           height: height
@@ -80,31 +78,38 @@ Helpers
 -------
 
     arrayToHex = (parts) ->
-      "##{parts.map numberToHex}"
+      if parts[3]
+        "transparent"
+      else
+        "##{parts.map numberToHex}"
 
-    intToRGBA = (number) ->
-      bitmask = 0xff
+    # HACK: Infinity keeps the transparent color from being closer than any other
+    # color in the palette
+    TRANSPARENT_RGBA = [Infinity, 0, 0, 0xff]
 
-      numbers = [0..3].map (n) ->
-        bitshift = n * 8
-        (number & (bitmask << bitshift)) >> bitshift
-
-      numbers[3] /= 255
-
-      "rgba(#{numbers.join(",")})"
-
-    colorToRGB = (colorString) ->
-      colorString.match(/([0-9A-F]{2})/g).map (part) ->
-        parseInt part, 0x10
+    colorToRGBA = (colorString) ->
+      if colorString is "transparent"
+        TRANSPARENT_RGBA
+      else
+        colorString.match(/([0-9A-F]{2})/g).map (part) ->
+          parseInt part, 0x10
+        .concat [0]
 
     distanceSquared = (a, b) ->
-      a.map (n, index) ->
+      a.slice(0, 3).map (n, index) ->
         delta = n - b[index]
 
         delta * delta
       .sum()
 
     nearestColorIndex = (colorData, paletteData) ->
+      # TODO: Hack for transparent pixels
+      # Assumes 0 index is transparent
+      # 50% or more transparent then it is 100% transparent
+      # less than 50% it is fully opaque
+      if colorData[3] < 128
+        return 0
+
       paletteColor = paletteData.minimum (paletteEntry) ->
         distanceSquared(paletteEntry, colorData)
 
