@@ -15,9 +15,14 @@ Helpers
     numberToHex = (n) ->
       "0#{n.toString(0x10)}".slice(-2).toUpperCase()
 
+    TRANSPARENT = [0xff, 0, 0xff]
     colorToRGB = (colorString) ->
-      colorString.match(/([0-9A-F]{2})/g).map (part) ->
-        parseInt part, 0x10
+      # HACK: Use crazy magenta for transparent in palette export.
+      if colorString is "transparent"
+        TRANSPARENT
+      else
+        colorString.match(/([0-9A-F]{2})/g).map (part) ->
+          parseInt part, 0x10
 
 Export to Formats
 -----------------
