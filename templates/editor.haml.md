@@ -2,6 +2,7 @@ Editor template
 
     - activeIndex = @activeIndex
     - activeTool = @activeTool
+    - editor = this
 
     .editor
 
@@ -30,7 +31,8 @@ The palette holds our colors.
               - activeIndex index
 
       .layers
-        - each @layers, (layer, index) ->
+        - layers = -> editor.layers().copy().reverse()
+        - each layers, (layer, index) ->
           .layer
             - on "click", ->
               - console.log "Clicked layer #{index}"

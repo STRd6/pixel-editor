@@ -8,9 +8,9 @@ Hotkeys for the pixel editor.
         addHotkey: (key, method) ->
           $(document).bind "keydown", key, ->
             if typeof method is "function"
-              method()
-            else
-              self[method]
+              method
                 editor: self
+            else
+              self[method]()
 
       return self

@@ -64,7 +64,10 @@ Editing pixels in your browser.
           self.execute Command.NewLayer(data, self)
 
         newLayer: (data) ->
-          layers.push Layer data
+          if data
+            layers.push Layer data
+          else
+            layers.push Layer pixelExtent
 
           self.repaint()
 
