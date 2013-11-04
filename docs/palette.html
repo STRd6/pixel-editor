@@ -55,7 +55,11 @@
     .join(<span class="string">""</span>)
 
 <span class="function"><span class="title">numberToHex</span></span> = (n) -&gt;
-  <span class="string">"0<span class="subst">#{n.toString(<span class="number">0x10</span>)}</span>"</span>.slice(-<span class="number">2</span>).toUpperCase()</code></pre>
+  <span class="string">"0<span class="subst">#{n.toString(<span class="number">0x10</span>)}</span>"</span>.slice(-<span class="number">2</span>).toUpperCase()
+
+<span class="function"><span class="title">colorToRGB</span></span> = (colorString) -&gt;
+  colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
+    parseInt part, <span class="number">0x10</span></code></pre>
 </div>
         </li>
         
@@ -65,7 +69,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <h2 id="palettes">Palettes</h2>
+              <h2 id="export-to-formats">Export to Formats</h2>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">
@@ -78,6 +82,50 @@
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">exportJASC</span></span> = (array) -&gt;
+  entries = array
+  .map (entry) -&gt;
+    colorToRGB(entry).join(<span class="string">" "</span>)
+  .join(<span class="string">"\n"</span>)
+
+  padding = Math.max(<span class="number">0</span>, <span class="number">256</span> - array.length)
+
+  zeroes = [<span class="number">0.</span>..padding].map -&gt;
+    <span class="string">"0 0 0"</span>
+  .join(<span class="string">"\n"</span>)
+
+  <span class="string">"""
+    JASC-PAL
+    0100
+    256
+    <span class="subst">#{entries}</span>
+    <span class="subst">#{zeroes}</span>
+  """</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h2 id="palettes">Palettes</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               
             </div>
@@ -105,10 +153,10 @@
         </li>
         
         
-        <li id="section-6">
+        <li id="section-8">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p><a href="http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795">http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795</a></p>
 
@@ -135,10 +183,10 @@
         </li>
         
         
-        <li id="section-7">
+        <li id="section-9">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               <p><a href="http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247">http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247</a></p>
 
@@ -178,6 +226,8 @@
     138 111 48
   """</span>
 
+  <span class="reserved">export</span>: exportJASC
+
 module.exports = Palette</code></pre>
 </div>
         </li>
@@ -188,6 +238,7 @@ module.exports = Palette</code></pre>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
 <script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script><script src="package.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js?"></script><script src="package.js"></script>
 </body>
 </html>
