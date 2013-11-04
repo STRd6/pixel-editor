@@ -168,6 +168,12 @@ accidentally setting the pixel values during the preview.
           canvas = realCanvas
           lastCommand = realCommand
 
+        exportPalette: ->
+          paletteData = Palette.export self.palette()
+          blob = new Blob [paletteData],
+            type: "text/plain"
+          saveAs blob, "palette.pal"
+
       $('body').append template self
 
       canvas = TouchCanvas canvasSize
@@ -216,6 +222,8 @@ accidentally setting the pixel values during the preview.
           editor: self
 
         previewCanvas.clear()
+
+      self.repaint()
 
       return self
 

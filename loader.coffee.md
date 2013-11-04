@@ -49,16 +49,16 @@ TODO: Quantize Palette
             colorFrequency[b] - colorFrequency[a]
           .reduce (table, color, index) ->
             table[color] = index
-      
+
             table
           , {}
-      
+
           palette = Object.keys(table)
-      
+
           data = [0...height].map (y) ->
             [0...width].map (x) ->
               table[colors[y][x]]
-    
+
           palette: palette
           width: width
           height: height

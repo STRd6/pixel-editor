@@ -4,7 +4,7 @@ Palette
 Helpers
 -------
 
-    
+
 
     fromStrings = (lines) ->
       lines.split("\n").map (line) ->
@@ -14,6 +14,33 @@ Helpers
 
     numberToHex = (n) ->
       "0#{n.toString(0x10)}".slice(-2).toUpperCase()
+
+    colorToRGB = (colorString) ->
+      colorString.match(/([0-9A-F]{2})/g).map (part) ->
+        parseInt part, 0x10
+
+Export to Formats
+-----------------
+
+    exportJASC = (array) ->
+      entries = array
+      .map (entry) ->
+        colorToRGB(entry).join(" ")
+      .join("\n")
+
+      padding = Math.max(0, 256 - array.length)
+
+      zeroes = [0...padding].map ->
+        "0 0 0"
+      .join("\n")
+
+      """
+        JASC-PAL
+        0100
+        256
+        #{entries}
+        #{zeroes}
+      """
 
 Palettes
 --------
@@ -96,5 +123,7 @@ http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
         143 151 74
         138 111 48
       """
+
+      export: exportJASC
 
     module.exports = Palette

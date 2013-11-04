@@ -35,3 +35,5 @@ TODO: Consolidate actions with hotkeys
       "ctrl+b":
         method: "toDataURL"
         icon: null
+      "ctrl+e":
+        method: "exportPalette"
