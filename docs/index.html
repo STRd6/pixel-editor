@@ -83,7 +83,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   activeTool = self.activeTool
 
-  layers = [
+  layers = Observable [
     Layer pixelExtent
   ]
 
@@ -145,15 +145,20 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     changePixel: (params)-&gt;
       {x, y, index, layer} = params
 
-      self.layer(layer).set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
+      color = self.palette()[index]
+
+      self.layer(layer).set(x, y, index, color) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
       self.colorPixel(params)
 
+    layers: layers
+
     layer: (index) -&gt;
+      <span class="comment"># TODO: Extend observable arrays with .get, .first, and .last</span>
       <span class="keyword">if</span> index?
-        layers[index]
+        layers()[index]
       <span class="keyword">else</span>
-        layers.last()
+        layers()[layers().length - <span class="number">1</span>]
 
     colorPixel: ({x, y, index}) -&gt;
       color = self.palette()[index]

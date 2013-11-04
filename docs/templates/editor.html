@@ -77,6 +77,13 @@
         - on &quot;click&quot;, -&gt;
           - activeIndex index
 
+  .layers
+    - each @layers, (layer, index) -&gt;
+      .layer
+        - on &quot;click&quot;, -&gt;
+          - console.log &quot;Clicked layer #{index}&quot;
+        = layer.previewCanvas
+
   .actions
     - each @actions, (action) -&gt;
       .action(style=&quot;background-image: url(#{action.iconUrl})&quot;)
