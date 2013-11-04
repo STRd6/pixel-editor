@@ -23,6 +23,7 @@
             </div>
             <div class="content"><pre><code class="lang-haml">- activeIndex = @activeIndex
 - activeTool = @activeTool
+- editor = this
 
 .editor</code></pre>
 </div>
@@ -78,7 +79,8 @@
           - activeIndex index
 
   .layers
-    - each @layers, (layer, index) -&gt;
+    - layers = -&gt; editor.layers().copy().reverse()
+    - each layers, (layer, index) -&gt;
       .layer
         - on &quot;click&quot;, -&gt;
           - console.log &quot;Clicked layer #{index}&quot;

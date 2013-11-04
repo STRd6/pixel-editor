@@ -96,7 +96,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       self.execute Command.NewLayer(data, self)
 
     newLayer: (data) -&gt;
-      layers.push Layer data
+      <span class="keyword">if</span> data
+        layers.push Layer data
+      <span class="keyword">else</span>
+        layers.push Layer pixelExtent
 
       self.repaint()
 
