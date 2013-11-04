@@ -71,12 +71,20 @@
   self.get = grid.get
 
   self.<span class="function"><span class="title">set</span></span> = (x, y, value, color) -&gt;
-    previewCanvas.drawRect
-      x: x * pixelSize
-      y: y * pixelSize
-      width: pixelSize
-      height: pixelSize
-      color: color
+    <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+      previewCanvas.clear
+        x: x * pixelSize
+        y: y * pixelSize
+        width: pixelSize
+        height: pixelSize
+        color: color
+    <span class="keyword">else</span>
+      previewCanvas.drawRect
+        x: x * pixelSize
+        y: y * pixelSize
+        width: pixelSize
+        height: pixelSize
+        color: color
 
     <span class="keyword">return</span> grid.set x, y, value
 
