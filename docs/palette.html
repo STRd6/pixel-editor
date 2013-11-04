@@ -57,9 +57,14 @@
 <span class="function"><span class="title">numberToHex</span></span> = (n) -&gt;
   <span class="string">"0<span class="subst">#{n.toString(<span class="number">0x10</span>)}</span>"</span>.slice(-<span class="number">2</span>).toUpperCase()
 
+TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, <span class="number">0xff</span>]
 <span class="function"><span class="title">colorToRGB</span></span> = (colorString) -&gt;
-  colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
-    parseInt part, <span class="number">0x10</span></code></pre>
+  <span class="comment"># HACK: Use crazy magenta for transparent in palette export.</span>
+  <span class="keyword">if</span> colorString <span class="keyword">is</span> <span class="string">"transparent"</span>
+    TRANSPARENT
+  <span class="keyword">else</span>
+    colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
+      parseInt part, <span class="number">0x10</span></code></pre>
 </div>
         </li>
         
