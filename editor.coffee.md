@@ -121,12 +121,12 @@ Editing pixels in your browser.
             self.layers()[self.layers().length - 1]
 
         repaintPixel: ({x, y, index}) ->
-          index ?= self.layers.map (layer) ->
+          index ||= self.layers.map (layer) ->
             layer.get(x, y)
           .filter (index) ->
             # HACK: Transparent is assumed to be index zero
             index != 0
-          .last()
+          .last() or 0
 
           color = self.palette()[index]
 
