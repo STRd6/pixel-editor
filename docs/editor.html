@@ -186,6 +186,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       x: x
       y: y
       index: self.layer(layer).get(x, y)
+      layer: layer ? self.activeLayerIndex()
 
     <span class="comment"># HACK: Adding in transparent to palette</span>
     palette: Observable([<span class="string">"transparent"</span>].concat Palette.dawnBringer32)</code></pre>
