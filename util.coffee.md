@@ -139,11 +139,17 @@ Call an iterator for each integer point on a line between two integer points.
 
 gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 
-      circle: (center, endPoint, iterator) ->
+      circle: (start, endPoint, iterator) ->
+        center = Point.interpolate(start, endPoint, 0.5).floor()
         {x:x0, y:y0} = center
         {x:x1, y:y1} = endPoint
 
-        radius = endPoint.subtract(center).magnitude().floor()
+        extent = endPoint.subtract(start).scale(0.5).abs().floor()
+
+        radius = Math.min(
+          extent.x
+          extent.y
+        )
 
         f = 1 - radius
         ddFx = 1

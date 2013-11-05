@@ -94,11 +94,8 @@ Editing pixels in your browser.
           console.log self.outputCanvas().toDataURL("image/png")
 
         repaint: ->
-          # TODO: Only paint once per pixel, rather than once per pixel per layer.
-          # By being smarter about transparency
-          self.layers.forEach (layer) ->
-            layer.each (index, x, y) ->
-              self.colorPixel {x, y, index}
+          self.layers().first().each (_, x, y) ->
+            self.repaintPixel {x, y}
 
         draw: ({x, y}) ->
           lastCommand.push Command.ChangePixel
@@ -112,7 +109,7 @@ Editing pixels in your browser.
 
           self.layer(layer).set(x, y, index) unless canvas is previewCanvas
 
-          self.colorPixel(params)
+          self.repaintPixel(params)
 
         layers: Observable []
 
@@ -123,7 +120,14 @@ Editing pixels in your browser.
           else
             self.layers()[self.layers().length - 1]
 
-        colorPixel: ({x, y, index}) ->
+        repaintPixel: ({x, y, index}) ->
+          index ?= self.layers.map (layer) ->
+            layer.get(x, y)
+          .filter (index) ->
+            # HACK: Transparent is assumed to be index zero
+            index != 0
+          .last()
+
           color = self.palette()[index]
 
           if color is "transparent"
