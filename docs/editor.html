@@ -153,12 +153,12 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
         self.layers()[self.layers().length - <span class="number">1</span>]
 
     repaintPixel: ({x, y, index}) -&gt;
-      index ?= self.layers.map (layer) -&gt;
+      index ||= self.layers.map (layer) -&gt;
         layer.get(x, y)
       .filter (index) -&gt;
         <span class="comment"># HACK: Transparent is assumed to be index zero</span>
         index != <span class="number">0</span>
-      .last()
+      .last() <span class="keyword">or</span> <span class="number">0</span>
 
       color = self.palette()[index]
 
