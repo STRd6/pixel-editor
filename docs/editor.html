@@ -126,11 +126,8 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       console.log self.outputCanvas().toDataURL(<span class="string">"image/png"</span>)
 
     repaint: -&gt;
-      <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer.</span>
-      <span class="comment"># By being smarter about transparency</span>
-      self.layers.forEach (layer) -&gt;
-        layer.each (index, x, y) -&gt;
-          self.colorPixel {x, y, index}
+      self.layers().first().each (_, x, y) -&gt;
+        self.repaintPixel {x, y}
 
     draw: ({x, y}) -&gt;
       lastCommand.push Command.ChangePixel
@@ -144,7 +141,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       self.layer(layer).set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
-      self.colorPixel(params)
+      self.repaintPixel(params)
 
     layers: Observable []
 
@@ -155,7 +152,14 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       <span class="keyword">else</span>
         self.layers()[self.layers().length - <span class="number">1</span>]
 
-    colorPixel: ({x, y, index}) -&gt;
+    repaintPixel: ({x, y, index}) -&gt;
+      index ?= self.layers.map (layer) -&gt;
+        layer.get(x, y)
+      .filter (index) -&gt;
+        <span class="comment"># HACK: Transparent is assumed to be index zero</span>
+        index != <span class="number">0</span>
+      .last()
+
       color = self.palette()[index]
 
       <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>

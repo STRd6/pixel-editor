@@ -280,11 +280,17 @@ Size.prototype =
               <p>gross code courtesy of <a href="http://en.wikipedia.org/wiki/Midpoint_circle_algorithm">http://en.wikipedia.org/wiki/Midpoint_circle_algorithm</a></p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  circle: (center, endPoint, iterator) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript">  circle: (start, endPoint, iterator) -&gt;
+    center = Point.interpolate(start, endPoint, <span class="number">0.5</span>).floor()
     {x:x0, y:y0} = center
     {x:x1, y:y1} = endPoint
 
-    radius = endPoint.subtract(center).magnitude().floor()
+    extent = endPoint.subtract(start).scale(<span class="number">0.5</span>).abs().floor()
+
+    radius = Math.min(
+      extent.x
+      extent.y
+    )
 
     f = <span class="number">1</span> - radius
     ddFx = <span class="number">1</span>
