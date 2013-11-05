@@ -1,20 +1,26 @@
 TODO
 ====
 
-Grid
-  Modify Grid Size
+Bugs
+  Preview Erase/Transparent
+  Update main image when drawing transparent on upper later
 
 Resize Image
 
+Composite Preview
+
 Layers
-  New Layer
-  Delete Layer
+  X New Layer
+  X Delete Layer
   Show/Hide Layer
   Load Layer from Paste
 
 Palette
   Load Palette
   X Export Palette
+
+Grid
+  Modify Grid Size
 
 Animation Frames
   New Frame
