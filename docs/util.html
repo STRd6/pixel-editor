@@ -180,20 +180,37 @@ Size.prototype =
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">  Grid: (width, height, defaultValue) -&gt;
+    <span class="function"><span class="title">generateValue</span></span> = (x, y) -&gt;
+      <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
+        defaultValue(x, y)
+      <span class="keyword">else</span>
+        defaultValue
+
     grid =
       [<span class="number">0.</span>..height].map (y) -&gt;
         [<span class="number">0.</span>..width].map (x) -&gt;
-          <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
-            defaultValue(x, y)
-          <span class="keyword">else</span>
-            defaultValue
+          generateValue(x, y)
 
     self =
+      contract: (x, y) -&gt;
+        height -= y
+        width -= x
+
+        grid.length = height
+
+        grid.forEach (row) -&gt;
+          row.length = width
+
+        <span class="keyword">return</span> self
+
       copy: -&gt;
         Grid(width, height, self.get)
 
       get: (x, y) -&gt;
-        grid[y]?[x]
+        <span class="keyword">return</span> <span class="keyword">if</span> x &lt; <span class="number">0</span> <span class="keyword">or</span> x &gt;= width
+        <span class="keyword">return</span> <span class="keyword">if</span> y &lt; <span class="number">0</span> <span class="keyword">or</span> y &gt;= height
+
+        grid[y][x]
 
       set: (x, y, value) -&gt;
         <span class="keyword">return</span> <span class="keyword">if</span> x &lt; <span class="number">0</span> <span class="keyword">or</span> x &gt;= width
@@ -207,6 +224,17 @@ Size.prototype =
             iterator(value, x, y)
 
         <span class="keyword">return</span> self
+
+      expand: (x, y) -&gt;
+        newRows = [<span class="number">0.</span>..y].map (y) -&gt;
+          [<span class="number">0.</span>..width].map (x) -&gt;
+            generateValue(x, y + height)
+
+        grid = grid.concat newRows
+
+        grid = grid.map (row, y) -&gt;
+          row.concat [<span class="number">0.</span>..x].map (x) -&gt;
+            generateValue(width + x, y)
 
     <span class="keyword">return</span> self</code></pre>
 </div>

@@ -70,6 +70,8 @@
   self.each = grid.each
   self.get = grid.get
 
+  self.hidden = Observable(<span class="literal">false</span>)
+
   <span class="function"><span class="title">paint</span></span> = (x, y, index) -&gt;
     color = palette()[index]
 
