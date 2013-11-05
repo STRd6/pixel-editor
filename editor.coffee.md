@@ -154,6 +154,7 @@ Editing pixels in your browser.
           x: x
           y: y
           index: self.layer(layer).get(x, y)
+          layer: layer ? self.activeLayerIndex()
 
         # HACK: Adding in transparent to palette
         palette: Observable(["transparent"].concat Palette.dawnBringer32)
