@@ -82,9 +82,10 @@
     Layers
     - layers = -&gt; editor.layers().copy().reverse()
     - each layers, (layer, index) -&gt;
-      .layer
+      - activeClass = -&gt; &quot;active&quot; if layer is editor.activeLayer()
+      .layer(class=activeClass)
         - on &quot;click&quot;, -&gt;
-          - console.log &quot;Clicked layer #{index}&quot;
+          - editor.activeLayer layer
         = layer.previewCanvas
 
   .actions

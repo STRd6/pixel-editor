@@ -85,6 +85,9 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   self.extend
     activeIndex: activeIndex
+    activeLayer: Observable()
+    activeLayerIndex: -&gt;
+      self.layers.indexOf(self.activeLayer())
 
     handlePaste: (data) -&gt;
       {palette} = data
@@ -99,6 +102,9 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
     removeLayer: -&gt;
       self.layers.pop()
+
+      <span class="keyword">if</span> self.layers.indexOf(self.activeLayer()) <span class="keyword">is</span> -<span class="number">1</span>
+        self.activeLayer self.layers().last()
 
       self.repaint()
 
@@ -134,9 +140,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
         x: x
         y: y
         index: activeIndex()
+        layer: self.activeLayerIndex()
       , self
 
-    changePixel: (params)-&gt;
+    changePixel: (params) -&gt;
       {x, y, index, layer} = params
 
       self.layer(layer).set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
@@ -146,11 +153,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     layers: Observable []
 
     layer: (index) -&gt;
-      <span class="comment"># TODO: Extend observable arrays with .get, .first, and .last</span>
       <span class="keyword">if</span> index?
         self.layers()[index]
       <span class="keyword">else</span>
-        self.layers()[self.layers().length - <span class="number">1</span>]
+        self.activeLayer()
 
     repaintPixel: ({x, y, index}) -&gt;
       index ||= self.layers.map (layer) -&gt;
@@ -213,11 +219,14 @@ accidentally setting the pixel values during the preview.</p>
       lastCommand = realCommand
 
   <span class="function"><span class="title">makeLayer</span></span> = (data) -&gt;
-    self.layers.push Layer
+    layer = Layer
       width: pixelExtent.width
       height: pixelExtent.height
       data: data
       palette: self.palette
+
+    self.layers.push layer
+    self.activeLayer layer
 
   makeLayer()
 
