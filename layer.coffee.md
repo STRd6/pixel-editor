@@ -29,6 +29,8 @@ A layer is a 2d set of pixels.
       self.each = grid.each
       self.get = grid.get
 
+      self.hidden = Observable(false)
+
       paint = (x, y, index) ->
         color = palette()[index]
 

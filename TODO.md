@@ -1,23 +1,32 @@
 TODO
 ====
 
-Bugs
-  Preview Erase/Transparent
-  Update main image when drawing transparent on upper later
+Load Image
+  Palette + Layers
+
+Save Image
+  Palette Data
+  Layer Data
 
 Resize Image
 
 Composite Preview
 
+Bugs
+  Preview Erase/Transparent
+
 Layers
   X New Layer
   X Delete Layer
   Show/Hide Layer
-  Load Layer from Paste
+  X New Layer from Paste
+  Resize Layer
 
 Palette
   Load Palette
   X Export Palette
+
+Export Image
 
 Grid
   Modify Grid Size

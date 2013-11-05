@@ -57,20 +57,37 @@ Extra utilities that may be broken out into separate libraries.
 A 2d grid of values.
 
       Grid: (width, height, defaultValue) ->
+        generateValue = (x, y) ->
+          if typeof defaultValue is "function"
+            defaultValue(x, y)
+          else
+            defaultValue
+
         grid =
           [0...height].map (y) ->
             [0...width].map (x) ->
-              if typeof defaultValue is "function"
-                defaultValue(x, y)
-              else
-                defaultValue
+              generateValue(x, y)
 
         self =
+          contract: (x, y) ->
+            height -= y
+            width -= x
+
+            grid.length = height
+
+            grid.forEach (row) ->
+              row.length = width
+
+            return self
+
           copy: ->
             Grid(width, height, self.get)
 
           get: (x, y) ->
-            grid[y]?[x]
+            return if x < 0 or x >= width
+            return if y < 0 or y >= height
+
+            grid[y][x]
 
           set: (x, y, value) ->
             return if x < 0 or x >= width
@@ -84,6 +101,17 @@ A 2d grid of values.
                 iterator(value, x, y)
 
             return self
+
+          expand: (x, y) ->
+            newRows = [0...y].map (y) ->
+              [0...width].map (x) ->
+                generateValue(x, y + height)
+
+            grid = grid.concat newRows
+
+            grid = grid.map (row, y) ->
+              row.concat [0...x].map (x) ->
+                generateValue(width + x, y)
 
         return self
 
