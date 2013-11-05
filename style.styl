@@ -50,8 +50,12 @@ html, body
   right: 0
 
   .layer
+    border: 1px solid transparent
     border-top: 1px solid rgba(0, 0, 0, 0.5)
     padding: 2px 0
+
+    &.active
+      border-color: green
 
   canvas
     display: block

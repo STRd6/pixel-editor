@@ -53,6 +53,9 @@ Editing pixels in your browser.
 
       self.extend
         activeIndex: activeIndex
+        activeLayer: Observable()
+        activeLayerIndex: ->
+          self.layers.indexOf(self.activeLayer())
 
         handlePaste: (data) ->
           {palette} = data
@@ -67,6 +70,9 @@ Editing pixels in your browser.
 
         removeLayer: ->
           self.layers.pop()
+
+          if self.layers.indexOf(self.activeLayer()) is -1
+            self.activeLayer self.layers().last()
 
           self.repaint()
 
@@ -102,9 +108,10 @@ Editing pixels in your browser.
             x: x
             y: y
             index: activeIndex()
+            layer: self.activeLayerIndex()
           , self
 
-        changePixel: (params)->
+        changePixel: (params) ->
           {x, y, index, layer} = params
 
           self.layer(layer).set(x, y, index) unless canvas is previewCanvas
@@ -114,11 +121,10 @@ Editing pixels in your browser.
         layers: Observable []
 
         layer: (index) ->
-          # TODO: Extend observable arrays with .get, .first, and .last
           if index?
             self.layers()[index]
           else
-            self.layers()[self.layers().length - 1]
+            self.activeLayer()
 
         repaintPixel: ({x, y, index}) ->
           index ||= self.layers.map (layer) ->
@@ -174,11 +180,14 @@ accidentally setting the pixel values during the preview.
           lastCommand = realCommand
 
       makeLayer = (data) ->
-        self.layers.push Layer
+        layer = Layer
           width: pixelExtent.width
           height: pixelExtent.height
           data: data
           palette: self.palette
+
+        self.layers.push layer
+        self.activeLayer layer
 
       makeLayer()
 

@@ -34,9 +34,10 @@ The palette holds our colors.
         Layers
         - layers = -> editor.layers().copy().reverse()
         - each layers, (layer, index) ->
-          .layer
+          - activeClass = -> "active" if layer is editor.activeLayer()
+          .layer(class=activeClass)
             - on "click", ->
-              - console.log "Clicked layer #{index}"
+              - editor.activeLayer layer
             = layer.previewCanvas
 
       .actions
