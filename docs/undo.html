@@ -51,9 +51,8 @@
 <p>A simple stack based implementation of executable and undoable commands.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">CommandStack</span></span> = -&gt;
-  stack = []
-  index = <span class="number">0</span>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">CommandStack</span></span> = (stack=[]) -&gt;
+  index = stack.length
 
   execute: (command) -&gt;
     stack[index] = command
@@ -93,13 +92,8 @@
   canRedo: -&gt;
     stack[index]?
 
-  stack: (newStack) -&gt;
-    <span class="keyword">if</span> arguments.length &gt; <span class="number">0</span>
-      <span class="comment"># Restore state from the given data</span>
-      stack = newStack
-      index = stack.length
-    <span class="keyword">else</span>
-      stack.slice(<span class="number">0</span>, index)
+  stack: -&gt;
+    stack.slice(<span class="number">0</span>, index)
 
 module.exports = CommandStack</code></pre>
 </div>
@@ -142,7 +136,12 @@ module.exports = CommandStack</code></pre>
     dirty(<span class="literal">false</span>)
 
   self.extend
-    history: commandStack.stack
+    history: (newHistory) -&gt;
+      <span class="keyword">if</span> arguments.length &gt; <span class="number">0</span>
+        commandStack = CommandStack newHistory.map self.Command.parse
+      <span class="keyword">else</span>
+        commandStack.stack()
+
     execute: (command) -&gt;
       commandStack.execute command
       updateDirtyState()

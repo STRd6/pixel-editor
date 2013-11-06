@@ -54,6 +54,7 @@ versions.</p>
             </div>
             <div class="content"><pre><code class="lang-coffeescript">  <span class="function"><span class="title">C</span></span> = (name, constructor) -&gt;
     self.Command[name] = (data={}) -&gt;
+      data = Object.extend {}, data
       data.name = name
 
       command = constructor(data)
@@ -96,8 +97,7 @@ versions.</p>
   C <span class="string">"Composite"</span>, (data) -&gt;
     <span class="keyword">if</span> data.commands
       <span class="comment"># We came from JSON so rehydrate the commands.</span>
-      data.commands = data.commands.map (commandData) -&gt;
-        self.Command[commandData.name](commandData)
+      data.commands = data.commands.map self.Command.parse
     <span class="keyword">else</span>
       data.commands = []
 
@@ -121,7 +121,10 @@ versions.</p>
 
     toJSON: -&gt;
       Object.extend {}, data,
-        commands: commands.invoke <span class="string">"toJSON"</span></code></pre>
+        commands: commands.invoke <span class="string">"toJSON"</span>
+
+  self.Command.<span class="function"><span class="title">parse</span></span> = (commandData) -&gt;
+    self.Command[commandData.name](commandData)</code></pre>
 </div>
         </li>
         
