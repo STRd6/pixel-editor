@@ -10,9 +10,8 @@ TODO: Integrate Observables?
 
 A simple stack based implementation of executable and undoable commands.
 
-    CommandStack = ->
-      stack = []
-      index = 0
+    CommandStack = (stack=[]) ->
+      index = stack.length
 
       execute: (command) ->
         stack[index] = command
@@ -52,16 +51,10 @@ A simple stack based implementation of executable and undoable commands.
       canRedo: ->
         stack[index]?
 
-      stack: (newStack) ->
-        if arguments.length > 0
-          # Restore state from the given data
-          stack = newStack
-          index = stack.length
-        else
-          stack.slice(0, index)
+      stack: ->
+        stack.slice(0, index)
 
     module.exports = CommandStack
-
 
 An editor module for editors that support undo/redo
 
@@ -93,7 +86,12 @@ An editor module for editors that support undo/redo
         dirty(false)
 
       self.extend
-        history: commandStack.stack
+        history: (newHistory) ->
+          if arguments.length > 0
+            commandStack = CommandStack newHistory.map self.Command.parse
+          else
+            commandStack.stack()
+
         execute: (command) ->
           commandStack.execute command
           updateDirtyState()

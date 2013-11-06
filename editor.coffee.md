@@ -125,7 +125,7 @@ Editing pixels in your browser.
 
           self.activeLayer self.layers()[state.activeLayerIndex]
 
-          # TODO: Restore history
+          self.history state.history
 
           self.repaint()
 

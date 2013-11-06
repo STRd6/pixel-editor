@@ -14,6 +14,7 @@ versions.
 
       C = (name, constructor) ->
         self.Command[name] = (data={}) ->
+          data = Object.extend {}, data
           data.name = name
 
           command = constructor(data)
@@ -56,8 +57,7 @@ versions.
       C "Composite", (data) ->
         if data.commands
           # We came from JSON so rehydrate the commands.
-          data.commands = data.commands.map (commandData) ->
-            self.Command[commandData.name](commandData)
+          data.commands = data.commands.map self.Command.parse
         else
           data.commands = []
 
@@ -82,3 +82,6 @@ versions.
         toJSON: ->
           Object.extend {}, data,
             commands: commands.invoke "toJSON"
+
+      self.Command.parse = (commandData) ->
+        self.Command[commandData.name](commandData)
