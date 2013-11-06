@@ -32,37 +32,76 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Commands that can be undone in the editor.</p>
+              <p>Commands that can be done/undone in the editor.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.exports =
-  ChangePixel: (data, editor) -&gt;
-    previous = editor.getPixel(data)
+            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
+  self.Command = {}</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>This is a weird DSL for each command to inherit a toJSON method and to register
+to be de-serialized by name.</p>
+<p><em>IMPORTANT:</em> If the names change then old command data may fail to load in newer
+versions.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  <span class="function"><span class="title">C</span></span> = (name, constructor) -&gt;
+    self.Command[name] = (data={}) -&gt;
+      data.name = name
+
+      command = constructor(data)
+
+      command.toJSON ?= -&gt;
+        <span class="comment"># TODO: May want to return a copy of the data to be super-duper safe</span>
+        data
+
+      <span class="keyword">return</span> command
+
+  C <span class="string">"ChangePixel"</span>, (data) -&gt;
+    data.previous ?= self.getPixel(data)
 
     execute: -&gt;
-      editor.changePixel(data)
+      self.changePixel(data)
 
     undo: -&gt;
-      editor.changePixel(previous)
+      self.changePixel(data.previous)
 
-  Resize: (width, height, editor) -&gt;
-    state = editor.saveState()
+  C <span class="string">"Resize"</span>, (data) -&gt;
+    {width, height, state} = data
+
+    state ?= self.saveState()
 
     execute: -&gt;
-      editor.resize(width, height)
+      self.resize(width, height)
 
     undo: -&gt;
-      editor.restoreState state
+      self.restoreState state
 
-  NewLayer: (data, editor) -&gt;
+  C <span class="string">"NewLayer"</span>, (data) -&gt;
     execute: -&gt;
-      editor.newLayer(data)
+      self.newLayer(data)
 
     undo: -&gt;
-      editor.removeLayer()
+      <span class="comment"># TODO: May need to know layer index and previously active layer</span>
+      <span class="comment"># index</span>
+      self.removeLayer()
 
-  Composite: -&gt;
-    commands = []
+  C <span class="string">"Composite"</span>, (data) -&gt;
+    <span class="keyword">if</span> data.commands
+      <span class="comment"># We came from JSON so rehydrate the commands.</span>
+      data.commands = data.commands.map (commandData) -&gt;
+        self.Command[commandData.name](commandData)
+    <span class="keyword">else</span>
+      data.commands = []
+
+    commands = data.commands
 
     execute: -&gt;
       commands.invoke <span class="string">"execute"</span>
@@ -78,7 +117,11 @@
       <span class="comment"># Passing noExecute as true will skip executing if we are</span>
       <span class="comment"># adding commands that have already executed.</span>
       commands.push command
-      command.execute() <span class="keyword">unless</span> noExecute</code></pre>
+      command.execute() <span class="keyword">unless</span> noExecute
+
+    toJSON: -&gt;
+      Object.extend {}, data,
+        commands: commands.invoke <span class="string">"toJSON"</span></code></pre>
 </div>
         </li>
         

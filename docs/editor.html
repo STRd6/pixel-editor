@@ -75,6 +75,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   self ?= Model(I)
 
+  self.include Command
   self.include Undo
   self.include Hotkeys
   self.include Tools
@@ -101,7 +102,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       <span class="keyword">if</span> palette?
         self.palette(palette)
 
-      self.execute Command.NewLayer(data, self)
+      self.execute self.Command.NewLayer(data)
 
     newLayer: (data) -&gt;
       <span class="comment"># TODO: Check layer width and height against canvas width and height.</span>
@@ -149,23 +150,27 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
     restoreState: (state) -&gt;
       self.palette state.palette
-      self.layers state.layers.map Layer
+      self.layers state.layers.map (data) -&gt;
+        data.palette = self.palette
+
+        Layer data
+
       self.activeLayer self.layers()[state.activeLayerIndex]
 
       self.repaint()
 
     saveState: -&gt;
       palette: self.palette()
-      layers: self.layers()
+      layers: self.layers().invoke <span class="string">"toJSON"</span>
       activeLayerIndex: self.activeLayerIndex()
+      history: self.history().invoke <span class="string">"toJSON"</span>
 
     draw: ({x, y}) -&gt;
-      lastCommand.push Command.ChangePixel
+      lastCommand.push self.Command.ChangePixel
         x: x
         y: y
         index: activeIndex()
         layer: self.activeLayerIndex()
-      , self
 
     changePixel: (params) -&gt;
       {x, y, index, layer} = params
@@ -232,7 +237,7 @@ accidentally setting the pixel values during the preview.</p>
             </div>
             <div class="content"><pre><code class="lang-coffeescript">    preview: (fn) -&gt;
       realCommand = lastCommand
-      lastCommand = Command.Composite()
+      lastCommand = self.Command.Composite()
       realCanvas = canvas
       canvas = previewCanvas
 
@@ -285,7 +290,7 @@ accidentally setting the pixel values during the preview.</p>
     ).backgroundImage()
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
-    lastCommand = Command.Composite()
+    lastCommand = self.Command.Composite()
     self.execute lastCommand
 
     activeTool().touch

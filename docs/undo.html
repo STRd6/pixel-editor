@@ -32,12 +32,89 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
+              <h2 id="command-stack">Command Stack</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>TODO: Re-extract this later</p>
+<p>TODO: Integrate Observables?</p>
+<p>A simple stack based implementation of executable and undoable commands.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">CommandStack</span></span> = -&gt;
+  stack = []
+  index = <span class="number">0</span>
+
+  execute: (command) -&gt;
+    stack[index] = command
+    command.execute()
+
+    index += <span class="number">1</span>
+
+    <span class="comment"># Be sure to blast obsolete redos</span>
+    stack.length = index
+
+    <span class="keyword">return</span> <span class="keyword">this</span>
+
+  undo: -&gt;
+    <span class="keyword">if</span> <span class="property">@canUndo</span>()
+      index -= <span class="number">1</span>
+
+      command = stack[index]
+      command.undo()
+
+      <span class="keyword">return</span> command
+
+  redo: -&gt;
+    <span class="keyword">if</span> <span class="property">@canRedo</span>()
+      command = stack[index]
+      command.execute()
+
+      index += <span class="number">1</span>
+
+      <span class="keyword">return</span> command
+
+  current: -&gt;
+    stack[index-<span class="number">1</span>]
+
+  canUndo: -&gt;
+    index &gt; <span class="number">0</span>
+
+  canRedo: -&gt;
+    stack[index]?
+
+  stack: (newStack) -&gt;
+    <span class="keyword">if</span> arguments.length &gt; <span class="number">0</span>
+      <span class="comment"># Restore state from the given data</span>
+      stack = newStack
+      index = stack.length
+    <span class="keyword">else</span>
+      stack.slice(<span class="number">0</span>, index)
+
+module.exports = CommandStack</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
               <p>An editor module for editors that support undo/redo</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">CommandStack = require <span class="string">"commando"</span>
-
-module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
   <span class="comment"># TODO: Module include should be idempotent</span>
   self.include Bindable <span class="keyword">unless</span> self.<span class="literal">on</span>
 
@@ -65,6 +142,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     dirty(<span class="literal">false</span>)
 
   self.extend
+    history: commandStack.stack
     execute: (command) -&gt;
       commandStack.execute command
       updateDirtyState()

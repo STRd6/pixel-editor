@@ -59,20 +59,11 @@ module.exports = <span class="function"><span class="title">Actions</span></span
 
     self.addHotkey hotkey, method
 
-  <span class="keyword">return</span> self</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>TODO: Consolidate actions with hotkeys</p>
+  <span class="keyword">return</span> self
 
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">Actions.defaults =
+state = <span class="literal">null</span>
+
+Actions.defaults =
   <span class="string">"ctrl+z"</span>:
     method: <span class="string">"undo"</span>
     icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACRklEQVQ4T6VTXUhTYRh+p47sbhcR2zmMDGXUTVBBiyBdJUjU6EJ2K4R0ESm6CyEo6qKZWcGkoC6KFt2GxKhwi4JKbcg2khmonVW6RbmGnnI1z873c3rPjp6aQQw88PJ834H3+b73eZ7PAhv8LBvsB5PAP3pK45wDZxyYXpQZSBjHWiSUJTmlUaVQGg6feZZdO9gk6HnZqXnEw6BpAFxjWBowRGwHhSgg/5RhQc6B9FkKq0ppMOJ/FdNJTIKuFye1Q84jwLGBAzbrqOENyiQciuQX1NVYIbOQgcR0IqwUV7pfn49nTYLT0Q7NuDYDShBxTfU9rgWbCA32BrDWWZGQQ2o2Be8/Sv7RCxNDVYnovdUaJCptb9njcTILhe/yDxiPxyKxS4mjVRHos7ZeOxh0bXP1ig4RiKrCk+eRfGJgcmsFgc8HteD1nn3Y8bh/vb3Nl93BHdt39oqCAKpK4Gl0JD95/d06ggfeECV076POkV1/EzQH3EHUpL3lgMdJawgsLxVgfOxNZOrGzJ8RfPeP3XTYxC5duLmvn8pCIpkhoh1FdKKIm6zoEoqYmgJpVvJP304bIvpCx6/abY6+JrHJtFB3Y81CHQulZaiv3QzzmSwk44mwulLs/hD6Yth44k5bQLAJ5xqdjeg9GBnAouUsYJAUBRblJcjlvkF6RgqjI4Ppe/OVQWoLeoaELY4eivGdy6yOsJoDHCWPoyUZoVFKlGH95H+irP/wBPbfpYztG7sYrxDxfw+uMgdoo9u1u2+i/+2Val/pb35FXyDc5lZBAAAAAElFTkSuQmCC"</span>
@@ -101,7 +92,15 @@ module.exports = <span class="function"><span class="title">Actions</span></span
       <span class="keyword">if</span> newSize = prompt(<span class="string">"New Size (WxH)"</span>, <span class="string">"32x32"</span>)
         [width, height] = newSize.split(<span class="string">"x"</span>).map (v) -&gt; parseInt v, <span class="number">10</span>
 
-      editor.execute Command.Resize(width, height, editor)</code></pre>
+      editor.execute Command.Resize(width, height, editor)
+  <span class="string">"s"</span>:
+    method: ({editor}) -&gt;
+      <span class="comment"># Testing save/restore</span>
+      state = editor.saveState()
+      console.log state
+  <span class="string">"r"</span>:
+    method: ({editor}) -&gt;
+      editor.restoreState state</code></pre>
 </div>
         </li>
         
