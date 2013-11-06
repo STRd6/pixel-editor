@@ -43,6 +43,7 @@ Editing pixels in your browser.
 
       self ?= Model(I)
 
+      self.include Command
       self.include Undo
       self.include Hotkeys
       self.include Tools
@@ -69,7 +70,7 @@ Editing pixels in your browser.
           if palette?
             self.palette(palette)
 
-          self.execute Command.NewLayer(data, self)
+          self.execute self.Command.NewLayer(data)
 
         newLayer: (data) ->
           # TODO: Check layer width and height against canvas width and height.
@@ -117,23 +118,27 @@ Editing pixels in your browser.
 
         restoreState: (state) ->
           self.palette state.palette
-          self.layers state.layers.map Layer
+          self.layers state.layers.map (data) ->
+            data.palette = self.palette
+
+            Layer data
+
           self.activeLayer self.layers()[state.activeLayerIndex]
 
           self.repaint()
 
         saveState: ->
           palette: self.palette()
-          layers: self.layers()
+          layers: self.layers().invoke "toJSON"
           activeLayerIndex: self.activeLayerIndex()
+          history: self.history().invoke "toJSON"
 
         draw: ({x, y}) ->
-          lastCommand.push Command.ChangePixel
+          lastCommand.push self.Command.ChangePixel
             x: x
             y: y
             index: activeIndex()
             layer: self.activeLayerIndex()
-          , self
 
         changePixel: (params) ->
           {x, y, index, layer} = params
@@ -193,7 +198,7 @@ accidentally setting the pixel values during the preview.
 
         preview: (fn) ->
           realCommand = lastCommand
-          lastCommand = Command.Composite()
+          lastCommand = self.Command.Composite()
           realCanvas = canvas
           canvas = previewCanvas
 
@@ -246,7 +251,7 @@ accidentally setting the pixel values during the preview.
         ).backgroundImage()
 
       previewCanvas.on "touch", (position) ->
-        lastCommand = Command.Composite()
+        lastCommand = self.Command.Composite()
         self.execute lastCommand
 
         activeTool().touch

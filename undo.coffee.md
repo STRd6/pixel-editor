@@ -1,9 +1,69 @@
 Undo
 ====
 
-An editor module for editors that support undo/redo
+Command Stack
+-------------
 
-    CommandStack = require "commando"
+TODO: Re-extract this later
+
+TODO: Integrate Observables?
+
+A simple stack based implementation of executable and undoable commands.
+
+    CommandStack = ->
+      stack = []
+      index = 0
+
+      execute: (command) ->
+        stack[index] = command
+        command.execute()
+
+        index += 1
+
+        # Be sure to blast obsolete redos
+        stack.length = index
+
+        return this
+
+      undo: ->
+        if @canUndo()
+          index -= 1
+
+          command = stack[index]
+          command.undo()
+
+          return command
+
+      redo: ->
+        if @canRedo()
+          command = stack[index]
+          command.execute()
+
+          index += 1
+
+          return command
+
+      current: ->
+        stack[index-1]
+
+      canUndo: ->
+        index > 0
+
+      canRedo: ->
+        stack[index]?
+
+      stack: (newStack) ->
+        if arguments.length > 0
+          # Restore state from the given data
+          stack = newStack
+          index = stack.length
+        else
+          stack.slice(0, index)
+
+    module.exports = CommandStack
+
+
+An editor module for editors that support undo/redo
 
     module.exports = (I={}, self=Core(I)) ->
       # TODO: Module include should be idempotent
@@ -33,6 +93,7 @@ An editor module for editors that support undo/redo
         dirty(false)
 
       self.extend
+        history: commandStack.stack
         execute: (command) ->
           commandStack.execute command
           updateDirtyState()

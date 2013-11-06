@@ -28,7 +28,7 @@ Actions
 
       return self
 
-TODO: Consolidate actions with hotkeys
+    state = null
 
     Actions.defaults =
       "ctrl+z":
@@ -60,4 +60,11 @@ TODO: Consolidate actions with hotkeys
             [width, height] = newSize.split("x").map (v) -> parseInt v, 10
 
           editor.execute Command.Resize(width, height, editor)
-          
+      "s":
+        method: ({editor}) ->
+          # Testing save/restore
+          state = editor.saveState()
+          console.log state
+      "r":
+        method: ({editor}) ->
+          editor.restoreState state

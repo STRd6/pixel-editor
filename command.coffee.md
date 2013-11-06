@@ -1,36 +1,67 @@
 Command
 =======
 
-Commands that can be undone in the editor.
+Commands that can be done/undone in the editor.
 
-    module.exports =
-      ChangePixel: (data, editor) ->
-        previous = editor.getPixel(data)
+    module.exports = (I={}, self) ->
+      self.Command = {}
+
+This is a weird DSL for each command to inherit a toJSON method and to register
+to be de-serialized by name.
+
+*IMPORTANT:* If the names change then old command data may fail to load in newer
+versions.
+
+      C = (name, constructor) ->
+        self.Command[name] = (data={}) ->
+          data.name = name
+
+          command = constructor(data)
+
+          command.toJSON ?= ->
+            # TODO: May want to return a copy of the data to be super-duper safe
+            data
+
+          return command
+
+      C "ChangePixel", (data) ->
+        data.previous ?= self.getPixel(data)
 
         execute: ->
-          editor.changePixel(data)
+          self.changePixel(data)
 
         undo: ->
-          editor.changePixel(previous)
+          self.changePixel(data.previous)
 
-      Resize: (width, height, editor) ->
-        state = editor.saveState()
+      C "Resize", (data) ->
+        {width, height, state} = data
+
+        state ?= self.saveState()
 
         execute: ->
-          editor.resize(width, height)
+          self.resize(width, height)
 
         undo: ->
-          editor.restoreState state
-
-      NewLayer: (data, editor) ->
+          self.restoreState state
+  
+      C "NewLayer", (data) ->
         execute: ->
-          editor.newLayer(data)
+          self.newLayer(data)
 
         undo: ->
-          editor.removeLayer()
+          # TODO: May need to know layer index and previously active layer
+          # index
+          self.removeLayer()
 
-      Composite: ->
-        commands = []
+      C "Composite", (data) ->
+        if data.commands
+          # We came from JSON so rehydrate the commands.
+          data.commands = data.commands.map (commandData) ->
+            self.Command[commandData.name](commandData)
+        else
+          data.commands = []
+
+        commands = data.commands
 
         execute: ->
           commands.invoke "execute"
@@ -47,3 +78,7 @@ Commands that can be undone in the editor.
           # adding commands that have already executed.
           commands.push command
           command.execute() unless noExecute
+
+        toJSON: ->
+          Object.extend {}, data,
+            commands: commands.invoke "toJSON"
