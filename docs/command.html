@@ -45,6 +45,15 @@
     undo: -&gt;
       editor.changePixel(previous)
 
+  Resize: (width, height, editor) -&gt;
+    state = editor.saveState()
+
+    execute: -&gt;
+      editor.resize(width, height)
+
+    undo: -&gt;
+      editor.restoreState state
+
   NewLayer: (data, editor) -&gt;
     execute: -&gt;
       editor.newLayer(data)

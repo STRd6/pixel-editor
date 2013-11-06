@@ -83,6 +83,11 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   activeTool = self.activeTool
 
+  <span class="function"><span class="title">updateActiveLayer</span></span> = -&gt;
+    <span class="comment"># TODO: This may need to have consideration for undo-ability.</span>
+    <span class="keyword">if</span> self.layers.indexOf(self.activeLayer()) <span class="keyword">is</span> -<span class="number">1</span>
+      self.activeLayer self.layers().last()
+
   self.extend
     activeIndex: activeIndex
     activeLayer: Observable()
@@ -91,6 +96,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
     handlePaste: (data) -&gt;
       {palette} = data
+
+      <span class="comment"># TODO: Changing palette should be undoable</span>
+      <span class="keyword">if</span> palette?
+        self.palette(palette)
 
       self.execute Command.NewLayer(data, self)
 
@@ -102,9 +111,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
     removeLayer: -&gt;
       self.layers.pop()
-
-      <span class="keyword">if</span> self.layers.indexOf(self.activeLayer()) <span class="keyword">is</span> -<span class="number">1</span>
-        self.activeLayer self.layers().last()
+      updateActiveLayer()
 
       self.repaint()
 
@@ -131,9 +138,26 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     toDataURL: -&gt;
       console.log self.outputCanvas().toDataURL(<span class="string">"image/png"</span>)
 
+    resize: (newWidth, newHeight) -&gt;
+      console.log <span class="string">"TODO: Editor#resize"</span>
+
     repaint: -&gt;
       self.layers().first().each (_, x, y) -&gt;
         self.repaintPixel {x, y}
+
+      <span class="keyword">return</span> self
+
+    restoreState: (state) -&gt;
+      self.palette state.palette
+      self.layers state.layers.map Layer
+      self.activeLayer self.layers()[state.activeLayerIndex]
+
+      self.repaint()
+
+    saveState: -&gt;
+      palette: self.palette()
+      layers: self.layers()
+      activeLayerIndex: self.activeLayerIndex()
 
     draw: ({x, y}) -&gt;
       lastCommand.push Command.ChangePixel
