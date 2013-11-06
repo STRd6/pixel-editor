@@ -51,6 +51,11 @@ Editing pixels in your browser.
 
       activeTool = self.activeTool
 
+      updateActiveLayer = ->
+        # TODO: This may need to have consideration for undo-ability.
+        if self.layers.indexOf(self.activeLayer()) is -1
+          self.activeLayer self.layers().last()
+
       self.extend
         activeIndex: activeIndex
         activeLayer: Observable()
@@ -59,6 +64,10 @@ Editing pixels in your browser.
 
         handlePaste: (data) ->
           {palette} = data
+
+          # TODO: Changing palette should be undoable
+          if palette?
+            self.palette(palette)
 
           self.execute Command.NewLayer(data, self)
 
@@ -70,9 +79,7 @@ Editing pixels in your browser.
 
         removeLayer: ->
           self.layers.pop()
-
-          if self.layers.indexOf(self.activeLayer()) is -1
-            self.activeLayer self.layers().last()
+          updateActiveLayer()
 
           self.repaint()
 
@@ -99,9 +106,26 @@ Editing pixels in your browser.
         toDataURL: ->
           console.log self.outputCanvas().toDataURL("image/png")
 
+        resize: (newWidth, newHeight) ->
+          console.log "TODO: Editor#resize"
+
         repaint: ->
           self.layers().first().each (_, x, y) ->
             self.repaintPixel {x, y}
+
+          return self
+
+        restoreState: (state) ->
+          self.palette state.palette
+          self.layers state.layers.map Layer
+          self.activeLayer self.layers()[state.activeLayerIndex]
+
+          self.repaint()
+
+        saveState: ->
+          palette: self.palette()
+          layers: self.layers()
+          activeLayerIndex: self.activeLayerIndex()
 
         draw: ({x, y}) ->
           lastCommand.push Command.ChangePixel

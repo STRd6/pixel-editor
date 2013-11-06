@@ -1,8 +1,6 @@
 Loader
 ======
 
-TODO: Quantize Palette
-
     Loader = (I={}, self=Core(I)) ->
       self.extend
         load: (dataURL) ->
@@ -26,22 +24,25 @@ TODO: Quantize Palette
 
           return deferred.promise()
 
+Load the imageData and return the data with a palette representing the colors 
+found in the imageData.
+
         fromImageData: (imageData) ->
           {width, height} = imageData
 
           colorFrequency = {}
 
-          colors = [0...height].map (y) ->
-            console.log y
-            [0...width].map (x) ->
-              pieces = getColor(imageData, x, y)
+          colors = [0...(width * height)].map (n) ->
+            pieces = getColor(imageData, n)
 
-              color = arrayToHex(pieces)
+            color = arrayToHex(pieces)
+            
+            console.log color
 
-              colorFrequency[color] ?= 0
-              colorFrequency[color] += 1
+            colorFrequency[color] ?= 0
+            colorFrequency[color] += 1
 
-              color
+            color
 
           table = Object.keys(colorFrequency).sort (a, b) ->
             colorFrequency[b] - colorFrequency[a]
@@ -53,14 +54,16 @@ TODO: Quantize Palette
 
           palette = Object.keys(table)
 
-          data = [0...height].map (y) ->
-            [0...width].map (x) ->
-              table[colors[y][x]]
+          data = [0...(width * height)].map (n) ->
+            table[colors[n]]
 
           palette: palette
           width: width
           height: height
           data: data
+
+Load the image data and quantize it to the given palette using nearest color, no
+fancy error diffusion or anything.
 
         fromImageDataWithPalette: (imageData, palette) ->
           {width, height} = imageData
@@ -68,9 +71,8 @@ TODO: Quantize Palette
 
           width: width
           height: height
-          data: [0...height].map (y) ->
-            [0...width].map (x) ->
-              nearestColorIndex(getColor(imageData, x, y), paletteData)
+          data: [0...(width * height)].map (n) ->
+            nearestColorIndex(getColor(imageData, n), paletteData)
 
     module.exports = Loader
 
@@ -78,10 +80,10 @@ Helpers
 -------
 
     arrayToHex = (parts) ->
-      if parts[3]
+      if parts[3] < 128
         "transparent"
       else
-        "##{parts.map numberToHex}"
+        "##{parts.slice(0, 3).map(numberToHex).join('')}"
 
     # HACK: Infinity keeps the transparent color from being closer than any other
     # color in the palette
@@ -116,9 +118,14 @@ Helpers
       paletteData.indexOf(paletteColor)
 
     getColor = (imageData, x, y) ->
-      index = (x + y * imageData.width) * 4
+      stride = 4
 
-      Array::slice.call imageData.data, index, index + 4
+      if y?
+        index = (x + y * imageData.width) * stride
+      else
+        index = x * stride
+
+      Array::slice.call imageData.data, index, index + stride
 
     numberToHex = (n) ->
       "0#{n.toString(0x10)}".slice(-2).toUpperCase()

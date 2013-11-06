@@ -16,7 +16,7 @@ A layer is a 2d set of pixels.
 
       grid = Grid width, height, (x, y) ->
         if data
-          data[y][x]
+          data[x + y * width]
         else
           0
 
@@ -24,12 +24,43 @@ A layer is a 2d set of pixels.
         width: width
         height: height
 
-      self.previewCanvas = previewCanvas.element()
+      self.extend
+        previewCanvas: previewCanvas.element()
 
-      self.each = grid.each
-      self.get = grid.get
+        each: grid.each
+        get: grid.get
+        hidden: Observable(false)
 
-      self.hidden = Observable(false)
+        set: (x, y, index) ->
+          paint(x, y, index)
+
+          return grid.set x, y, index
+
+        repaint: ->
+          grid.each (index, x, y) ->
+            paint(x, y, index)
+
+        resize: (newWidth, newHeight) ->
+          if newHeight > height
+            grid.expand(0, newHeight - height)
+          else if newHeight < height
+            grid.contract(0, height - newHeight)
+
+          height = newHeight
+
+          if newWidth > width
+            grid.expand(newHeight - width, 0)
+          else if newWidth < width
+            grid.contract(width - newWidth, 0)
+
+          width = newWidth
+
+          self.repaint()
+
+        toJSON: ->
+          width: width
+          height: height
+          data: grid.toArray()
 
       paint = (x, y, index) ->
         color = palette()[index]
@@ -47,15 +78,6 @@ A layer is a 2d set of pixels.
             width: pixelSize
             height: pixelSize
             color: color
-
-      self.set = (x, y, index) ->
-        paint(x, y, index)
-
-        return grid.set x, y, index
-
-      self.repaint = ->
-        grid.each (index, x, y) ->
-          paint(x, y, index)
 
       if data
         self.repaint()

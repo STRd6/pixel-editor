@@ -13,6 +13,15 @@ Commands that can be undone in the editor.
         undo: ->
           editor.changePixel(previous)
 
+      Resize: (width, height, editor) ->
+        state = editor.saveState()
+
+        execute: ->
+          editor.resize(width, height)
+
+        undo: ->
+          editor.restoreState state
+
       NewLayer: (data, editor) ->
         execute: ->
           editor.newLayer(data)

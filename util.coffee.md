@@ -113,6 +113,13 @@ A 2d grid of values.
               row.concat [0...x].map (x) ->
                 generateValue(width + x, y)
 
+Return a 1-dimensional array of the data within the grid.
+
+          toArray: ->
+            grid.reduce (a, b) ->
+              a.concat(b)
+            , []
+
         return self
 
 Call an iterator for each integer point on a line between two integer points.
