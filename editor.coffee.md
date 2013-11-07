@@ -158,12 +158,15 @@ Editing pixels in your browser.
             self.activeLayer()
 
         repaintPixel: ({x, y, index}) ->
-          index ||= self.layers.map (layer) ->
-            layer.get(x, y)
-          .filter (index) ->
-            # HACK: Transparent is assumed to be index zero
-            index != 0
-          .last() or 0
+          if canvas is previewCanvas
+            # Use given index for previews
+          else
+            index = self.layers.map (layer) ->
+              layer.get(x, y)
+            .filter (index) ->
+              # HACK: Transparent is assumed to be index zero
+              index != 0
+            .last() or 0
 
           color = self.palette()[index]
 
