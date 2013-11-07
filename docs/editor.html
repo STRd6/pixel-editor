@@ -190,12 +190,15 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
         self.activeLayer()
 
     repaintPixel: ({x, y, index}) -&gt;
-      index ||= self.layers.map (layer) -&gt;
-        layer.get(x, y)
-      .filter (index) -&gt;
-        <span class="comment"># HACK: Transparent is assumed to be index zero</span>
-        index != <span class="number">0</span>
-      .last() <span class="keyword">or</span> <span class="number">0</span>
+      <span class="keyword">if</span> canvas <span class="keyword">is</span> previewCanvas
+        <span class="comment"># Use given index for previews</span>
+      <span class="keyword">else</span>
+        index = self.layers.map (layer) -&gt;
+          layer.get(x, y)
+        .filter (index) -&gt;
+          <span class="comment"># HACK: Transparent is assumed to be index zero</span>
+          index != <span class="number">0</span>
+        .last() <span class="keyword">or</span> <span class="number">0</span>
 
       color = self.palette()[index]
 
