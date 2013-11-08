@@ -26,13 +26,13 @@ versions.
           return command
 
       C "ChangePixel", (data) ->
-        data.previous ?= self.getPixel(data)
+        data.previous ?= self.getPixel(data).index
 
         execute: ->
           self.changePixel(data)
 
         undo: ->
-          self.changePixel(data.previous)
+          self.changePixel Object.extend {}, data, index: data.previous
 
       C "Resize", (data) ->
         {width, height, state} = data
@@ -44,7 +44,7 @@ versions.
 
         undo: ->
           self.restoreState state
-  
+
       C "NewLayer", (data) ->
         execute: ->
           self.newLayer(data)
