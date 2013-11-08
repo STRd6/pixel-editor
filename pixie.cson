@@ -7,6 +7,7 @@ remoteDependencies: [
   "http://strd6.github.io/require/v0.2.2.js?"
 ]
 dependencies:
+  compression: "STRd6/lz-string:v1.3.3"
   "jquery-utils": "STRd6/jquery-utils:v0.1.2"
   runtime: "STRd6/runtime:v0.1.1"
   "touch-canvas": "STRd6/touch-canvas:v0.2.0"

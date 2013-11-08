@@ -100,13 +100,6 @@ Editing pixels in your browser.
 
           outputCanvas.element()
 
-        download: ->
-          self.outputCanvas().toBlob (blob) ->
-            saveAs blob, prompt("File name", "image.png")
-
-        toDataURL: ->
-          console.log self.outputCanvas().toDataURL("image/png")
-
         resize: (newWidth, newHeight) ->
           console.log "TODO: Editor#resize"
 
