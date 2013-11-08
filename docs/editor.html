@@ -132,13 +132,6 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       outputCanvas.element()
 
-    download: -&gt;
-      self.outputCanvas().toBlob (blob) -&gt;
-        saveAs blob, prompt(<span class="string">"File name"</span>, <span class="string">"image.png"</span>)
-
-    toDataURL: -&gt;
-      console.log self.outputCanvas().toDataURL(<span class="string">"image/png"</span>)
-
     resize: (newWidth, newHeight) -&gt;
       console.log <span class="string">"TODO: Editor#resize"</span>
 
