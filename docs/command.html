@@ -66,13 +66,13 @@ versions.</p>
       <span class="keyword">return</span> command
 
   C <span class="string">"ChangePixel"</span>, (data) -&gt;
-    data.previous ?= self.getPixel(data)
+    data.previous ?= self.getPixel(data).index
 
     execute: -&gt;
       self.changePixel(data)
 
     undo: -&gt;
-      self.changePixel(data.previous)
+      self.changePixel Object.extend {}, data, index: data.previous
 
   C <span class="string">"Resize"</span>, (data) -&gt;
     {width, height, state} = data
