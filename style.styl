@@ -6,14 +6,16 @@ html, body
   background-color: lightgray
   box-sizing: border-box
   height: 100%
-  padding: 0 40px 40px
+  padding: 0px 80px 40px 40px
   position: relative
   user-select: none
   overflow: hidden
 
   .main
+    font-size: 0
     height: 100%
     position: relative
+    overflow: auto
 
 .toolbar
   background-color: white
@@ -50,14 +52,15 @@ html, body
   right: 0
 
   .layer
-    border: 1px solid transparent
-    border-top: 1px solid rgba(0, 0, 0, 0.5)
     padding: 2px 0
 
     &.active
-      border-color: green
+      canvas
+        border-color: green
 
   canvas
+    box-sizing: border-box
+    border: 1px solid lightgray
     display: block
     margin: auto
 
@@ -85,16 +88,17 @@ html, body
       width: 36px
       height: 36px
 
-.viewport
-  display: inline-block
-  background-color: white
-  border: 1px solid gray
-
+.vertical-center
   position: absolute
   top: 0
   bottom: 0
   left: 0
   right: 0
+  margin: auto
+
+.viewport
+  background-color: white
+  border: 1px solid gray
   margin: auto
 
   canvas

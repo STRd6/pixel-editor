@@ -3,7 +3,7 @@ entryPoint: "editor"
 remoteDependencies: [
   "//code.jquery.com/jquery-1.10.1.min.js"
   "//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"
-  "http://strd6.github.io/tempest/javascripts/envweb-v0.4.3.js"
+  "http://strd6.github.io/tempest/javascripts/envweb-v0.4.5.js"
   "http://strd6.github.io/require/v0.2.2.js?"
 ]
 dependencies:

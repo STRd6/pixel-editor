@@ -257,6 +257,8 @@ accidentally setting the pixel values during the preview.
           width: size.width
           height: size.height
 
+        $(".viewport").toggleClass "vertical-center", size.height < $(".main").height()
+
         $(".overlay").css
           backgroundImage: gridImage
 
