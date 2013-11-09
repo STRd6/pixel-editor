@@ -66,9 +66,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 <span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
   activeIndex = Observable(<span class="number">1</span>)
 
-  pixelExtent = Size(<span class="number">32</span>, <span class="number">32</span>)
-  pixelSize = <span class="number">8</span>
-  canvasSize = pixelExtent.scale(pixelSize)
+  pixelExtent = Observable Size(<span class="number">32</span>, <span class="number">32</span>)
+  pixelSize = Observable <span class="number">8</span>
+  canvasSize = Observable -&gt;
+    pixelExtent().scale(pixelSize())
 
   canvas = <span class="literal">null</span>
   lastCommand = <span class="literal">null</span>
@@ -95,6 +96,8 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     activeLayerIndex: -&gt;
       self.layers.indexOf(self.activeLayer())
 
+    pixelSize: pixelSize
+
     handlePaste: (data) -&gt;
       {palette} = data
 
@@ -117,7 +120,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       self.repaint()
 
     outputCanvas: -&gt;
-      outputCanvas = TouchCanvas pixelExtent
+      outputCanvas = TouchCanvas pixelExtent()
 
       self.layers.forEach (layer) -&gt;
         <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer.</span>
@@ -197,16 +200,16 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
         canvas.clear
-          x: x * pixelSize
-          y: y * pixelSize
-          width: pixelSize
-          height: pixelSize
+          x: x * pixelSize()
+          y: y * pixelSize()
+          width: pixelSize()
+          height: pixelSize()
       <span class="keyword">else</span>
         canvas.drawRect
-          x: x * pixelSize
-          y: y * pixelSize
-          width: pixelSize
-          height: pixelSize
+          x: x * pixelSize()
+          y: y * pixelSize()
+          width: pixelSize()
+          height: pixelSize()
           color: color
 
     getPixel: ({x, y, layer}) -&gt;
@@ -248,8 +251,8 @@ accidentally setting the pixel values during the preview.</p>
 
   <span class="function"><span class="title">makeLayer</span></span> = (data) -&gt;
     layer = Layer
-      width: pixelExtent.width
-      height: pixelExtent.height
+      width: pixelExtent().width
+      height: pixelExtent().height
       data: data
       palette: self.palette
 
@@ -260,8 +263,8 @@ accidentally setting the pixel values during the preview.</p>
 
   $(<span class="string">'body'</span>).append template self
 
-  canvas = TouchCanvas canvasSize
-  previewCanvas = TouchCanvas canvasSize
+  canvas = TouchCanvas canvasSize()
+  previewCanvas = TouchCanvas canvasSize()
 
   <span class="comment"># TODO: Tempest should have an easier way to do this</span>
   <span class="function"><span class="title">updateActiveColor</span></span> = (newIndex) -&gt;
@@ -274,35 +277,52 @@ accidentally setting the pixel values during the preview.</p>
   activeIndex.observe updateActiveColor
 
   $(<span class="string">".viewport"</span>)
-    .css
-      width: canvasSize.width
-      height: canvasSize.height
     .append(canvas.element())
     .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
 
-  $(<span class="string">".overlay"</span>).css
-    width: canvasSize.width
-    height: canvasSize.height
-    backgroundImage: GridGen(
+  <span class="function"><span class="title">updateCanvasSize</span></span> = (size) -&gt;
+    gridImage = GridGen(
       <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
     ).backgroundImage()
+
+    [canvas, previewCanvas].forEach (canvas) -&gt;
+      element = canvas.element()
+      element.width = size.width
+      element.height = size.height
+
+      canvas.clear()
+
+    $(<span class="string">".viewport, .overlay"</span>).css
+      width: size.width
+      height: size.height
+
+    $(<span class="string">".overlay"</span>).css
+      backgroundImage: gridImage
+
+    self.repaint()
+
+  updateCanvasSize(canvasSize())
+  canvasSize.observe updateCanvasSize
+
+  <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
+    position.scale(pixelExtent()).floor()
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     lastCommand = self.Command.Composite()
     self.execute lastCommand
 
     activeTool().touch
-      position: position.scale(pixelExtent).floor()
+      position: canvasPosition position
       editor: self
 
   previewCanvas.<span class="literal">on</span> <span class="string">"move"</span>, (position) -&gt;
     activeTool().move
-      position: position.scale(pixelExtent).floor()
+      position: canvasPosition position
       editor: self
 
   previewCanvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
     activeTool().release
-      position: position.scale(pixelExtent).floor()
+      position: canvasPosition position
       editor: self
 
     previewCanvas.clear()
