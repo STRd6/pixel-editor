@@ -65,6 +65,7 @@ Editing pixels in your browser.
           self.layers.indexOf(self.activeLayer())
 
         pixelSize: pixelSize
+        pixelExtent: pixelExtent
 
         handlePaste: (data) ->
           {palette} = data
@@ -103,8 +104,8 @@ Editing pixels in your browser.
 
           outputCanvas.element()
 
-        resize: (newWidth, newHeight) ->
-          console.log "TODO: Editor#resize"
+        resize: (size) ->
+          pixelExtent Size(size)
 
         repaint: ->
           self.layers().first().each (_, x, y) ->
@@ -114,22 +115,34 @@ Editing pixels in your browser.
 
         restoreState: (state) ->
           self.palette state.palette
-          self.layers state.layers.map (data) ->
-            data.palette = self.palette
-
-            Layer data
+          self.restoreLayerState(state.layers)
 
           self.activeLayer self.layers()[state.activeLayerIndex]
 
           self.history state.history
 
-          self.repaint()
-
         saveState: ->
           palette: self.palette()
-          layers: self.layers().invoke "toJSON"
+          layers: self.layerState()
           activeLayerIndex: self.activeLayerIndex()
           history: self.history().invoke "toJSON"
+
+        layerState: ->
+          self.layers().invoke "toJSON"
+
+        restoreLayerState: (layerData) ->
+          self.pixelExtent Size layerData.first()
+
+          index = self.activeLayerIndex()
+
+          self.layers layerData.map (data) ->
+            data.palette = self.palette
+
+            Layer data
+
+          self.activeLayer self.layer(index)
+
+          self.repaint()
 
         draw: ({x, y}) ->
           lastCommand.push self.Command.ChangePixel
@@ -266,6 +279,12 @@ accidentally setting the pixel values during the preview.
 
       updateCanvasSize(canvasSize())
       canvasSize.observe updateCanvasSize
+
+      updatePixelExtent = (size) ->
+        self.layers.forEach (layer) ->
+          layer.resize size
+
+      pixelExtent.observe updatePixelExtent
 
       canvasPosition = (position) ->
         position.scale(pixelExtent()).floor()

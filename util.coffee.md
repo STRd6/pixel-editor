@@ -113,6 +113,11 @@ A 2d grid of values.
               row.concat [0...x].map (x) ->
                 generateValue(width + x, y)
 
+            height = y + height
+            width = x + width
+
+            return self
+
 Return a 1-dimensional array of the data within the grid.
 
           toArray: ->

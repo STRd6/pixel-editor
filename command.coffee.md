@@ -37,13 +37,15 @@ versions.
       C "Resize", (data) ->
         {width, height, state} = data
 
-        state ?= self.saveState()
+        data.previous ?= self.pixelExtent()
+
+        state ?= self.layerState()
 
         execute: ->
-          self.resize(width, height)
+          self.resize(data)
 
         undo: ->
-          self.restoreState state
+          self.restoreLayerState state
 
       C "NewLayer", (data) ->
         execute: ->

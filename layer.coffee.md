@@ -10,6 +10,7 @@ A layer is a 2d set of pixels.
     {Grid} = require "./util"
 
     Layer = (I={}, self=Core(I)) ->
+      # TODO: width and height as an extent
       {width, height, palette, data} = I
 
       pixelSize = 1
@@ -40,7 +41,9 @@ A layer is a 2d set of pixels.
           grid.each (index, x, y) ->
             paint(x, y, index)
 
-        resize: (newWidth, newHeight) ->
+        resize: (size) ->
+          {width:newWidth, height:newHeight} = size
+
           if newHeight > height
             grid.expand(0, newHeight - height)
           else if newHeight < height
@@ -54,6 +57,11 @@ A layer is a 2d set of pixels.
             grid.contract(width - newWidth, 0)
 
           width = newWidth
+
+          # TODO: Move this into an observable?
+          element = previewCanvas.element()
+          element.width = width
+          element.height = height
 
           self.repaint()
 

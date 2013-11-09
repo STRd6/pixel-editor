@@ -1,7 +1,5 @@
 TODO
 ====
-Resize Image
-
 Composite Preview
 
 List Saved Files
@@ -48,6 +46,8 @@ Plugins
 Done
 ----
 Zoom In/Out
+
+Resize Image
 
 Export Image
 
