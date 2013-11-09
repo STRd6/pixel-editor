@@ -77,13 +77,15 @@ versions.</p>
   C <span class="string">"Resize"</span>, (data) -&gt;
     {width, height, state} = data
 
-    state ?= self.saveState()
+    data.previous ?= self.pixelExtent()
+
+    state ?= self.layerState()
 
     execute: -&gt;
-      self.resize(width, height)
+      self.resize(data)
 
     undo: -&gt;
-      self.restoreState state
+      self.restoreLayerState state
 
   C <span class="string">"NewLayer"</span>, (data) -&gt;
     execute: -&gt;

@@ -97,6 +97,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       self.layers.indexOf(self.activeLayer())
 
     pixelSize: pixelSize
+    pixelExtent: pixelExtent
 
     handlePaste: (data) -&gt;
       {palette} = data
@@ -135,8 +136,8 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       outputCanvas.element()
 
-    resize: (newWidth, newHeight) -&gt;
-      console.log <span class="string">"TODO: Editor#resize"</span>
+    resize: (size) -&gt;
+      pixelExtent Size(size)
 
     repaint: -&gt;
       self.layers().first().each (_, x, y) -&gt;
@@ -146,22 +147,34 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
     restoreState: (state) -&gt;
       self.palette state.palette
-      self.layers state.layers.map (data) -&gt;
-        data.palette = self.palette
-
-        Layer data
+      self.restoreLayerState(state.layers)
 
       self.activeLayer self.layers()[state.activeLayerIndex]
 
       self.history state.history
 
-      self.repaint()
-
     saveState: -&gt;
       palette: self.palette()
-      layers: self.layers().invoke <span class="string">"toJSON"</span>
+      layers: self.layerState()
       activeLayerIndex: self.activeLayerIndex()
       history: self.history().invoke <span class="string">"toJSON"</span>
+
+    layerState: -&gt;
+      self.layers().invoke <span class="string">"toJSON"</span>
+
+    restoreLayerState: (layerData) -&gt;
+      self.pixelExtent Size layerData.first()
+
+      index = self.activeLayerIndex()
+
+      self.layers layerData.map (data) -&gt;
+        data.palette = self.palette
+
+        Layer data
+
+      self.activeLayer self.layer(index)
+
+      self.repaint()
 
     draw: ({x, y}) -&gt;
       lastCommand.push self.Command.ChangePixel
@@ -305,6 +318,12 @@ accidentally setting the pixel values during the preview.</p>
 
   updateCanvasSize(canvasSize())
   canvasSize.observe updateCanvasSize
+
+  <span class="function"><span class="title">updatePixelExtent</span></span> = (size) -&gt;
+    self.layers.forEach (layer) -&gt;
+      layer.resize size
+
+  pixelExtent.observe updatePixelExtent
 
   <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
     position.scale(pixelExtent()).floor()
