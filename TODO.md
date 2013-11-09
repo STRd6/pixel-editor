@@ -4,8 +4,6 @@ Resize Image
 
 Composite Preview
 
-Zoom In/Out
-
 List Saved Files
   Click to Open
 
@@ -49,6 +47,7 @@ Plugins
 
 Done
 ----
+Zoom In/Out
 
 Export Image
 

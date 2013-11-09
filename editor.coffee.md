@@ -34,9 +34,10 @@ Editing pixels in your browser.
     Editor = (I={}, self) ->
       activeIndex = Observable(1)
 
-      pixelExtent = Size(32, 32)
-      pixelSize = 8
-      canvasSize = pixelExtent.scale(pixelSize)
+      pixelExtent = Observable Size(32, 32)
+      pixelSize = Observable 8
+      canvasSize = Observable ->
+        pixelExtent().scale(pixelSize())
 
       canvas = null
       lastCommand = null
@@ -63,6 +64,8 @@ Editing pixels in your browser.
         activeLayerIndex: ->
           self.layers.indexOf(self.activeLayer())
 
+        pixelSize: pixelSize
+
         handlePaste: (data) ->
           {palette} = data
 
@@ -85,7 +88,7 @@ Editing pixels in your browser.
           self.repaint()
 
         outputCanvas: ->
-          outputCanvas = TouchCanvas pixelExtent
+          outputCanvas = TouchCanvas pixelExtent()
 
           self.layers.forEach (layer) ->
             # TODO: Only paint once per pixel, rather than once per pixel per layer.
@@ -165,16 +168,16 @@ Editing pixels in your browser.
 
           if color is "transparent"
             canvas.clear
-              x: x * pixelSize
-              y: y * pixelSize
-              width: pixelSize
-              height: pixelSize
+              x: x * pixelSize()
+              y: y * pixelSize()
+              width: pixelSize()
+              height: pixelSize()
           else
             canvas.drawRect
-              x: x * pixelSize
-              y: y * pixelSize
-              width: pixelSize
-              height: pixelSize
+              x: x * pixelSize()
+              y: y * pixelSize()
+              width: pixelSize()
+              height: pixelSize()
               color: color
 
         getPixel: ({x, y, layer}) ->
@@ -209,8 +212,8 @@ accidentally setting the pixel values during the preview.
 
       makeLayer = (data) ->
         layer = Layer
-          width: pixelExtent.width
-          height: pixelExtent.height
+          width: pixelExtent().width
+          height: pixelExtent().height
           data: data
           palette: self.palette
 
@@ -221,8 +224,8 @@ accidentally setting the pixel values during the preview.
 
       $('body').append template self
 
-      canvas = TouchCanvas canvasSize
-      previewCanvas = TouchCanvas canvasSize
+      canvas = TouchCanvas canvasSize()
+      previewCanvas = TouchCanvas canvasSize()
 
       # TODO: Tempest should have an easier way to do this
       updateActiveColor = (newIndex) ->
@@ -235,35 +238,52 @@ accidentally setting the pixel values during the preview.
       activeIndex.observe updateActiveColor
 
       $(".viewport")
-        .css
-          width: canvasSize.width
-          height: canvasSize.height
         .append(canvas.element())
         .append($(previewCanvas.element()).addClass("preview"))
 
-      $(".overlay").css
-        width: canvasSize.width
-        height: canvasSize.height
-        backgroundImage: GridGen(
+      updateCanvasSize = (size) ->
+        gridImage = GridGen(
           # TODO: Grid size options and matching pixel size/extent
         ).backgroundImage()
+
+        [canvas, previewCanvas].forEach (canvas) ->
+          element = canvas.element()
+          element.width = size.width
+          element.height = size.height
+
+          canvas.clear()
+
+        $(".viewport, .overlay").css
+          width: size.width
+          height: size.height
+
+        $(".overlay").css
+          backgroundImage: gridImage
+
+        self.repaint()
+
+      updateCanvasSize(canvasSize())
+      canvasSize.observe updateCanvasSize
+
+      canvasPosition = (position) ->
+        position.scale(pixelExtent()).floor()
 
       previewCanvas.on "touch", (position) ->
         lastCommand = self.Command.Composite()
         self.execute lastCommand
 
         activeTool().touch
-          position: position.scale(pixelExtent).floor()
+          position: canvasPosition position
           editor: self
 
       previewCanvas.on "move", (position) ->
         activeTool().move
-          position: position.scale(pixelExtent).floor()
+          position: canvasPosition position
           editor: self
 
       previewCanvas.on "release", (position) ->
         activeTool().release
-          position: position.scale(pixelExtent).floor()
+          position: canvasPosition position
           editor: self
 
         previewCanvas.clear()
