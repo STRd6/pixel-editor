@@ -296,6 +296,8 @@ accidentally setting the pixel values during the preview.</p>
       width: size.width
       height: size.height
 
+    $(<span class="string">".viewport"</span>).toggleClass <span class="string">"vertical-center"</span>, size.height &lt; $(<span class="string">".main"</span>).height()
+
     $(<span class="string">".overlay"</span>).css
       backgroundImage: gridImage
 
@@ -341,7 +343,7 @@ Editor()</code></pre>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
 <script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
-<script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.3.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.5.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js?"></script><script src="package.js"></script>
 </body>
 </html>
