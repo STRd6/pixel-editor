@@ -35,7 +35,11 @@
               <p>Editing pixels in your browser.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"jquery-utils"</span>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># For debug purposes</span>
+global.PACKAGE = PACKAGE
+global.require = require
+
+require <span class="string">"jquery-utils"</span>
 
 require <span class="string">"./lib/canvas-to-blob"</span>
 saveAs = require <span class="string">"./lib/file_saver"</span>
