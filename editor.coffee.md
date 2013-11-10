@@ -239,6 +239,7 @@ accidentally setting the pixel values during the preview.
 
       canvas = TouchCanvas canvasSize()
       previewCanvas = TouchCanvas canvasSize()
+      thumbnailCanvas = TouchCanvas pixelExtent()
 
       # TODO: Tempest should have an easier way to do this
       updateActiveColor = (newIndex) ->
@@ -253,6 +254,8 @@ accidentally setting the pixel values during the preview.
       $(".viewport")
         .append(canvas.element())
         .append($(previewCanvas.element()).addClass("preview"))
+
+      $(".thumbnail").append thumbnailCanvas.element()
 
       updateCanvasSize = (size) ->
         gridImage = GridGen(
@@ -283,6 +286,12 @@ accidentally setting the pixel values during the preview.
       updatePixelExtent = (size) ->
         self.layers.forEach (layer) ->
           layer.resize size
+
+        element = thumbnailCanvas.element()
+        element.width = size.width
+        element.height = size.height
+
+        thumbnailCanvas.clear()
 
       pixelExtent.observe updatePixelExtent
 

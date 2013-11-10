@@ -31,6 +31,7 @@ The palette holds our colors.
               - activeIndex index
 
       .layers
+        .thumbnail
         Layers
         - layers = -> editor.layers().copy().reverse()
         - each layers, (layer, index) ->
