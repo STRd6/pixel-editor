@@ -3,6 +3,10 @@ Pixel Editor
 
 Editing pixels in your browser.
 
+    # For debug purposes
+    global.PACKAGE = PACKAGE
+    global.require = require
+
     require "jquery-utils"
 
     require "./lib/canvas-to-blob"
