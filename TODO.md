@@ -3,10 +3,6 @@ TODO
 List Saved Files
   Click to Open
 
-Bugs
-  Preview Erase/Transparent
-  Preview Layer in canvas always shows at top
-
 Layers
   X New Layer
   X Delete Layer
@@ -52,3 +48,7 @@ Export Image
 
 Load Image
 Save Image
+
+Bugs
+  Preview Erase/Transparent
+  Preview Layer in canvas always shows at top

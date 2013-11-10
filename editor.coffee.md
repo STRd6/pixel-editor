@@ -63,6 +63,11 @@ Editing pixels in your browser.
           self.activeLayer self.layers().last()
 
       drawPixel = (canvas, x, y, color, size) ->
+        # HACK for previewCanvas
+        if canvas is previewCanvas and color is "transparent"
+          # TODO: Background color for the canvas area
+          color = "white"
+
         if color is "transparent"
           canvas.clear
             x: x * size
@@ -82,6 +87,8 @@ Editing pixels in your browser.
         activeLayer: Observable()
         activeLayerIndex: ->
           self.layers.indexOf(self.activeLayer())
+
+        backgroundIndex: Observable 0
 
         pixelSize: pixelSize
         pixelExtent: pixelExtent
@@ -184,16 +191,33 @@ Editing pixels in your browser.
           else
             self.activeLayer()
 
-        repaintPixel: ({x, y, index}) ->
+        repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) ->
           if canvas is previewCanvas
-            # Use given index for previews
+            # Need to get clever to handle the layers and transparancy, so it gets a little nuts
+
+            index = self.layers.map (layer, i) ->
+              if i is layerIndex # Replace the layer's pixel with our preview pixel
+                if colorIndex is 0
+                  self.layers.map (layer, i) ->
+                    layer.get(x, y)
+                  .filter (index, i) ->
+                    (index != 0) and !self.layers()[i].hidden() and (i < layerIndex)
+                  .last() or self.backgroundIndex()
+                else
+                  colorIndex
+              else
+                layer.get(x, y)
+            .filter (index, i) ->
+              # HACK: Transparent is assumed to be index zero
+              (index != 0) and !self.layers()[i].hidden()
+            .last() or self.backgroundIndex()
           else
             index = self.layers.map (layer) ->
               layer.get(x, y)
             .filter (index, i) ->
               # HACK: Transparent is assumed to be index zero
               (index != 0) and !self.layers()[i].hidden()
-            .last() or 0
+            .last() or self.backgroundIndex()
 
           color = self.palette()[index]
 
