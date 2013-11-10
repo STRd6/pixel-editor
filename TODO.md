@@ -1,7 +1,5 @@
 TODO
 ====
-Composite Preview
-
 List Saved Files
   Click to Open
 
@@ -45,6 +43,8 @@ Plugins
 
 Done
 ----
+Composite Preview
+
 Zoom In/Out
 
 Resize Image

@@ -58,6 +58,21 @@ Editing pixels in your browser.
         if self.layers.indexOf(self.activeLayer()) is -1
           self.activeLayer self.layers().last()
 
+      drawPixel = (canvas, x, y, color, size) ->
+        if color is "transparent"
+          canvas.clear
+            x: x * size
+            y: y * size
+            width: size
+            height: size
+        else
+          canvas.drawRect
+            x: x * size
+            y: y * size
+            width: size
+            height: size
+            color: color
+
       self.extend
         activeIndex: activeIndex
         activeLayer: Observable()
@@ -179,19 +194,8 @@ Editing pixels in your browser.
 
           color = self.palette()[index]
 
-          if color is "transparent"
-            canvas.clear
-              x: x * pixelSize()
-              y: y * pixelSize()
-              width: pixelSize()
-              height: pixelSize()
-          else
-            canvas.drawRect
-              x: x * pixelSize()
-              y: y * pixelSize()
-              width: pixelSize()
-              height: pixelSize()
-              color: color
+          drawPixel(canvas, x, y, color, pixelSize())
+          drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas
 
         getPixel: ({x, y, layer}) ->
           x: x
