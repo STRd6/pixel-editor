@@ -3,27 +3,27 @@ TODO
 List Saved Files
   Click to Open
 
-Layers
-  X New Layer
-  X Delete Layer
-  X Show/Hide Layer
-  X New Layer from Paste
-  Reorder Layers
+Sync to Server
+
+V2
+----
 
 Palette
   Load Palette
   X Export Palette
   Modify Palette
 
-Sync to Server
-
-V2
-----
-
 Animation Frames
   New Frame
   Delete Frame
   Onion Skin
+
+Selections
+
+Copy/Paste
+
+Layers
+  Reorder Layers
 
 Replays
 
