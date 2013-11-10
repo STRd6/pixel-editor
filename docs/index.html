@@ -90,6 +90,21 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     <span class="keyword">if</span> self.layers.indexOf(self.activeLayer()) <span class="keyword">is</span> -<span class="number">1</span>
       self.activeLayer self.layers().last()
 
+  <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size) -&gt;
+    <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+      canvas.clear
+        x: x * size
+        y: y * size
+        width: size
+        height: size
+    <span class="keyword">else</span>
+      canvas.drawRect
+        x: x * size
+        y: y * size
+        width: size
+        height: size
+        color: color
+
   self.extend
     activeIndex: activeIndex
     activeLayer: Observable()
@@ -211,19 +226,8 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       color = self.palette()[index]
 
-      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
-        canvas.clear
-          x: x * pixelSize()
-          y: y * pixelSize()
-          width: pixelSize()
-          height: pixelSize()
-      <span class="keyword">else</span>
-        canvas.drawRect
-          x: x * pixelSize()
-          y: y * pixelSize()
-          width: pixelSize()
-          height: pixelSize()
-          color: color
+      drawPixel(canvas, x, y, color, pixelSize())
+      drawPixel(thumbnailCanvas, x, y, color, <span class="number">1</span>) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
 
     getPixel: ({x, y, layer}) -&gt;
       x: x
