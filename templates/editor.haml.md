@@ -36,10 +36,14 @@ The palette holds our colors.
         - layers = -> editor.layers().copy().reverse()
         - each layers, (layer, index) ->
           - activeClass = -> "active" if layer is editor.activeLayer()
-          .layer(class=activeClass)
+          - hiddenClass = -> "hidden" if layer.hidden()
+          .layer(class=activeClass class=hiddenClass)
             - on "click", ->
               - editor.activeLayer layer
             = layer.previewCanvas
+            .eye
+              - on "click", ->
+                - layer.hidden !layer.hidden()
 
       .actions
         - each @actions, (action) ->

@@ -10,9 +10,8 @@ Bugs
 Layers
   X New Layer
   X Delete Layer
-  Show/Hide Layer
+  X Show/Hide Layer
   X New Layer from Paste
-  Resize Layer
   Reorder Layers
 
 Palette

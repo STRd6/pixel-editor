@@ -150,10 +150,9 @@ Editing pixels in your browser.
 
           index = self.activeLayerIndex()
 
-          self.layers layerData.map (data) ->
-            data.palette = self.palette
+          self.layers []
 
-            Layer data
+          layerData.forEach makeLayer
 
           self.activeLayer self.layer(index)
 
@@ -187,9 +186,9 @@ Editing pixels in your browser.
           else
             index = self.layers.map (layer) ->
               layer.get(x, y)
-            .filter (index) ->
+            .filter (index, i) ->
               # HACK: Transparent is assumed to be index zero
-              index != 0
+              (index != 0) and !self.layers()[i].hidden()
             .last() or 0
 
           color = self.palette()[index]
@@ -233,6 +232,8 @@ accidentally setting the pixel values during the preview.
           height: pixelExtent().height
           data: data
           palette: self.palette
+
+        layer.hidden.observe self.repaint
 
         self.layers.push layer
         self.activeLayer layer
