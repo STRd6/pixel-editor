@@ -182,10 +182,9 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       index = self.activeLayerIndex()
 
-      self.layers layerData.map (data) -&gt;
-        data.palette = self.palette
+      self.layers []
 
-        Layer data
+      layerData.forEach makeLayer
 
       self.activeLayer self.layer(index)
 
@@ -219,9 +218,9 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       <span class="keyword">else</span>
         index = self.layers.map (layer) -&gt;
           layer.get(x, y)
-        .filter (index) -&gt;
+        .filter (index, i) -&gt;
           <span class="comment"># HACK: Transparent is assumed to be index zero</span>
-          index != <span class="number">0</span>
+          (index != <span class="number">0</span>) <span class="keyword">and</span> !self.layers()[i].hidden()
         .last() <span class="keyword">or</span> <span class="number">0</span>
 
       color = self.palette()[index]
@@ -272,6 +271,8 @@ accidentally setting the pixel values during the preview.</p>
       height: pixelExtent().height
       data: data
       palette: self.palette
+
+    layer.hidden.observe self.repaint
 
     self.layers.push layer
     self.activeLayer layer

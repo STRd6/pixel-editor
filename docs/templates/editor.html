@@ -84,10 +84,14 @@
     - layers = -&gt; editor.layers().copy().reverse()
     - each layers, (layer, index) -&gt;
       - activeClass = -&gt; &quot;active&quot; if layer is editor.activeLayer()
-      .layer(class=activeClass)
+      - hiddenClass = -&gt; &quot;hidden&quot; if layer.hidden()
+      .layer(class=activeClass class=hiddenClass)
         - on &quot;click&quot;, -&gt;
           - editor.activeLayer layer
         = layer.previewCanvas
+        .eye
+          - on &quot;click&quot;, -&gt;
+            - layer.hidden !layer.hidden()
 
   .actions
     - each @actions, (action) -&gt;
