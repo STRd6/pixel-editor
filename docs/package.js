@@ -19,7 +19,7 @@
     "TODO.md": {
       "path": "TODO.md",
       "mode": "100644",
-      "content": "TODO\n====\nList Saved Files\n  Click to Open\n\nLayers\n  X New Layer\n  X Delete Layer\n  X Show/Hide Layer\n  X New Layer from Paste\n  Reorder Layers\n\nPalette\n  Load Palette\n  X Export Palette\n  Modify Palette\n\nSync to Server\n\nV2\n----\n\nAnimation Frames\n  New Frame\n  Delete Frame\n  Onion Skin\n\nReplays\n\nGrid\n  Modify Grid Size\n\nCommand Console\n\nScripts\n\nPlugins\n\nDone\n----\nComposite Preview\n\nZoom In/Out\n\nResize Image\n\nExport Image\n\nLoad Image\nSave Image\n\nBugs\n  Preview Erase/Transparent\n  Preview Layer in canvas always shows at top\n",
+      "content": "TODO\n====\nList Saved Files\n  Click to Open\n\nSync to Server\n\nV2\n----\n\nPalette\n  Load Palette\n  X Export Palette\n  Modify Palette\n\nAnimation Frames\n  New Frame\n  Delete Frame\n  Onion Skin\n\nSelections\n\nCopy/Paste\n\nLayers\n  Reorder Layers\n\nReplays\n\nGrid\n  Modify Grid Size\n\nCommand Console\n\nScripts\n\nPlugins\n\nDone\n----\nComposite Preview\n\nZoom In/Out\n\nResize Image\n\nExport Image\n\nLoad Image\nSave Image\n\nBugs\n  Preview Erase/Transparent\n  Preview Layer in canvas always shows at top\n",
       "type": "blob"
     },
     "actions.coffee.md": {
