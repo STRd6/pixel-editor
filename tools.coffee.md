@@ -57,7 +57,7 @@ Draw a line when moving while touching.
 
           queue = [position]
           editor.draw position
-          
+
           # TODO: Allow for interrupts if it takes too long
 
           while(queue.length)

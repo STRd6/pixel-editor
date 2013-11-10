@@ -5,7 +5,7 @@ List Saved Files
 
 Bugs
   Preview Erase/Transparent
-  Preview Layer
+  Preview Layer in canvas always shows at top
 
 Layers
   X New Layer
