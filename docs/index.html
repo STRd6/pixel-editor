@@ -32,7 +32,9 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Editing pixels in your browser.</p>
+              <p>Welcome to this cool pixel editor. Eventually you&#39;ll be able to read this for
+help, but right now it&#39;s mostly code.</p>
+<p>Editing pixels in your browser.</p>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># For debug purposes</span>
@@ -126,13 +128,13 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     pixelExtent: pixelExtent
 
     handlePaste: (data) -&gt;
-      {palette} = data
+      command = self.Command.Composite()
+      self.execute command
 
-      <span class="comment"># TODO: Changing palette should be undoable</span>
-      <span class="keyword">if</span> palette?
-        self.palette(palette)
+      <span class="keyword">if</span> data.width &gt; pixelExtent().width <span class="keyword">or</span> data.height &gt; pixelExtent().height
+        command.push self.Command.Resize pixelExtent().max(data)
 
-      self.execute self.Command.NewLayer(data)
+      command.push self.Command.NewLayer(data)
 
     newLayer: (data) -&gt;
       <span class="comment"># TODO: Check layer width and height against canvas width and height.</span>

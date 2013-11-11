@@ -118,6 +118,12 @@ Size.prototype =
   toString: -&gt;
     <span class="string">"Size(<span class="subst">#{@width}</span>, <span class="subst">#{@height}</span>)"</span>
 
+  max: (otherSize) -&gt;
+    Size(
+      Math.max(<span class="property">@width</span>, otherSize.width)
+      Math.max(<span class="property">@height</span>, otherSize.height)
+    )
+
   each: (iterator) -&gt;
     [<span class="number">0.</span>..<span class="property">@height</span>].forEach (y) -&gt;
       [<span class="number">0.</span>..<span class="property">@width</span>].forEach (x) -&gt;
