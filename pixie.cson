@@ -13,5 +13,5 @@ dependencies:
   "touch-canvas": "STRd6/touch-canvas:v0.2.0"
   "commando": "STRd6/commando:v0.9.0"
   "grid-gen": "STRd6/grid-gen:v0.1.0"
-width: 480
-height: 320
+width: 1024
+height: 576
