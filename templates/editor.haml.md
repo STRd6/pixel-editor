@@ -29,6 +29,8 @@ The palette holds our colors.
           .color(style="background-color: #{color}")
             - on "click", ->
               - activeIndex index
+            - on "touchstart", ->
+              - activeIndex index
 
       .layers
         .thumbnail
@@ -49,4 +51,6 @@ The palette holds our colors.
         - each @actions, (action) ->
           .action(style="background-image: url(#{action.iconUrl})")
             - on "click", ->
+              - action.perform()
+            - on "touchstart", ->
               - action.perform()
