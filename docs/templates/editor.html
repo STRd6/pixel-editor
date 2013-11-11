@@ -77,6 +77,8 @@
       .color(style=&quot;background-color: #{color}&quot;)
         - on &quot;click&quot;, -&gt;
           - activeIndex index
+        - on &quot;touchstart&quot;, -&gt;
+          - activeIndex index
 
   .layers
     .thumbnail
@@ -97,6 +99,8 @@
     - each @actions, (action) -&gt;
       .action(style=&quot;background-image: url(#{action.iconUrl})&quot;)
         - on &quot;click&quot;, -&gt;
+          - action.perform()
+        - on &quot;touchstart&quot;, -&gt;
           - action.perform()</code></pre>
 </div>
         </li>
