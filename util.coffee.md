@@ -34,6 +34,12 @@ A 2d extent.
       toString: ->
         "Size(#{@width}, #{@height})"
 
+      max: (otherSize) ->
+        Size(
+          Math.max(@width, otherSize.width)
+          Math.max(@height, otherSize.height)
+        )
+
       each: (iterator) ->
         [0...@height].forEach (y) ->
           [0...@width].forEach (x) ->

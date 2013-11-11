@@ -5,6 +5,12 @@ List Saved Files
 
 Sync to Server
 
+Documentation
+
+Bugs
+----
+
+
 V2
 ----
 
@@ -37,7 +43,7 @@ Scripts
 Plugins
 
 Done
-----
+====
 Composite Preview
 
 Zoom In/Out
@@ -50,5 +56,9 @@ Load Image
 Save Image
 
 Bugs
-  Preview Erase/Transparent
-  Preview Layer in canvas always shows at top
+----
+Expand canvas when dropping an larger image
+
+Preview Erase/Transparent
+
+Preview Layer in canvas always shows at top

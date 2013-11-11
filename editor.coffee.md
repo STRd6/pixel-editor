@@ -1,6 +1,9 @@
 Pixel Editor
 ============
 
+Welcome to this cool pixel editor. Eventually you'll be able to read this for
+help, but right now it's mostly code.
+
 Editing pixels in your browser.
 
     # For debug purposes
@@ -94,13 +97,13 @@ Editing pixels in your browser.
         pixelExtent: pixelExtent
 
         handlePaste: (data) ->
-          {palette} = data
+          command = self.Command.Composite()
+          self.execute command
 
-          # TODO: Changing palette should be undoable
-          if palette?
-            self.palette(palette)
+          if data.width > pixelExtent().width or data.height > pixelExtent().height
+            command.push self.Command.Resize pixelExtent().max(data)
 
-          self.execute self.Command.NewLayer(data)
+          command.push self.Command.NewLayer(data)
 
         newLayer: (data) ->
           # TODO: Check layer width and height against canvas width and height.

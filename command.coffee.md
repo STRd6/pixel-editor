@@ -49,6 +49,7 @@ versions.
 
       C "NewLayer", (data) ->
         execute: ->
+          console.log data
           self.newLayer(data)
 
         undo: ->
