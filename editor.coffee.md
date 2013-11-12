@@ -36,7 +36,7 @@ Editing pixels in your browser.
     template = require "./templates/editor"
     debugTemplate = require "./templates/debug"
 
-    {Size, download} = require "./util"
+    {Size} = require "./util"
 
     Editor = (I={}, self) ->
       activeIndex = Observable(1)
