@@ -167,11 +167,12 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
     resize: (size) -&gt;
       pixelExtent Size(size)
 
-    repaint: -&gt;
+    repaint: (-&gt;
       self.layers().first().each (_, x, y) -&gt;
         self.repaintPixel {x, y}
 
       <span class="keyword">return</span> self
+    ).debounce(<span class="number">0</span>)
 
     restoreState: (state) -&gt;
       self.palette state.palette
@@ -368,6 +369,9 @@ accidentally setting the pixel values during the preview.</p>
     thumbnailCanvas.clear()
 
   pixelExtent.observe updatePixelExtent
+
+  self.palette.observe -&gt;
+    self.repaint()
 
   <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
     position.scale(pixelExtent()).floor()
