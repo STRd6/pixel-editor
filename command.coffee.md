@@ -25,6 +25,15 @@ versions.
 
           return command
 
+      C "ChangePalette", (data) ->
+        data.previous ?= self.palette()
+
+        execute: ->
+          self.palette data.palette
+
+        undo: ->
+          self.palette data.previous
+
       C "ChangePixel", (data) ->
         data.previous ?= self.getPixel(data).index
 

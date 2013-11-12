@@ -136,11 +136,12 @@ Editing pixels in your browser.
         resize: (size) ->
           pixelExtent Size(size)
 
-        repaint: ->
+        repaint: (->
           self.layers().first().each (_, x, y) ->
             self.repaintPixel {x, y}
 
           return self
+        ).debounce(0)
 
         restoreState: (state) ->
           self.palette state.palette
@@ -330,6 +331,9 @@ accidentally setting the pixel values during the preview.
         thumbnailCanvas.clear()
 
       pixelExtent.observe updatePixelExtent
+
+      self.palette.observe ->
+        self.repaint()
 
       canvasPosition = (position) ->
         position.scale(pixelExtent()).floor()
