@@ -380,41 +380,6 @@ Size.prototype =
 </div>
         </li>
         
-        
-        <li id="section-15">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-15">&#182;</a>
-              </div>
-              <p>A download utility using the webkit file system.</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">  download: (extension=<span class="string">"png"</span>, type=<span class="string">"image/png"</span>) -&gt;
-    <span class="keyword">return</span> <span class="keyword">unless</span> webkitRequestFileSystem?
-
-    name = prompt(<span class="string">"File name"</span>, <span class="string">"<span class="subst">#{name}</span>.<span class="subst">#{extension}</span>"</span>)
-
-    webkitRequestFileSystem TEMPORARY, <span class="number">5</span> * <span class="number">1024</span> * <span class="number">1024</span>, (fs) -&gt;
-      fs.root.getFile name, {create: <span class="literal">true</span>}, (fileEntry) -&gt;
-        fileEntry.createWriter (fileWriter) -&gt;
-          arr = <span class="keyword">new</span> Uint8Array(<span class="number">3</span>)
-
-          arr[<span class="number">0</span>] = <span class="number">97</span>
-          arr[<span class="number">1</span>] = <span class="number">98</span>
-          arr[<span class="number">2</span>] = <span class="number">99</span>
-
-          blob = <span class="keyword">new</span> Blob [arr],
-            type: type
-
-          fileWriter.addEventListener <span class="string">"writeend"</span>, -&gt;
-            <span class="comment"># Download by navigating to url</span>
-            location.href = fileEntry.toURL()
-          , <span class="literal">false</span>
-
-          fileWriter.write(blob)</code></pre>
-</div>
-        </li>
-        
     </ul>
   </div>
   <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
