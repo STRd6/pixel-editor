@@ -86,14 +86,14 @@
       {width:newWidth, height:newHeight} = size
 
       <span class="keyword">if</span> newHeight &gt; height
-        grid.expand(<span class="number">0</span>, newHeight - height)
+        grid.expand(<span class="number">0</span>, newHeight - height, <span class="number">0</span>)
       <span class="keyword">else</span> <span class="keyword">if</span> newHeight &lt; height
         grid.contract(<span class="number">0</span>, height - newHeight)
 
       height = newHeight
 
       <span class="keyword">if</span> newWidth &gt; width
-        grid.expand(newHeight - width, <span class="number">0</span>)
+        grid.expand(newHeight - width, <span class="number">0</span>, <span class="number">0</span>)
       <span class="keyword">else</span> <span class="keyword">if</span> newWidth &lt; width
         grid.contract(width - newWidth, <span class="number">0</span>)
 
@@ -169,8 +169,16 @@ module.exports = Layer</code></pre>
   <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
-<script src="http://strd6.github.io/interactive/v0.8.0.js"></script>
 <script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.6.js"></script>
-<script src="http://strd6.github.io/require/v0.2.2.js?"></script><script src="package.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js?"></script><script>
+  $.ajax({
+    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
+    dataType: "jsonp",
+    jsonpCallback: "STRd6/interactive:v0.8.1",
+    cache: true
+  }).then(function(PACKAGE) {
+    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
+  })
+</script><script src="package.js"></script>
 </body>
 </html>
