@@ -45,14 +45,14 @@ A layer is a 2d set of pixels.
           {width:newWidth, height:newHeight} = size
 
           if newHeight > height
-            grid.expand(0, newHeight - height)
+            grid.expand(0, newHeight - height, 0)
           else if newHeight < height
             grid.contract(0, height - newHeight)
 
           height = newHeight
 
           if newWidth > width
-            grid.expand(newHeight - width, 0)
+            grid.expand(newHeight - width, 0, 0)
           else if newWidth < width
             grid.contract(width - newWidth, 0)
 

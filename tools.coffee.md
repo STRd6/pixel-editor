@@ -53,6 +53,7 @@ Draw a line when moving while touching.
           index = editor.activeIndex()
           targetIndex = editor.getPixel(position).index
 
+          return unless targetIndex?
           return if index is targetIndex
 
           queue = [position]

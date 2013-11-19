@@ -166,7 +166,8 @@ Editing pixels in your browser.
 
           self.layers []
 
-          layerData.forEach makeLayer
+          layerData.forEach (layerData) ->
+            makeLayer layerData.data
 
           self.activeLayer self.layer(index)
 

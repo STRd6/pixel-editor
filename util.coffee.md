@@ -108,16 +108,25 @@ A 2d grid of values.
 
             return self
 
-          expand: (x, y) ->
+Expand the grid using the given `defaultValue` value or function to fill any
+positions that need to be filled.
+
+          expand: (x, y, defaultValue) ->
             newRows = [0...y].map (y) ->
               [0...width].map (x) ->
-                generateValue(x, y + height)
+                if typeof defaultValue is "function"
+                  defaultValue(x, y + height)
+                else
+                  defaultValue
 
             grid = grid.concat newRows
 
             grid = grid.map (row, y) ->
               row.concat [0...x].map (x) ->
-                generateValue(width + x, y)
+                if typeof defaultValue is "function"
+                  defaultValue(width + x, y)
+                else
+                  defaultValue
 
             height = y + height
             width = x + width
