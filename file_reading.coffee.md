@@ -30,9 +30,9 @@ about others later.
           switch detectType(file)
             when "image"
               reader.onload = (evt) ->
-                text? evt.target.result
-  
-              reader.readAsText(file, encoding)
+                image? evt.target.result
+
+              reader.readAsDataURL(file)
             when "json"
               reader.onload = (evt) ->
                 json? JSON.parse evt.target.result
