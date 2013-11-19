@@ -334,6 +334,8 @@ accidentally setting the pixel values during the preview.
 
         thumbnailCanvas.clear()
 
+        self.repaint()
+
       pixelExtent.observe updatePixelExtent
 
       self.palette.observe ->
