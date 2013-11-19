@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>undo</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="undo">Undo</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="command-stack">Command Stack</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>TODO: Re-extract this later</p>
+<p>TODO: Integrate Observables?</p>
+<p>A simple stack based implementation of executable and undoable commands.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">CommandStack</span></span> = (stack=[]) -&gt;
+  index = stack.length
+
+  execute: (command) -&gt;
+    stack[index] = command
+    command.execute()
+
+    index += <span class="number">1</span>
+
+    <span class="comment"># Be sure to blast obsolete redos</span>
+    stack.length = index
+
+    <span class="keyword">return</span> <span class="keyword">this</span>
+
+  undo: -&gt;
+    <span class="keyword">if</span> <span class="property">@canUndo</span>()
+      index -= <span class="number">1</span>
+
+      command = stack[index]
+      command.undo()
+
+      <span class="keyword">return</span> command
+
+  redo: -&gt;
+    <span class="keyword">if</span> <span class="property">@canRedo</span>()
+      command = stack[index]
+      command.execute()
+
+      index += <span class="number">1</span>
+
+      <span class="keyword">return</span> command
+
+  current: -&gt;
+    stack[index-<span class="number">1</span>]
+
+  canUndo: -&gt;
+    index &gt; <span class="number">0</span>
+
+  canRedo: -&gt;
+    stack[index]?
+
+  stack: -&gt;
+    stack.slice(<span class="number">0</span>, index)
+
+module.exports = CommandStack</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>An editor module for editors that support undo/redo</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
+  <span class="comment"># TODO: Module include should be idempotent</span>
+  self.include Bindable <span class="keyword">unless</span> self.<span class="literal">on</span>
+
+  commandStack = CommandStack()
+  lastClean = <span class="literal">undefined</span>
+
+  <span class="comment"># TODO: Make this an observable rather than an event emitter</span>
+  <span class="function"><span class="title">dirty</span></span> = (newDirty) -&gt;
+    <span class="keyword">if</span> newDirty <span class="keyword">is</span> <span class="literal">false</span>
+      lastClean = commandStack.current()
+      self.trigger(<span class="string">'clean'</span>)
+
+      <span class="keyword">return</span> self
+    <span class="keyword">else</span>
+      <span class="keyword">return</span> lastClean != commandStack.current()
+
+  <span class="function"><span class="title">updateDirtyState</span></span> = -&gt;
+    <span class="keyword">if</span> dirty()
+      self.trigger(<span class="string">'dirty'</span>)
+    <span class="keyword">else</span>
+      self.trigger(<span class="string">'clean'</span>)
+
+  <span class="comment"># Set dirty state on save event</span>
+  self.<span class="literal">on</span> <span class="string">'save'</span>, -&gt;
+    dirty(<span class="literal">false</span>)
+
+  self.extend
+    history: (newHistory) -&gt;
+      <span class="keyword">if</span> arguments.length &gt; <span class="number">0</span>
+        commandStack = CommandStack newHistory.map self.Command.parse
+      <span class="keyword">else</span>
+        commandStack.stack()
+
+    execute: (command) -&gt;
+      commandStack.execute command
+      updateDirtyState()
+
+      <span class="keyword">return</span> self
+
+    undo: -&gt;
+      commandStack.undo()
+      updateDirtyState()
+
+      <span class="keyword">return</span> self
+
+    redo: -&gt;
+      commandStack.redo()
+      updateDirtyState()
+
+      <span class="keyword">return</span> self
+
+  <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.6.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js?"></script><script>
+  $.ajax({
+    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
+    dataType: "jsonp",
+    jsonpCallback: "STRd6/interactive:v0.8.1",
+    cache: true
+  }).then(function(PACKAGE) {
+    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
+  })
+</script><script src="package.js"></script>
+</body>
+</html>
