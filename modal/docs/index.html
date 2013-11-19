@@ -197,7 +197,8 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       self.layers []
 
-      layerData.forEach makeLayer
+      layerData.forEach (layerData) -&gt;
+        makeLayer layerData.data
 
       self.activeLayer self.layer(index)
 

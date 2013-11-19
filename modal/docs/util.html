@@ -229,22 +229,6 @@ Size.prototype =
           row.forEach (value, x) -&gt;
             iterator(value, x, y)
 
-        <span class="keyword">return</span> self
-
-      expand: (x, y) -&gt;
-        newRows = [<span class="number">0.</span>..y].map (y) -&gt;
-          [<span class="number">0.</span>..width].map (x) -&gt;
-            generateValue(x, y + height)
-
-        grid = grid.concat newRows
-
-        grid = grid.map (row, y) -&gt;
-          row.concat [<span class="number">0.</span>..x].map (x) -&gt;
-            generateValue(width + x, y)
-
-        height = y + height
-        width = x + width
-
         <span class="keyword">return</span> self</code></pre>
 </div>
         </li>
@@ -254,6 +238,40 @@ Size.prototype =
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Expand the grid using the given <code>defaultValue</code> value or function to fill any
+positions that need to be filled.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">      expand: (x, y, defaultValue) -&gt;
+        newRows = [<span class="number">0.</span>..y].map (y) -&gt;
+          [<span class="number">0.</span>..width].map (x) -&gt;
+            <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
+              defaultValue(x, y + height)
+            <span class="keyword">else</span>
+              defaultValue
+
+        grid = grid.concat newRows
+
+        grid = grid.map (row, y) -&gt;
+          row.concat [<span class="number">0.</span>..x].map (x) -&gt;
+            <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
+              defaultValue(width + x, y)
+            <span class="keyword">else</span>
+              defaultValue
+
+        height = y + height
+        width = x + width
+
+        <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>Return a 1-dimensional array of the data within the grid.</p>
 
@@ -268,10 +286,10 @@ Size.prototype =
         </li>
         
         
-        <li id="section-13">
+        <li id="section-14">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>Call an iterator for each integer point on a line between two integer points.</p>
 
@@ -327,10 +345,10 @@ Size.prototype =
         </li>
         
         
-        <li id="section-14">
+        <li id="section-15">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>gross code courtesy of <a href="http://en.wikipedia.org/wiki/Midpoint_circle_algorithm">http://en.wikipedia.org/wiki/Midpoint_circle_algorithm</a></p>
 
