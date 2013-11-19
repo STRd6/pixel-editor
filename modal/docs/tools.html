@@ -110,12 +110,19 @@
       editor.draw position
 
       <span class="comment"># TODO: Allow for interrupts if it takes too long</span>
+      {width, height} = editor.pixelExtent()
+      safetyHatch = width * height
 
-      <span class="keyword">while</span>(queue.length)
+      <span class="keyword">while</span>(queue.length <span class="keyword">and</span> safetyHatch &gt; <span class="number">0</span>)
         position = queue.pop()
 
         neighbors(position).forEach (position) -&gt;
           <span class="keyword">if</span> editor.getPixel(position)?.index <span class="keyword">is</span> targetIndex
+            <span class="comment"># This is here because I HAVE been burned</span>
+            <span class="comment"># Later I should fix the underlying cause, but it seems handy to keep</span>
+            <span class="comment"># a hatch on any while loops.</span>
+            safetyHatch -= <span class="number">1</span>
+
             editor.draw position
             queue.push(position)
 
