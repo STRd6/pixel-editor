@@ -35,7 +35,13 @@
               <p>Messing around with some modal BS</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.exports =
+            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># HACK: Dismiss modal by clicking on overlay</span>
+$ -&gt;
+  $(<span class="string">"#modal"</span>).click (e) -&gt;
+    <span class="keyword">if</span> e.target <span class="keyword">is</span> <span class="keyword">this</span>
+      Modal.hide()
+
+module.exports = Modal =
   show: (element) -&gt;
     $(<span class="string">"#modal"</span>).empty().append(element).addClass(<span class="string">"active"</span>)
 
