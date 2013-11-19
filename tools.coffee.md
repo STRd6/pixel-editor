@@ -53,18 +53,26 @@ Draw a line when moving while touching.
           index = editor.activeIndex()
           targetIndex = editor.getPixel(position).index
 
+          return unless targetIndex?
           return if index is targetIndex
 
           queue = [position]
           editor.draw position
 
           # TODO: Allow for interrupts if it takes too long
+          {width, height} = editor.pixelExtent()
+          safetyHatch = width * height
 
-          while(queue.length)
+          while(queue.length and safetyHatch > 0)
             position = queue.pop()
-
+            
             neighbors(position).forEach (position) ->
               if editor.getPixel(position)?.index is targetIndex
+                # This is here because I HAVE been burned
+                # Later I should fix the underlying cause, but it seems handy to keep
+                # a hatch on any while loops.
+                safetyHatch -= 1
+
                 editor.draw position
                 queue.push(position)
 

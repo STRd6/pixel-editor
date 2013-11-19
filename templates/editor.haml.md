@@ -54,3 +54,7 @@ The palette holds our colors.
               - action.perform()
             - on "touchstart", ->
               - action.perform()
+
+Modal junk
+
+    #modal

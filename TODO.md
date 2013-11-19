@@ -1,23 +1,22 @@
 TODO
 ====
-List Saved Files
-  Click to Open
-
-Sync to Server
-
 Documentation
-
-Bugs
-----
-
-
-V2
-----
 
 Palette
   Load Palette
-  X Export Palette
   Modify Palette
+
+Layers
+  Reorder Layers
+  Delete Layers
+
+Bugs
+----
+Preview and layers get cut off for larger images
+
+V2
+----
+Sync to server?
 
 Animation Frames
   New Frame
@@ -27,9 +26,6 @@ Animation Frames
 Selections
 
 Copy/Paste
-
-Layers
-  Reorder Layers
 
 Replays
 
@@ -55,8 +51,20 @@ Export Image
 Load Image
 Save Image
 
+Save Files to desktop
+  .json
+
+Export to desktop
+  .png
+
+Open files from a file picker
+  .json
+  .png or .jpeg
+
 Bugs
 ----
+Refreshing canvas gets a little messed up in resizing
+
 Expand canvas when dropping an larger image
 
 Preview Erase/Transparent

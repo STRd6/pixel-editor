@@ -24,7 +24,7 @@ Loader
 
           return deferred.promise()
 
-Load the imageData and return the data with a palette representing the colors 
+Load the imageData and return the data with a palette representing the colors
 found in the imageData.
 
         fromImageData: (imageData) ->
@@ -36,7 +36,7 @@ found in the imageData.
             pieces = getColor(imageData, n)
 
             color = arrayToHex(pieces)
-            
+
             console.log color
 
             colorFrequency[color] ?= 0

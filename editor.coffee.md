@@ -136,12 +136,11 @@ Editing pixels in your browser.
         resize: (size) ->
           pixelExtent Size(size)
 
-        repaint: (->
+        repaint: ->
           self.layers().first().each (_, x, y) ->
             self.repaintPixel {x, y}
 
           return self
-        ).debounce(0)
 
         restoreState: (state) ->
           self.palette state.palette
@@ -167,7 +166,8 @@ Editing pixels in your browser.
 
           self.layers []
 
-          layerData.forEach makeLayer
+          layerData.forEach (layerData) ->
+            makeLayer layerData.data
 
           self.activeLayer self.layer(index)
 
@@ -294,6 +294,12 @@ accidentally setting the pixel values during the preview.
 
       $(".thumbnail").append thumbnailCanvas.element()
 
+      updateViewportCentering = (->
+        size = canvasSize()
+        $(".viewport").toggleClass "vertical-center", size.height < $(".main").height()
+      ).debounce(15)
+      $(window).resize updateViewportCentering
+
       updateCanvasSize = (size) ->
         gridImage = GridGen(
           # TODO: Grid size options and matching pixel size/extent
@@ -309,8 +315,6 @@ accidentally setting the pixel values during the preview.
         $(".viewport, .overlay").css
           width: size.width
           height: size.height
-
-        $(".viewport").toggleClass "vertical-center", size.height < $(".main").height()
 
         $(".overlay").css
           backgroundImage: gridImage
@@ -329,6 +333,8 @@ accidentally setting the pixel values during the preview.
         element.height = size.height
 
         thumbnailCanvas.clear()
+
+        self.repaint()
 
       pixelExtent.observe updatePixelExtent
 
@@ -358,8 +364,7 @@ accidentally setting the pixel values during the preview.
 
         previewCanvas.clear()
 
-      self.repaint()
-
       return self
 
-    Editor()
+    # For debugging
+    global.editor = Editor()

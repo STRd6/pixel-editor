@@ -86,7 +86,7 @@ An editor module for editors that support undo/redo
         dirty(false)
 
       self.extend
-        history: (newHistory) ->
+        history: (newHistory=[]) ->
           if arguments.length > 0
             commandStack = CommandStack newHistory.map self.Command.parse
           else
