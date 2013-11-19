@@ -136,7 +136,7 @@ module.exports = CommandStack</code></pre>
     dirty(<span class="literal">false</span>)
 
   self.extend
-    history: (newHistory) -&gt;
+    history: (newHistory=[]) -&gt;
       <span class="keyword">if</span> arguments.length &gt; <span class="number">0</span>
         commandStack = CommandStack newHistory.map self.Command.parse
       <span class="keyword">else</span>
