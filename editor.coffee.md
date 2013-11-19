@@ -363,4 +363,5 @@ accidentally setting the pixel values during the preview.
 
       return self
 
-    Editor()
+    # For debugging
+    global.editor = Editor()
