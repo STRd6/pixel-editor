@@ -1,23 +1,35 @@
 TODO
 ====
-List Saved Files
-  Click to Open
-
 Sync to Server
 
 Documentation
 
+Palette
+  Load Palette
+  Modify Palette
+
+Save Files to desktop
+  .json
+
+Export to desktop
+  .png
+
+Open files from a file picker
+  .json
+  .png or .jpeg
+
+List Saved Files
+  Click to Open
+
 Bugs
 ----
 
+Refreshing canvas gets a little messed up in resizing
+
+Preview gets cut off for larger images
 
 V2
 ----
-
-Palette
-  Load Palette
-  X Export Palette
-  Modify Palette
 
 Animation Frames
   New Frame

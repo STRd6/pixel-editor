@@ -1,6 +1,7 @@
 Actions
 =======
 
+    Modal = require("./modal")
     Palette = require("./palette")
     saveAs = require "./lib/file_saver"
     {compressToUTF16:compress, decompressFromUTF16:decompress} = global.Compressor = require "compression"
@@ -49,8 +50,11 @@ Actions
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACUUlEQVQ4T6WTUUhTURjHv+scNheypmOy7RY0H7IHC6Rgo/ItB0GXWIgSBUOJMIRFkEUlBEWBDzOsXnoQpIdqTUlrQ6k9NPBhUeCaFO0udxuB7bVc5D3n3L5zYNZSiNG9nHu+C+f/4/v+33ck+M9HqkXf9/DYRRKbHo1GgVZ0NQF6Jo9miE7SU/3xgU0Bg3Mh2TBIkBpGNyWkkxHmIIQC1Snw3WVzA8Nd/ZK/HR9KhjlkPYOzL075KDWGPVZZ2dZoB6vZCvV19UANBDAGjCEEY50SeJfLgFpQbyQvLVwRgMG5XpkZ5vH2lt2K09oKP0gZTJIZmMFQzAEUYwRwCK7FD4ugaupo6mr6ggCcjp8Iy03bI157mxCtrpVBXcnB8sqySF2UoBNwtbiBUgr5Qv5OaiQ9tF7CwLO+REfr3kCj2YIHGCSzySIejD0JPT/3Z5e6bvoyTCdvUiOvQ1UmhqZ7Sv6dBx11aIlW0iD7OTs21Z+oEnOB/9r+ywvZ9C34u40nHwdL/rYDDklCwFcNlgpLYzNn5jcANpsZ4UHvAyXRIe8JWCxbsFYs4e3LIl2jsfnzr/4JEYDjE0fCbrsn4nV5sW1oYnkVchqaWEQT0cDKHFA0VPyjke/v5YRWfJS7h2Xs9PiuHe2Ko9kJ339+gwZTg2gZbx/DORAxvnwmZqKz8PH+p98ADglEunw6YcMep0exNdlgq9UKkskEBp8FXByEEwoGgp4+moX8hFYN4JBD1/fJlBhBTLWbENZJCGlmOqvjqfP2VnaGcWGyuBFQy82snP0Ffg5KIO/aNV0AAAAASUVORK5CYII="
       "ctrl+o":
         method: ({editor}) ->
-          if name = prompt("Name", "my_file")
-            editor.restoreState retrieve name
+          Modal.show readerInput (data) ->
+            console.log data
+
+          # if name = prompt("Name", "my_file")
+          #   editor.restoreState retrieve name
 
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsklEQVQ4T6WTW0iTYRjH/3Nu002JrOmQliRTWoZFhHRR0RzbhZA3gSzJBibYRQTeRlC3RgXVTSBCBJINE0zxQJsHMC2RglirdVBnM9e3tYM7+p3W+37h6Ouim56bD97v/f/4P//nfRT4z1L8qR8fH9cUFxe35vP584IgHCT/6sTf5SVnX8i3n+M4T1tbm7CjKwCI+JBSqXxSVVXVaDAYoNPpoNVqQYRIJBJIJpMIBAJgGGaenDkIZINCCoDJyckZs9l8xmg0QqGQGSuY5HkeXq8Xfr//scPhcMoAExMTjMVi0avV6n8CYrEY3G53uL29vVIGIC1IgHg8jpKSEmg0GqhUKqmFTCaDaDSKYDAIk8kEj8cT7ujokAPGxsaY5uZmfTqdlvrN5XKSmNqmGWxvb4MEjPr6esmB0+mUA0ZHRyUAvUjFVEgFJHVEIhE88l1FlkvjmvUZZj1z4c7OTjlgZGSEsVqtemo3m81KAJoHBYTDYfT7rqB6jwm+jTewqnoi3V2X9bIMhoeHGZvNpk+lUlLP9xadyIscWJEHS2DVFXVoNJ7E0uo03gVf4/vWj/L3N5EqzGtoaIix2+1SiBRwf+kibIedEPIiBFGAiDxC8SB2l1Vi8asby4E5MbbFVhQALpdLAtC0KeDu0gW0HLmEQOQzOOKCJ244gUNRkRqV5fswvzKFVysvhQJgcHCQaWpq0pNCKBTCjZmzaD3aTYQCeEGQnGwm1lFRZsDbbwt48WEqnGZhLwAGBgZayFt3NTQ06GpqatD19DhyLEsyYJHjOdTuNeNErR3L6wuY9nt+JnPi6egd+GRvtq+v7wAZ3XUCOkf2YhfdBToN2tbDaE/+2P5TitlP05sZHpbILfhlU/h7q3t7e8tLS0tNZIzi2trax+e7HkRFUandYoXaxG2s7tz/BeoVfR66j3EiAAAAAElFTkSuQmCC"
       "ctrl+s":
@@ -120,3 +124,18 @@ Actions
         method: ({editor}) ->
           window.open("./docs")
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC7klEQVQ4T6WTW0hUQRjH/+7q6mpkbLK663ZX28pExDJLKRRKKypZiNouVoTggy+RDxEoCSEp0UNJPkSloYTdoxtYdNE2a7vRmou4mWjppuUF3T3n7Dkz03Rku9JDNPMwM8z8f3zf9/8mBP85Qn7X3+sS52kJszOGnZSxOEoJCGNeSli9pIiNBemx737W/AJodvttYPT4nOlhphDGhYSobzUaDQJ8+/aDb0AmSol9hflSEPIdcKd93MYIrbOadFFjEwI6en3o/eIDoQzGaB2SLVNhmBaBxx2jPkUhhUV5s1WICrjhHJ1LNLQl2RJh9o740ewagik6DGvTzGB8Oj0jeNE9jJXWGFhiotD86lO/oIjZB2wp3SqgqW2obGG8/pAkybjq7IckyijfuijI5ytD9ZUOBBSKvLR48Prg4Zv+8jJ7aoUKqL//sSsjaWpC69vPcH8c5WFT7NtgxeueEURFaLEsMQZtXYO42NqNJMt05CyOQ8Pdbs+RvemJKuDk7R5/bopBf+7Be4wLMmQi81oSrFsyE5nzjQjIFHde9uGJ2wt9uBZFecmoudYu1JRkRaqAo5c7/euXmvRnOWBsYpyLeeY8zKrdGRiZkFDd9BJiQOGJAHqdBsUbU1F1/pVQV5ozCahocHUVZFkSHroG4e4b5vbJoDwN7orqFpEVXgZ+5jNhRgzWLJ2FIw0vPBfK8ydTKD31rCw31XxoSqQOFx+9g08QVGHlnkzwZsL+2gfqORQUW1anYGhYQOM9d/nNyk2TRSw+1jIXGtaya43VPOqTcM3hgSAGkJZgVIXOzgFoqIz8zAUwGiJx+NzTfpGI2a3Htk3a+G1sr2y2UUbrijemRMk8dIfrA3q9w6DcuvjYaCxPtiA0VIuKMw6fTEih44T9RyMFIZsOXrcpjB3fvCrJZJ1tQLhOq14JogKXZwinb70ZkCkteV67489WDkJySs7PI9oQ9TMRhcZ9qwGhxMt7o16SWGN73a6/f6Yg5F/WrzeMbiDawgJJAAAAAElFTkSuQmCC"
+
+    readerInput = (fn) ->
+      input = document.createElement('input')
+      input.type = "file"
+
+      input.onchange = ->
+        reader = new FileReader()
+
+        reader.onload = (evt) ->
+          fn evt.target.result
+
+        file = input.files[0]
+        reader.readAsText(file, "UTF-8")
+
+      return input
