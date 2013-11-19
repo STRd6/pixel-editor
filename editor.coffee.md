@@ -10,6 +10,7 @@ Editing pixels in your browser.
     global.PACKAGE = PACKAGE
     global.require = require
 
+    require "appcache"
     require "jquery-utils"
 
     require "./lib/canvas-to-blob"
