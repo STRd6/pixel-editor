@@ -1,35 +1,22 @@
 TODO
 ====
-Sync to Server
-
 Documentation
 
 Palette
   Load Palette
   Modify Palette
 
-Save Files to desktop
-  .json
-
-Export to desktop
-  .png
-
-Open files from a file picker
-  .json
-  .png or .jpeg
-
-List Saved Files
-  Click to Open
+Layers
+  Reorder Layers
+  Delete Layers
 
 Bugs
 ----
-
-Refreshing canvas gets a little messed up in resizing
-
-Preview gets cut off for larger images
+Preview and layers get cut off for larger images
 
 V2
 ----
+Sync to server?
 
 Animation Frames
   New Frame
@@ -39,9 +26,6 @@ Animation Frames
 Selections
 
 Copy/Paste
-
-Layers
-  Reorder Layers
 
 Replays
 
@@ -67,8 +51,20 @@ Export Image
 Load Image
 Save Image
 
+Save Files to desktop
+  .json
+
+Export to desktop
+  .png
+
+Open files from a file picker
+  .json
+  .png or .jpeg
+
 Bugs
 ----
+Refreshing canvas gets a little messed up in resizing
+
 Expand canvas when dropping an larger image
 
 Preview Erase/Transparent
