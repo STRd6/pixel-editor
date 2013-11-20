@@ -65,7 +65,7 @@ Draw a line when moving while touching.
 
           while(queue.length and safetyHatch > 0)
             position = queue.pop()
-            
+
             neighbors(position).forEach (position) ->
               if editor.getPixel(position)?.index is targetIndex
                 # This is here because I HAVE been burned
