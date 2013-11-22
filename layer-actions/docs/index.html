@@ -37,19 +37,9 @@ help, but right now it&#39;s mostly code.</p>
 <p>Editing pixels in your browser.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># For debug purposes</span>
-global.PACKAGE = PACKAGE
-global.require = require
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"./setup"</span>
 
-require <span class="string">"appcache"</span>
-require <span class="string">"jquery-utils"</span>
-
-require <span class="string">"./lib/canvas-to-blob"</span>
 saveAs = require <span class="string">"./lib/file_saver"</span>
-
-runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
-runtime.boot()
-runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>

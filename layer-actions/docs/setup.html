@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>TODO</title>
+  <title>setup</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,10 +18,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="todo">TODO</h1>
+              <h1 id="setup">Setup</h1>
 
             </div>
-            <div class="content"><pre><code>
+            <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
         </li>
@@ -32,18 +32,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Documentation</p>
-<p>Palette
-  Load Palette
-  Modify Palette</p>
-<p>Layers
-  Reorder Layers
-  Delete Layers</p>
-<h2 id="bugs">Bugs</h2>
+              <p>For debug purposes we expose the whole package and the require function.</p>
 
             </div>
-            <div class="content"><pre><code>
-</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">global.PACKAGE = PACKAGE
+global.require = require</code></pre>
 </div>
         </li>
         
@@ -53,13 +46,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>Preview and layers get cut off for larger images</p>
-<p>Centering of viewport has a race condition with page loading</p>
-<h2 id="v2">V2</h2>
+              <p>Requiring <code>appcache</code> prompts the person to reload the page when a newer version
+of the application is available.</p>
 
             </div>
-            <div class="content"><pre><code>
-</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"appcache"</span></code></pre>
 </div>
         </li>
         
@@ -69,24 +60,12 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>Sync to server?</p>
-<p>Animation Frames
-  New Frame
-  Delete Frame
-  Onion Skin</p>
-<p>Selections</p>
-<p>Copy/Paste</p>
-<p>Replays</p>
-<p>Grid
-  Modify Grid Size</p>
-<p>Command Console</p>
-<p>Scripts</p>
-<p>Plugins</p>
-<h1 id="done">Done</h1>
+              <p>The runtime applies our stylesheet.</p>
 
             </div>
-            <div class="content"><pre><code>
-</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
+runtime.boot()
+runtime.applyStyleSheet(require(<span class="string">'./style'</span>))</code></pre>
 </div>
         </li>
         
@@ -96,41 +75,12 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>Composite Preview</p>
-<p>Zoom In/Out</p>
-<p>Resize Image</p>
-<p>Export Image</p>
-<p>Load Image
-Save Image</p>
-<p>Save Files to desktop
-  .json</p>
-<p>Export to desktop
-  .png</p>
-<p>Open files from a file picker
-  .json
-  .png or .jpeg</p>
-<h2 id="bugs">Bugs</h2>
+              <p>Additional libraries in use that have global effects.</p>
 
             </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-6">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
-              </div>
-              <p>Refreshing canvas gets a little messed up in resizing</p>
-<p>Expand canvas when dropping an larger image</p>
-<p>Preview Erase/Transparent</p>
-<p>Preview Layer in canvas always shows at top</p>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"jquery-utils"</span>
 
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
+require <span class="string">"./lib/canvas-to-blob"</span></code></pre>
 </div>
         </li>
         
