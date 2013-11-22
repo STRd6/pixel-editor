@@ -14,6 +14,8 @@ Bugs
 ----
 Preview and layers get cut off for larger images
 
+Centering of viewport has a race condition with page loading
+
 V2
 ----
 Sync to server?
