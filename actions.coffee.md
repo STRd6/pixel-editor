@@ -160,20 +160,11 @@ Actions
                 cache:false,
                 success: (data) ->
                   console.log("success", data)
+                  # TODO: Notify of successful post
                 error: (shr, status, data) ->
                   console.log(arguments)
+                  # TODO: Notify of error
                 complete: ->
-                  console.log("Ajax Complete")
-
-            ###
-            FB.api "/me/photos", "post", {
-
-            }, ->
-              console.log(arguments)
-            ###
-          , {
-            scope: "publish_stream"
-          }
 
       "?":
         method: ({editor}) ->
