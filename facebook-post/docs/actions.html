@@ -193,20 +193,11 @@ Actions.defaults =
             cache:<span class="literal">false</span>,
             success: (data) -&gt;
               console.log(<span class="string">"success"</span>, data)
+              <span class="comment"># TODO: Notify of successful post</span>
             error: (shr, status, data) -&gt;
               console.log(arguments)
+              <span class="comment"># TODO: Notify of error</span>
             complete: -&gt;
-              console.log(<span class="string">"Ajax Complete"</span>)
-
-        <span class="comment">###
-        FB.api "/me/photos", "post", {
-
-        }, -&gt;
-          console.log(arguments)
-        ###</span>
-      , {
-        scope: <span class="string">"publish_stream"</span>
-      }
 
   <span class="string">"?"</span>:
     method: ({editor}) -&gt;
