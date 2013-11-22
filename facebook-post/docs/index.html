@@ -140,7 +140,6 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       command.push self.Command.NewLayer(data)
 
     newLayer: (data) -&gt;
-      <span class="comment"># TODO: Check layer width and height against canvas width and height.</span>
       makeLayer(data?.data)
 
       self.repaint()

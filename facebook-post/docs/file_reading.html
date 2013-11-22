@@ -47,11 +47,13 @@ about others later.</p>
   <span class="keyword">return</span> <span class="string">"text"</span>
 
 module.exports =
-  readerInput: ({chose, encoding, image, json, text}) -&gt;
+  readerInput: ({chose, encoding, image, json, text, accept}) -&gt;
+    accept ?= <span class="string">"image/gif,image/png"</span>
     encoding ?= <span class="string">"UTF-8"</span>
 
     input = document.createElement(<span class="string">'input'</span>)
     input.type = <span class="string">"file"</span>
+    input.setAttribute <span class="string">"accept"</span>, accept
 
     input.<span class="function"><span class="title">onchange</span></span> = -&gt;
       reader = <span class="keyword">new</span> FileReader()
