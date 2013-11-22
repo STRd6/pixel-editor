@@ -20,6 +20,8 @@ Editing pixels in your browser.
     runtime.boot()
     runtime.applyStyleSheet(require('./style'))
 
+    require("facebook").init("391109411021092")
+
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
 
@@ -118,18 +120,18 @@ Editing pixels in your browser.
 
           self.repaint()
 
-        outputCanvas: ->
-          outputCanvas = TouchCanvas pixelExtent()
+        outputCanvas: (scale=1)->
+          outputCanvas = TouchCanvas pixelExtent().scale(scale)
 
           self.layers.forEach (layer) ->
-            # TODO: Only paint once per pixel, rather than once per pixel per layer.
-            # By being smarter about transparency
+            # TODO: Only paint once per pixel, rather than once per pixel per layer
+            # by being smarter about transparency
             layer.each (index, x, y) ->
               outputCanvas.drawRect
-                x: x
-                y: y
-                width: 1
-                height: 1
+                x: x * scale
+                y: y * scale
+                width: scale
+                height: scale
                 color: self.palette()[index]
 
           outputCanvas.element()

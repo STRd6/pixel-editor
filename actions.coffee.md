@@ -1,6 +1,7 @@
 Actions
 =======
 
+    Facebook = require "facebook"
     loader = require("./loader")()
     FileReading = require("./file_reading")
     Modal = require("./modal")
@@ -73,7 +74,7 @@ Actions
             # TODO: We may want to save history later
             delete data.history
 
-            blob = blob = new Blob [JSON.stringify(data)],
+            blob = new Blob [JSON.stringify(data)],
               type: "application/json"
 
             saveAs blob, "#{name}.json"
@@ -140,6 +141,39 @@ Actions
           blob = new Blob [localStorage.images],
             type: "text/plain"
           saveAs blob, "images.json"
+
+      "ctrl+p":
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACq0lEQVQ4T6WSe0hUURDGv/vyteqiFqYmFIatpJGtRSZlBEkPAgssVtRMCe1BWhFiZUmSFUJKkmRmGfggjIqCNssgNAgrzUpzMaV/MgldXdfdu+7ex+l6rZA2g2gOAwPnOz/mzDcU/jOoP73P1QcWRQShgGVljUsimHTR/OA4Xd7UbT71u94NsC82oGBFGDnPaWhKVtQugcDmkPFtUib941yJsXfszGyIG6Bqq5Z4+TEYsUqQ1FsaMsXAYpcxbJWsDV0T2r8CStf5klhDHmIW+ePL0DAa6uvBsiyclDcE+7gQExfvd7jS6PwJcevgWnq4Ob2sNdA18Aw23oHRsQn4+/pAu2wTjBdSrFyIfv6u4mbXnICKVN2LjPyiBJHm4MuKio6CTWTAUiKaK0s7c+p64ub+gr6ai/B8W1uy8nX6zsxcEK8gVUsEHsb6cpzu0N/tlXRpeHnU4d7BlsueAVJAlg+1oKqlJh49Vw0gypkOSjmhaY0w5L2CXRjMt0x+rUFnMT9zNxOUZmPTniDvhTcfV+vRCW90WQCHXbFRkYlKLtYAScEOGI50YdTed4BnhmrwvFhUAVHJ15NDGfO9nOPHYPZm0MsTCEqTojIq1xTUWpgiiAym4WElaGu6iGEBe02PCutUQOeJSDF8zQ7m9kgC3oRsB6N0LotEBYiKYS6nAnRSsPMUEulWHIpqQ//TZiH+kslDBbw7uVQOX59K7b8TjuiU3eib8AFRANI0QEnak4KgGKLTOvH+fjMaMz7j05NGsrrMRKuAD3UHC52mlrOVw5noxVo22rDh13BUF34Mqr3iATaHdfDZIQ8Zdkli2fLMK0W/FslUm+V3ayDYo+Fj/DliGd3GcJpAZfocZAJZkkRZcti4gHndSWHtafmrxhy67BuTs12YvRv/VH8HtMEbIKR8SQwAAAAASUVORK5CYII="
+        method: ({editor}) ->
+          Facebook.requiringPermissions ["publish_stream"], ({accessToken, userID}) ->
+            editor.outputCanvas(8).toBlob (blob) ->
+              formData = new FormData
+              formData.append "access_token", accessToken
+              formData.append("source", blob)
+
+              $.ajax
+                url:"https://graph.facebook.com/" + userID + "/photos?access_token=" + accessToken,
+                type:"POST"
+                data:formData,
+                processData:false,
+                contentType:false,
+                cache:false,
+                success: (data) ->
+                  console.log("success", data)
+                error: (shr, status, data) ->
+                  console.log(arguments)
+                complete: ->
+                  console.log("Ajax Complete")
+
+            ###
+            FB.api "/me/photos", "post", {
+
+            }, ->
+              console.log(arguments)
+            ###
+          , {
+            scope: "publish_stream"
+          }
 
       "?":
         method: ({editor}) ->

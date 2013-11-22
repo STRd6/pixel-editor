@@ -9,6 +9,7 @@ remoteDependencies: [
 dependencies:
   appcache: "STRd6/appcache:v0.1.0"
   compression: "STRd6/lz-string:v1.3.3"
+  facebook: "distri/facebook:v0.1.1-alpha.1"
   "jquery-utils": "STRd6/jquery-utils:v0.1.2"
   runtime: "STRd6/runtime:v0.1.1"
   "touch-canvas": "STRd6/touch-canvas:v0.2.0"
