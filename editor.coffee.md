@@ -6,19 +6,9 @@ help, but right now it's mostly code.
 
 Editing pixels in your browser.
 
-    # For debug purposes
-    global.PACKAGE = PACKAGE
-    global.require = require
+    require "./setup"
 
-    require "appcache"
-    require "jquery-utils"
-
-    require "./lib/canvas-to-blob"
     saveAs = require "./lib/file_saver"
-
-    runtime = require("runtime")(PACKAGE)
-    runtime.boot()
-    runtime.applyStyleSheet(require('./style'))
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"

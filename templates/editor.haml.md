@@ -46,6 +46,12 @@ The palette holds our colors.
             .eye
               - on "click", ->
                 - layer.hidden !layer.hidden()
+        %hr
+        .up.icon
+        .down.icon
+        %hr
+        .plus.icon
+        .minus.icon
 
       .actions
         - each @actions, (action) ->
