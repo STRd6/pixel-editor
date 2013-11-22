@@ -16,11 +16,13 @@ about others later.
       return "text"
 
     module.exports =
-      readerInput: ({chose, encoding, image, json, text}) ->
+      readerInput: ({chose, encoding, image, json, text, accept}) ->
+        accept ?= "image/gif,image/png"
         encoding ?= "UTF-8"
 
         input = document.createElement('input')
         input.type = "file"
+        input.setAttribute "accept", accept
 
         input.onchange = ->
           reader = new FileReader()

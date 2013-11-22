@@ -109,7 +109,6 @@ Editing pixels in your browser.
           command.push self.Command.NewLayer(data)
 
         newLayer: (data) ->
-          # TODO: Check layer width and height against canvas width and height.
           makeLayer(data?.data)
 
           self.repaint()
