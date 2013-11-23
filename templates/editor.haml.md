@@ -21,6 +21,11 @@ Our layers and preview canvases are placed in the viewport.
         .viewport
           .overlay
 
+      .notifications
+        - each @notifications, (notification) ->
+          %p
+            = notification
+
 The palette holds our colors.
 
       .palette

@@ -17,6 +17,28 @@ html, body
     position: relative
     overflow: auto
 
+.notifications
+  background-color: rgba(0, 0, 0, 0.5)
+  border: 1px solid black
+  border-bottom-left-radius: 4px
+  border-bottom-right-radius: 4px
+  color: white
+  left: 40px
+  padding: 4px
+  position: absolute
+  top: 0
+
+  &:empty
+    padding: 0
+    border: none
+
+  p
+    margin: 0
+    margin-bottom: 0.25em
+
+    &:first-child
+      margin-bottom: 0
+
 .toolbar
   background-color: white
   box-sizing: border-box
