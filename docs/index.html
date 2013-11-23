@@ -51,6 +51,8 @@ runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
 runtime.boot()
 runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
+require(<span class="string">"facebook"</span>).init(<span class="string">"391109411021092"</span>)
+
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
 
@@ -62,6 +64,7 @@ Hotkeys = require <span class="string">"./hotkeys"</span>
 Tools = require <span class="string">"./tools"</span>
 Actions = require <span class="string">"./actions"</span>
 Layer = require <span class="string">"./layer"</span>
+Notifications = require <span class="string">"./notifications"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 
@@ -89,6 +92,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
   self.include Tools
   self.include Actions
   self.include Drop
+  self.include Notifications
 
   activeTool = self.activeTool
 
@@ -138,7 +142,6 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
       command.push self.Command.NewLayer(data)
 
     newLayer: (data) -&gt;
-      <span class="comment"># TODO: Check layer width and height against canvas width and height.</span>
       makeLayer(data?.data)
 
       self.repaint()
@@ -149,18 +152,18 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       self.repaint()
 
-    outputCanvas: -&gt;
-      outputCanvas = TouchCanvas pixelExtent()
+    outputCanvas: (scale=<span class="number">1</span>)-&gt;
+      outputCanvas = TouchCanvas pixelExtent().scale(scale)
 
       self.layers.forEach (layer) -&gt;
-        <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer.</span>
-        <span class="comment"># By being smarter about transparency</span>
+        <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer</span>
+        <span class="comment"># by being smarter about transparency</span>
         layer.each (index, x, y) -&gt;
           outputCanvas.drawRect
-            x: x
-            y: y
-            width: <span class="number">1</span>
-            height: <span class="number">1</span>
+            x: x * scale
+            y: y * scale
+            width: scale
+            height: scale
             color: self.palette()[index]
 
       outputCanvas.element()
@@ -406,7 +409,9 @@ accidentally setting the pixel values during the preview.</p>
   <span class="keyword">return</span> self
 
 <span class="comment"># For debugging</span>
-global.editor = Editor()</code></pre>
+global.editor = Editor()
+
+editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
 </div>
         </li>
         

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>templates/layers</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>The layers sidebar</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-haml">  .layers
+    .thumbnail
+    Layers
+    - layers = -&gt; editor.layers().copy().reverse()
+    - each layers, (layer, index) -&gt;
+      - activeClass = -&gt; &quot;active&quot; if layer is editor.activeLayer()
+      - hiddenClass = -&gt; &quot;hidden&quot; if layer.hidden()
+      .layer(class=activeClass class=hiddenClass)
+        - on &quot;click&quot;, -&gt;
+          - editor.activeLayer layer
+        = layer.previewCanvas
+        .eye
+          - on &quot;click&quot;, -&gt;
+            - layer.hidden !layer.hidden()</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.6.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js?"></script><script>
+  $.ajax({
+    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
+    dataType: "jsonp",
+    jsonpCallback: "STRd6/interactive:v0.8.1",
+    cache: true
+  }).then(function(PACKAGE) {
+    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
+  })
+</script><script src="../package.js"></script>
+</body>
+</html>
