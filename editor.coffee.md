@@ -33,6 +33,7 @@ Editing pixels in your browser.
     Tools = require "./tools"
     Actions = require "./actions"
     Layer = require "./layer"
+    Notifications = require "./notifications"
 
     Palette = require("./palette")
 
@@ -60,6 +61,7 @@ Editing pixels in your browser.
       self.include Tools
       self.include Actions
       self.include Drop
+      self.include Notifications
 
       activeTool = self.activeTool
 
@@ -370,3 +372,5 @@ accidentally setting the pixel values during the preview.
 
     # For debugging
     global.editor = Editor()
+
+    editor.notify("Welcome to PixiPaint!")
