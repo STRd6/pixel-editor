@@ -322,6 +322,8 @@ accidentally setting the pixel values during the preview.
 
         $(".overlay").css
           backgroundImage: gridImage
+        
+        updateViewportCentering()
 
         self.repaint()
 
