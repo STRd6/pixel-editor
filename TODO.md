@@ -10,6 +10,8 @@ Layers
   Reorder Layers
   Delete Layers
 
+Autosave
+
 Bugs
 ----
 Preview and layers get cut off for larger images
