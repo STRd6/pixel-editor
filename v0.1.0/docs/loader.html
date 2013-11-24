@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>loader</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="loader">Loader</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Loader</span></span> = (I={}, self=Core(I)) -&gt;
+  self.extend
+    load: (dataURL) -&gt;
+      deferred = Deferred()
+
+      context = document.createElement(<span class="string">'canvas'</span>).getContext(<span class="string">'2d'</span>)
+      image = document.createElement(<span class="string">"image"</span>)
+
+      image.<span class="function"><span class="title">onload</span></span> = -&gt;
+        {width, height} = image
+
+        context.drawImage(image, <span class="number">0</span>, <span class="number">0</span>)
+        imageData = context.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
+
+        deferred.resolve imageData
+
+      image.<span class="function"><span class="title">onerror</span></span> = -&gt;
+        deferred.reject <span class="string">"Error loading image data"</span>
+
+      image.src = dataURL
+
+      <span class="keyword">return</span> deferred.promise()</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Load the imageData and return the data with a palette representing the colors
+found in the imageData.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">    fromImageData: (imageData) -&gt;
+      {width, height} = imageData
+
+      colorFrequency = {}
+
+      colors = [<span class="number">0.</span>..(width * height)].map (n) -&gt;
+        pieces = getColor(imageData, n)
+
+        color = arrayToHex(pieces)
+
+        console.log color
+
+        colorFrequency[color] ?= <span class="number">0</span>
+        colorFrequency[color] += <span class="number">1</span>
+
+        color
+
+      table = Object.keys(colorFrequency).sort (a, b) -&gt;
+        colorFrequency[b] - colorFrequency[a]
+      .reduce (table, color, index) -&gt;
+        table[color] = index
+
+        table
+      , {}
+
+      palette = Object.keys(table)
+
+      data = [<span class="number">0.</span>..(width * height)].map (n) -&gt;
+        table[colors[n]]
+
+      palette: palette
+      width: width
+      height: height
+      data: data</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Load the image data and quantize it to the given palette using nearest color, no
+fancy error diffusion or anything.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">    fromImageDataWithPalette: (imageData, palette) -&gt;
+      {width, height} = imageData
+      paletteData = palette.map colorToRGBA
+
+      width: width
+      height: height
+      data: [<span class="number">0.</span>..(width * height)].map (n) -&gt;
+        nearestColorIndex(getColor(imageData, n), paletteData)
+
+module.exports = Loader</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">arrayToHex</span></span> = (parts) -&gt;
+  <span class="keyword">if</span> parts[<span class="number">3</span>] &lt; <span class="number">128</span>
+    <span class="string">"transparent"</span>
+  <span class="keyword">else</span>
+    <span class="string">"#<span class="subst">#{parts.slice(<span class="number">0</span>, <span class="number">3</span>).map(numberToHex).join('')}</span>"</span>
+
+<span class="comment"># HACK: Infinity keeps the transparent color from being closer than any other</span>
+<span class="comment"># color in the palette</span>
+TRANSPARENT_RGBA = [Infinity, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0xff</span>]
+
+<span class="function"><span class="title">colorToRGBA</span></span> = (colorString) -&gt;
+  <span class="keyword">if</span> colorString <span class="keyword">is</span> <span class="string">"transparent"</span>
+    TRANSPARENT_RGBA
+  <span class="keyword">else</span>
+    colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
+      parseInt part, <span class="number">0x10</span>
+    .concat [<span class="number">0</span>]
+
+<span class="function"><span class="title">distanceSquared</span></span> = (a, b) -&gt;
+  a.slice(<span class="number">0</span>, <span class="number">3</span>).map (n, index) -&gt;
+    delta = n - b[index]
+
+    delta * delta
+  .sum()
+
+<span class="function"><span class="title">nearestColorIndex</span></span> = (colorData, paletteData) -&gt;
+  <span class="comment"># TODO: Hack for transparent pixels</span>
+  <span class="comment"># Assumes 0 index is transparent</span>
+  <span class="comment"># 50% or more transparent then it is 100% transparent</span>
+  <span class="comment"># less than 50% it is fully opaque</span>
+  <span class="keyword">if</span> colorData[<span class="number">3</span>] &lt; <span class="number">128</span>
+    <span class="keyword">return</span> <span class="number">0</span>
+
+  paletteColor = paletteData.minimum (paletteEntry) -&gt;
+    distanceSquared(paletteEntry, colorData)
+
+  paletteData.indexOf(paletteColor)
+
+<span class="function"><span class="title">getColor</span></span> = (imageData, x, y) -&gt;
+  stride = <span class="number">4</span>
+
+  <span class="keyword">if</span> y?
+    index = (x + y * imageData.width) * stride
+  <span class="keyword">else</span>
+    index = x * stride
+
+  Array::slice.call imageData.data, index, index + stride
+
+<span class="function"><span class="title">numberToHex</span></span> = (n) -&gt;
+  <span class="string">"0<span class="subst">#{n.toString(<span class="number">0x10</span>)}</span>"</span>.slice(-<span class="number">2</span>).toUpperCase()</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
+  $.ajax({
+    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
+    dataType: "jsonp",
+    jsonpCallback: "STRd6/interactive:v0.8.1",
+    cache: true
+  }).then(function(PACKAGE) {
+    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
+  })
+</script><script src="package.js"></script>
+</body>
+</html>
