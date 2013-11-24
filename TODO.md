@@ -16,6 +16,8 @@ Bugs
 ----
 Preview and layers get cut off for larger images
 
+Opening an image that is smaller than the canvas grid spacing issues
+
 V2
 ----
 Sync to server?
