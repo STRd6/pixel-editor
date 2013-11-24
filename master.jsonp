@@ -100,7 +100,7 @@ window["STRd6/pixel-editor:master"]({
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"\n  \"http://strd6.github.io/require/v0.2.2.js?\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.1\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.1\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
       "type": "blob"
     },
     "style.styl": {
@@ -220,7 +220,7 @@ window["STRd6/pixel-editor:master"]({
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\",\"http://strd6.github.io/require/v0.2.2.js?\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.1\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"commando\":\"STRd6/commando:v0.9.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.1\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"commando\":\"STRd6/commando:v0.9.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
       "type": "blob"
     },
     "style": {
@@ -2189,8 +2189,7 @@ window["STRd6/pixel-editor:master"]({
   "remoteDependencies": [
     "//code.jquery.com/jquery-1.10.1.min.js",
     "//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js",
-    "http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js",
-    "http://strd6.github.io/require/v0.2.2.js?"
+    "http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js"
   ],
   "progenitor": {
     "url": "http://strd6.github.io/editor/"
@@ -2202,7 +2201,7 @@ window["STRd6/pixel-editor:master"]({
     "owner": {
       "login": "STRd6",
       "id": 18894,
-      "avatar_url": "https://1.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
+      "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
       "gravatar_id": "33117162fff8a9cf50544a604f60c045",
       "url": "https://api.github.com/users/STRd6",
       "html_url": "https://github.com/STRd6",
@@ -2259,14 +2258,14 @@ window["STRd6/pixel-editor:master"]({
     "labels_url": "https://api.github.com/repos/STRd6/pixel-editor/labels{/name}",
     "releases_url": "https://api.github.com/repos/STRd6/pixel-editor/releases{/id}",
     "created_at": "2013-09-28T23:51:14Z",
-    "updated_at": "2013-11-23T15:35:38Z",
-    "pushed_at": "2013-11-23T01:52:00Z",
+    "updated_at": "2013-11-24T02:10:56Z",
+    "pushed_at": "2013-11-24T02:10:51Z",
     "git_url": "git://github.com/STRd6/pixel-editor.git",
     "ssh_url": "git@github.com:STRd6/pixel-editor.git",
     "clone_url": "https://github.com/STRd6/pixel-editor.git",
     "svn_url": "https://github.com/STRd6/pixel-editor",
     "homepage": null,
-    "size": 993,
+    "size": 1556,
     "stargazers_count": 3,
     "watchers_count": 3,
     "language": "CoffeeScript",

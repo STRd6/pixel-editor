@@ -1,16 +1,168 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache?1385254144779">
+<html manifest="manifest.appcache?1385261432426">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js"></script>
-<script src="http://strd6.github.io/require/v0.2.2.js?"></script>
 </head>
 <body>
 <script>
 ;(function(PACKAGE) {
+var oldRequire = window.Require;
+(function() {
+  var cacheFor, circularGuard, defaultEntryPoint, fileSeparator, generateRequireFn, global, isPackage, loadModule, loadPackage, loadPath, normalizePath, rootModule, startsWith,
+    __slice = [].slice;
+
+  fileSeparator = '/';
+
+  global = window;
+
+  defaultEntryPoint = "main";
+
+  circularGuard = {};
+
+  rootModule = {
+    path: ""
+  };
+
+  loadPath = function(parentModule, pkg, path) {
+    var cache, localPath, module, normalizedPath;
+    if (startsWith(path, '/')) {
+      localPath = [];
+    } else {
+      localPath = parentModule.path.split(fileSeparator);
+    }
+    normalizedPath = normalizePath(path, localPath);
+    cache = cacheFor(pkg);
+    if (module = cache[normalizedPath]) {
+      if (module === circularGuard) {
+        throw "Circular dependency detected when requiring " + normalizedPath;
+      }
+    } else {
+      cache[normalizedPath] = circularGuard;
+      try {
+        cache[normalizedPath] = module = loadModule(pkg, normalizedPath);
+      } finally {
+        if (cache[normalizedPath] === circularGuard) {
+          delete cache[normalizedPath];
+        }
+      }
+    }
+    return module.exports;
+  };
+
+  normalizePath = function(path, base) {
+    var piece, result;
+    if (base == null) {
+      base = [];
+    }
+    base = base.concat(path.split(fileSeparator));
+    result = [];
+    while (base.length) {
+      switch (piece = base.shift()) {
+        case "..":
+          result.pop();
+          break;
+        case "":
+        case ".":
+          break;
+        default:
+          result.push(piece);
+      }
+    }
+    return result.join(fileSeparator);
+  };
+
+  loadPackage = function(parentModule, pkg, path) {
+    path || (path = pkg.entryPoint || defaultEntryPoint);
+    return loadPath(parentModule, pkg, path);
+  };
+
+  loadModule = function(pkg, path) {
+    var args, context, dirname, file, module, program, values;
+    if (!(file = pkg.distribution[path])) {
+      throw "Could not find file at " + path + " in " + pkg.name;
+    }
+    program = file.content;
+    dirname = path.split(fileSeparator).slice(0, -1).join(fileSeparator);
+    module = {
+      path: dirname,
+      exports: {}
+    };
+    context = {
+      require: generateRequireFn(pkg, module),
+      global: global,
+      module: module,
+      exports: module.exports,
+      PACKAGE: pkg,
+      __filename: path,
+      __dirname: dirname
+    };
+    args = Object.keys(context);
+    values = args.map(function(name) {
+      return context[name];
+    });
+    Function.apply(null, __slice.call(args).concat([program])).apply(module, values);
+    return module;
+  };
+
+  isPackage = function(path) {
+    if (!(startsWith(path, fileSeparator) || startsWith(path, "." + fileSeparator) || startsWith(path, ".." + fileSeparator))) {
+      return path.split(fileSeparator)[0];
+    } else {
+      return false;
+    }
+  };
+
+  generateRequireFn = function(pkg, module) {
+    if (module == null) {
+      module = rootModule;
+    }
+    return function(path) {
+      var otherPackage, otherPackageName, packagePath;
+      if (otherPackageName = isPackage(path)) {
+        packagePath = path.replace(otherPackageName, "");
+        if (!(otherPackage = pkg.dependencies[otherPackageName])) {
+          throw "Package: " + otherPackageName + " not found.";
+        }
+        if (otherPackage.name == null) {
+          otherPackage.name = otherPackageName;
+        }
+        return loadPackage(rootModule, otherPackage, packagePath);
+      } else {
+        return loadPath(module, pkg, path);
+      }
+    };
+  };
+
+  if (typeof exports !== "undefined" && exports !== null) {
+    exports.generateFor = generateRequireFn;
+  } else {
+    global.Require = {
+      generateFor: generateRequireFn
+    };
+  }
+
+  startsWith = function(string, prefix) {
+    return string.lastIndexOf(prefix, 0) === 0;
+  };
+
+  cacheFor = function(pkg) {
+    if (pkg.cache) {
+      return pkg.cache;
+    }
+    Object.defineProperty(pkg, "cache", {
+      value: {}
+    });
+    return pkg.cache;
+  };
+
+}).call(this);
+
+//# sourceURL=main.coffee
 var require = Require.generateFor(PACKAGE);
+window.Require = oldRequire;
 require('./editor')
 })({
   "version": "0.1.0",
@@ -114,7 +266,7 @@ require('./editor')
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"\n  \"http://strd6.github.io/require/v0.2.2.js?\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.1\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.1\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
       "type": "blob"
     },
     "style.styl": {
@@ -234,7 +386,7 @@ require('./editor')
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\",\"http://strd6.github.io/require/v0.2.2.js?\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.1\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"commando\":\"STRd6/commando:v0.9.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.1\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"commando\":\"STRd6/commando:v0.9.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
       "type": "blob"
     },
     "style": {
@@ -2203,8 +2355,7 @@ require('./editor')
   "remoteDependencies": [
     "//code.jquery.com/jquery-1.10.1.min.js",
     "//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js",
-    "http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js",
-    "http://strd6.github.io/require/v0.2.2.js?"
+    "http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js"
   ],
   "progenitor": {
     "url": "http://strd6.github.io/editor/"
@@ -2216,7 +2367,7 @@ require('./editor')
     "owner": {
       "login": "STRd6",
       "id": 18894,
-      "avatar_url": "https://1.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
+      "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
       "gravatar_id": "33117162fff8a9cf50544a604f60c045",
       "url": "https://api.github.com/users/STRd6",
       "html_url": "https://github.com/STRd6",
@@ -2273,14 +2424,14 @@ require('./editor')
     "labels_url": "https://api.github.com/repos/STRd6/pixel-editor/labels{/name}",
     "releases_url": "https://api.github.com/repos/STRd6/pixel-editor/releases{/id}",
     "created_at": "2013-09-28T23:51:14Z",
-    "updated_at": "2013-11-23T15:35:38Z",
-    "pushed_at": "2013-11-23T01:52:00Z",
+    "updated_at": "2013-11-24T02:10:56Z",
+    "pushed_at": "2013-11-24T02:10:51Z",
     "git_url": "git://github.com/STRd6/pixel-editor.git",
     "ssh_url": "git@github.com:STRd6/pixel-editor.git",
     "clone_url": "https://github.com/STRd6/pixel-editor.git",
     "svn_url": "https://github.com/STRd6/pixel-editor",
     "homepage": null,
-    "size": 993,
+    "size": 1556,
     "stargazers_count": 3,
     "watchers_count": 3,
     "language": "CoffeeScript",
