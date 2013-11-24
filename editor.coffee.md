@@ -20,7 +20,10 @@ Editing pixels in your browser.
     runtime.boot()
     runtime.applyStyleSheet(require('./style'))
 
-    require("facebook").init("391109411021092")
+    console.log "starting..."
+
+    require("facebook").init "391109411021092", null, (FB) ->
+      console.log FB
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
@@ -322,7 +325,7 @@ accidentally setting the pixel values during the preview.
 
         $(".overlay").css
           backgroundImage: gridImage
-        
+
         updateViewportCentering()
 
         self.repaint()
