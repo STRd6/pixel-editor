@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache?1385261823259">
+<html manifest="manifest.appcache?1385265516823">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -266,7 +266,7 @@ require('./editor')
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"https://pixipaint.net/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.1\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"https://pixipaint.net/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.4\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"commando\": \"STRd6/commando:v0.9.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
       "type": "blob"
     },
     "style.styl": {
@@ -386,7 +386,7 @@ require('./editor')
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"https://pixipaint.net/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.1\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"commando\":\"STRd6/commando:v0.9.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"https://pixipaint.net/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.4\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"commando\":\"STRd6/commando:v0.9.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
       "type": "blob"
     },
     "style": {
@@ -910,7 +910,7 @@ require('./editor')
       }
     },
     "facebook": {
-      "version": "0.1.1-alpha.1",
+      "version": "0.1.1-alpha.4",
       "source": {
         "LICENSE": {
           "path": "LICENSE",
@@ -927,44 +927,41 @@ require('./editor')
         "main.coffee.md": {
           "path": "main.coffee.md",
           "mode": "100644",
-          "content": "Facebook\n========\n\n    module.exports =\n      init: (appId, options={}, callback) ->\n        options.status ?= true\n        options.xfbml ?= true\n        options.appId = appId\n\n        window.fbAsyncInit = ->\n          # init the FB JS SDK\n          FB.init options\n\n          # Additional initialization code such as adding Event Listeners goes here\n          callback?(FB)\n\n        # Attach the fb-root element to the body\n        fbRoot = document.createElement \"div\"\n        fbRoot.id = \"fb-root\"\n        document.body.appendChild(fbRoot)\n\n        # Load the SDK asynchronously\n        do (d=document, s='script', id='facebook-jssdk', js=undefined) ->\n           fjs = d.getElementsByTagName(s)[0]\n           return if d.getElementById(id)\n           js = d.createElement(s)\n           js.id = id\n           js.src = \"//connect.facebook.net/en_US/all.js\"\n           fjs.parentNode.insertBefore(js, fjs)\n\nTODO: Test this out\n\nPass an array of scope permissions and a function to call once those permissions\nhave been granted.\n\n      requiringPermissions: (scopes, fn) ->\n        FB.getLoginStatus (response) ->\n          if response.status is 'connected'\n            FB.api '/me/permissions', ({data:[permissions]}) ->\n\n              permissionsToPrompt = scopes.filter (permission) ->\n                !permissions[permission]\n\n              if permissionsToPrompt.length\n                FB.login fn,\n                  scope: permissionsToPrompt.join(',')\n              else\n                fn(response.authResponse)\n          else if response.status is 'not_authorized'\n            FB.login fn,\n              scope: scope\n          else\n            FB.login fn,\n              scope: scope\n",
-          "type": "blob"
-        },
-        "test/test.coffee": {
-          "path": "test/test.coffee",
-          "mode": "100644",
-          "content": "Facebook = require \"../main\"\n\nmakeLoginButton = ->\n  login = document.createElement \"fb:login-button\"\n  login.setAttribute \"show-faces\", \"true\"\n  login.setAttribute \"width\", \"200\"\n  login.setAttribute \"max-rows\", \"1\"\n\n  return login\n\n# Note, any xfbml inserted before we call the API is parsed, if any is inserted\n# later we'll need to call `FB.XFBML.parse()`\n# https://developers.facebook.com/docs/reference/javascript/FB.XFBML.parse/\ndocument.body.insertBefore(makeLoginButton())\n\nFacebook.init \"7570224823\", null, (FB) ->\n  FB.Event.subscribe 'auth.authResponseChange', (response) ->\n    if response.status is 'connected'\n      # The response object is returned with a status field that lets the app know the current\n      # login status of the person. In this case, we're handling the situation where they \n      # have logged in to the app.\n      FB.api '/me', (response) ->\n        alert 'Your name is ' + response.name\n  \n    else if response.status is 'not_authorized'\n      # In this case, the person is logged into Facebook, but not into the app, so we call\n      # FB.login() to prompt them to do so. \n      # In real-life usage, you wouldn't want to immediately prompt someone to login \n      # like this, for two reasons:\n      # (1) JavaScript created popup windows are blocked by most browsers unless they \n      # result from direct interaction from people using the app (such as a mouse click)\n      # (2) it is a bad experience to be continually prompted to login upon page load.\n      FB.login()\n    else\n      FB.login()\n",
+          "content": "Facebook\n========\n\n    module.exports =\n      init: (appId, options={}, callback) ->\n        options.status ?= true\n        options.xfbml ?= true\n        options.appId = appId\n\n        window.fbAsyncInit = ->\n          # init the FB JS SDK\n          FB.init options\n\n          # Additional initialization code such as adding Event Listeners goes here\n          callback?(FB)\n\n        # Attach the fb-root element to the body\n        fbRoot = document.createElement \"div\"\n        fbRoot.id = \"fb-root\"\n        document.body.appendChild(fbRoot)\n\n        # Load the SDK asynchronously\n        do (d=document, s='script', id='facebook-jssdk', js=undefined) ->\n           fjs = d.getElementsByTagName(s)[0]\n           return if d.getElementById(id)\n           js = d.createElement(s)\n           js.id = id\n           js.src = \"//connect.facebook.net/en_US/all.js\"\n           fjs.parentNode.insertBefore(js, fjs)\n\nTODO: Test this out\n\nPass an array of scope permissions and a function to call once those permissions\nhave been granted.\n\n      requiringPermissions: (scopes, fn) ->\n        wrapped = (fn) ->\n          ({authResponse}) ->\n            fn(authResponse)\n\n        FB.getLoginStatus ({status, authResponse}) ->\n          if status is 'connected'\n            FB.api '/me/permissions', ({data:[permissions]}) ->\n\n              permissionsToPrompt = scopes.filter (permission) ->\n                !permissions[permission]\n\n              if permissionsToPrompt.length\n                FB.login wrapped(fn),\n                  scope: permissionsToPrompt.join(',')\n              else\n                fn(authResponse)\n          else if status is 'not_authorized'\n            FB.login wrapped(fn),\n              scope: scope\n          else\n            FB.login wrapped(fn),\n              scope: scope\n",
           "type": "blob"
         },
         "pixie.cson": {
           "path": "pixie.cson",
           "mode": "100644",
-          "content": "version: \"0.1.1-alpha.1\"\nentryPoint: \"main\"\nremoteDependencies: [\n  \"http://strd6.github.io/require/v0.2.2.js?\"\n]\n",
+          "content": "version: \"0.1.1-alpha.4\"\nentryPoint: \"main\"\n",
+          "type": "blob"
+        },
+        "test/test.coffee": {
+          "path": "test/test.coffee",
+          "mode": "100644",
+          "content": "Facebook = require \"../main\"\n\nmakeLoginButton = ->\n  login = document.createElement \"fb:login-button\"\n  login.setAttribute \"show-faces\", \"true\"\n  login.setAttribute \"width\", \"200\"\n  login.setAttribute \"max-rows\", \"1\"\n\n  return login\n\n# Note, any xfbml inserted before we call the API is parsed, if any is inserted\n# later we'll need to call `FB.XFBML.parse()`\n# https://developers.facebook.com/docs/reference/javascript/FB.XFBML.parse/\ndocument.body.insertBefore(makeLoginButton())\n\nFacebook.init \"7570224823\", null, (FB) ->\n  Facebook.requiringPermissions [\"email\", \"user_photos\"], ->\n    console.log arguments\n",
           "type": "blob"
         }
       },
       "distribution": {
         "main": {
           "path": "main",
-          "content": "(function() {\n  module.exports = {\n    init: function(appId, options, callback) {\n      var fbRoot;\n      if (options == null) {\n        options = {};\n      }\n      if (options.status == null) {\n        options.status = true;\n      }\n      if (options.xfbml == null) {\n        options.xfbml = true;\n      }\n      options.appId = appId;\n      window.fbAsyncInit = function() {\n        FB.init(options);\n        return typeof callback === \"function\" ? callback(FB) : void 0;\n      };\n      fbRoot = document.createElement(\"div\");\n      fbRoot.id = \"fb-root\";\n      document.body.appendChild(fbRoot);\n      return (function(d, s, id, js) {\n        var fjs;\n        fjs = d.getElementsByTagName(s)[0];\n        if (d.getElementById(id)) {\n          return;\n        }\n        js = d.createElement(s);\n        js.id = id;\n        js.src = \"//connect.facebook.net/en_US/all.js\";\n        return fjs.parentNode.insertBefore(js, fjs);\n      })(document, 'script', 'facebook-jssdk', void 0);\n    },\n    requiringPermissions: function(scopes, fn) {\n      return FB.getLoginStatus(function(response) {\n        if (response.status === 'connected') {\n          return FB.api('/me/permissions', function(_arg) {\n            var permissions, permissionsToPrompt;\n            permissions = _arg.data[0];\n            permissionsToPrompt = scopes.filter(function(permission) {\n              return !permissions[permission];\n            });\n            if (permissionsToPrompt.length) {\n              return FB.login(fn, {\n                scope: permissionsToPrompt.join(',')\n              });\n            } else {\n              return fn(response.authResponse);\n            }\n          });\n        } else if (response.status === 'not_authorized') {\n          return FB.login(fn, {\n            scope: scope\n          });\n        } else {\n          return FB.login(fn, {\n            scope: scope\n          });\n        }\n      });\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=main.coffee",
-          "type": "blob"
-        },
-        "test/test": {
-          "path": "test/test",
-          "content": "(function() {\n  var Facebook, makeLoginButton;\n\n  Facebook = require(\"../main\");\n\n  makeLoginButton = function() {\n    var login;\n    login = document.createElement(\"fb:login-button\");\n    login.setAttribute(\"show-faces\", \"true\");\n    login.setAttribute(\"width\", \"200\");\n    login.setAttribute(\"max-rows\", \"1\");\n    return login;\n  };\n\n  document.body.insertBefore(makeLoginButton());\n\n  Facebook.init(\"7570224823\", null, function(FB) {\n    return FB.Event.subscribe('auth.authResponseChange', function(response) {\n      if (response.status === 'connected') {\n        return FB.api('/me', function(response) {\n          return alert('Your name is ' + response.name);\n        });\n      } else if (response.status === 'not_authorized') {\n        return FB.login();\n      } else {\n        return FB.login();\n      }\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/test.coffee",
+          "content": "(function() {\n  module.exports = {\n    init: function(appId, options, callback) {\n      var fbRoot;\n      if (options == null) {\n        options = {};\n      }\n      if (options.status == null) {\n        options.status = true;\n      }\n      if (options.xfbml == null) {\n        options.xfbml = true;\n      }\n      options.appId = appId;\n      window.fbAsyncInit = function() {\n        FB.init(options);\n        return typeof callback === \"function\" ? callback(FB) : void 0;\n      };\n      fbRoot = document.createElement(\"div\");\n      fbRoot.id = \"fb-root\";\n      document.body.appendChild(fbRoot);\n      return (function(d, s, id, js) {\n        var fjs;\n        fjs = d.getElementsByTagName(s)[0];\n        if (d.getElementById(id)) {\n          return;\n        }\n        js = d.createElement(s);\n        js.id = id;\n        js.src = \"//connect.facebook.net/en_US/all.js\";\n        return fjs.parentNode.insertBefore(js, fjs);\n      })(document, 'script', 'facebook-jssdk', void 0);\n    },\n    requiringPermissions: function(scopes, fn) {\n      var wrapped;\n      wrapped = function(fn) {\n        return function(_arg) {\n          var authResponse;\n          authResponse = _arg.authResponse;\n          return fn(authResponse);\n        };\n      };\n      return FB.getLoginStatus(function(_arg) {\n        var authResponse, status;\n        status = _arg.status, authResponse = _arg.authResponse;\n        if (status === 'connected') {\n          return FB.api('/me/permissions', function(_arg1) {\n            var permissions, permissionsToPrompt;\n            permissions = _arg1.data[0];\n            permissionsToPrompt = scopes.filter(function(permission) {\n              return !permissions[permission];\n            });\n            if (permissionsToPrompt.length) {\n              return FB.login(wrapped(fn), {\n                scope: permissionsToPrompt.join(',')\n              });\n            } else {\n              return fn(authResponse);\n            }\n          });\n        } else if (status === 'not_authorized') {\n          return FB.login(wrapped(fn), {\n            scope: scope\n          });\n        } else {\n          return FB.login(wrapped(fn), {\n            scope: scope\n          });\n        }\n      });\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=main.coffee",
           "type": "blob"
         },
         "pixie": {
           "path": "pixie",
-          "content": "module.exports = {\"version\":\"0.1.1-alpha.1\",\"entryPoint\":\"main\",\"remoteDependencies\":[\"http://strd6.github.io/require/v0.2.2.js?\"]};",
+          "content": "module.exports = {\"version\":\"0.1.1-alpha.4\",\"entryPoint\":\"main\"};",
+          "type": "blob"
+        },
+        "test/test": {
+          "path": "test/test",
+          "content": "(function() {\n  var Facebook, makeLoginButton;\n\n  Facebook = require(\"../main\");\n\n  makeLoginButton = function() {\n    var login;\n    login = document.createElement(\"fb:login-button\");\n    login.setAttribute(\"show-faces\", \"true\");\n    login.setAttribute(\"width\", \"200\");\n    login.setAttribute(\"max-rows\", \"1\");\n    return login;\n  };\n\n  document.body.insertBefore(makeLoginButton());\n\n  Facebook.init(\"7570224823\", null, function(FB) {\n    return Facebook.requiringPermissions([\"email\", \"user_photos\"], function() {\n      return console.log(arguments);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/test.coffee",
           "type": "blob"
         }
       },
       "entryPoint": "main",
       "dependencies": {},
-      "remoteDependencies": [
-        "http://strd6.github.io/require/v0.2.2.js?"
-      ],
       "progenitor": {
         "url": "http://strd6.github.io/editor/"
       },
@@ -1032,17 +1029,17 @@ require('./editor')
         "labels_url": "https://api.github.com/repos/distri/facebook/labels{/name}",
         "releases_url": "https://api.github.com/repos/distri/facebook/releases{/id}",
         "created_at": "2013-11-21T22:02:00Z",
-        "updated_at": "2013-11-21T22:02:00Z",
-        "pushed_at": "2013-11-21T22:02:00Z",
+        "updated_at": "2013-11-22T23:27:17Z",
+        "pushed_at": "2013-11-22T23:27:17Z",
         "git_url": "git://github.com/distri/facebook.git",
         "ssh_url": "git@github.com:distri/facebook.git",
         "clone_url": "https://github.com/distri/facebook.git",
         "svn_url": "https://github.com/distri/facebook",
         "homepage": null,
-        "size": 0,
+        "size": 784,
         "stargazers_count": 0,
         "watchers_count": 0,
-        "language": null,
+        "language": "CoffeeScript",
         "has_issues": true,
         "has_downloads": true,
         "has_wiki": true,
@@ -1080,7 +1077,7 @@ require('./editor')
         },
         "network_count": 0,
         "subscribers_count": 1,
-        "branch": "v0.1.1-alpha.1",
+        "branch": "v0.1.1-alpha.4",
         "defaultBranch": "master"
       }
     },
@@ -2424,14 +2421,14 @@ require('./editor')
     "labels_url": "https://api.github.com/repos/STRd6/pixel-editor/labels{/name}",
     "releases_url": "https://api.github.com/repos/STRd6/pixel-editor/releases{/id}",
     "created_at": "2013-09-28T23:51:14Z",
-    "updated_at": "2013-11-24T02:10:56Z",
-    "pushed_at": "2013-11-24T02:10:51Z",
+    "updated_at": "2013-11-24T03:50:42Z",
+    "pushed_at": "2013-11-24T03:50:41Z",
     "git_url": "git://github.com/STRd6/pixel-editor.git",
     "ssh_url": "git@github.com:STRd6/pixel-editor.git",
     "clone_url": "https://github.com/STRd6/pixel-editor.git",
     "svn_url": "https://github.com/STRd6/pixel-editor",
     "homepage": null,
-    "size": 1556,
+    "size": 1092,
     "stargazers_count": 3,
     "watchers_count": 3,
     "language": "CoffeeScript",
