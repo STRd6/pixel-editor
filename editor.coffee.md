@@ -31,7 +31,7 @@ Editing pixels in your browser.
     Drop = require "./drop"
 
     Command = require "./command"
-    Undo = require "./undo"
+    Undo = require "undo"
     Hotkeys = require "./hotkeys"
     Tools = require "./tools"
     Actions = require "./actions"
@@ -155,7 +155,7 @@ Editing pixels in your browser.
 
           self.activeLayer self.layers()[state.activeLayerIndex]
 
-          self.history state.history
+          self.history state.history?.map self.Command.parse
 
         saveState: ->
           palette: self.palette()

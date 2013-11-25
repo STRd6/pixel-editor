@@ -12,7 +12,7 @@ dependencies:
   "jquery-utils": "STRd6/jquery-utils:v0.1.2"
   runtime: "STRd6/runtime:v0.1.1"
   "touch-canvas": "STRd6/touch-canvas:v0.2.0"
-  "command-stack": "distri/command-stack:v0.10.0"
+  "undo": "distri/undo:v0.1.0"
   "grid-gen": "STRd6/grid-gen:v0.1.0"
 width: 1024
 height: 576
