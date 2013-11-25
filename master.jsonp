@@ -40,19 +40,13 @@ window["STRd6/pixel-editor:master"]({
     "editor.coffee.md": {
       "path": "editor.coffee.md",
       "mode": "100644",
-      "content": "Pixel Editor\n============\n\nWelcome to this cool pixel editor. Eventually you'll be able to read this for\nhelp, but right now it's mostly code.\n\nEditing pixels in your browser.\n\n    # For debug purposes\n    global.PACKAGE = PACKAGE\n    global.require = require\n\n    require \"appcache\"\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n    saveAs = require \"./lib/file_saver\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    console.log \"starting...\"\n\n    require(\"facebook\").init \"391109411021092\", null, (FB) ->\n      console.log FB\n\n    TouchCanvas = require \"touch-canvas\"\n    GridGen = require \"grid-gen\"\n\n    Drop = require \"./drop\"\n\n    Command = require \"./command\"\n    Undo = require \"undo\"\n    Hotkeys = require \"./hotkeys\"\n    Tools = require \"./tools\"\n    Actions = require \"./actions\"\n    Layer = require \"./layer\"\n    Notifications = require \"./notifications\"\n\n    Palette = require(\"./palette\")\n\n    template = require \"./templates/editor\"\n    debugTemplate = require \"./templates/debug\"\n\n    {Size} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeIndex = Observable(1)\n\n      pixelExtent = Observable Size(32, 32)\n      pixelSize = Observable 8\n      canvasSize = Observable ->\n        pixelExtent().scale(pixelSize())\n\n      canvas = null\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Command\n      self.include Undo\n      self.include Hotkeys\n      self.include Tools\n      self.include Actions\n      self.include Drop\n      self.include Notifications\n\n      activeTool = self.activeTool\n\n      updateActiveLayer = ->\n        # TODO: This may need to have consideration for undo-ability.\n        if self.layers.indexOf(self.activeLayer()) is -1\n          self.activeLayer self.layers().last()\n\n      drawPixel = (canvas, x, y, color, size) ->\n        # HACK for previewCanvas\n        if canvas is previewCanvas and color is \"transparent\"\n          # TODO: Background color for the canvas area\n          color = \"white\"\n\n        if color is \"transparent\"\n          canvas.clear\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n        else\n          canvas.drawRect\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n            color: color\n\n      self.extend\n        activeIndex: activeIndex\n        activeLayer: Observable()\n        activeLayerIndex: ->\n          self.layers.indexOf(self.activeLayer())\n\n        backgroundIndex: Observable 0\n\n        pixelSize: pixelSize\n        pixelExtent: pixelExtent\n\n        handlePaste: (data) ->\n          command = self.Command.Composite()\n          self.execute command\n\n          if data.width > pixelExtent().width or data.height > pixelExtent().height\n            command.push self.Command.Resize pixelExtent().max(data)\n\n          command.push self.Command.NewLayer(data)\n\n        newLayer: (data) ->\n          makeLayer(data?.data)\n\n          self.repaint()\n\n        removeLayer: ->\n          self.layers.pop()\n          updateActiveLayer()\n\n          self.repaint()\n\n        outputCanvas: (scale=1)->\n          outputCanvas = TouchCanvas pixelExtent().scale(scale)\n\n          self.layers.forEach (layer) ->\n            # TODO: Only paint once per pixel, rather than once per pixel per layer\n            # by being smarter about transparency\n            layer.each (index, x, y) ->\n              outputCanvas.drawRect\n                x: x * scale\n                y: y * scale\n                width: scale\n                height: scale\n                color: self.palette()[index]\n\n          outputCanvas.element()\n\n        resize: (size) ->\n          pixelExtent Size(size)\n\n        repaint: ->\n          self.layers().first().each (_, x, y) ->\n            self.repaintPixel {x, y}\n\n          return self\n\n        restoreState: (state) ->\n          self.palette state.palette\n          self.restoreLayerState(state.layers)\n\n          self.activeLayer self.layers()[state.activeLayerIndex]\n\n          self.history state.history?.map self.Command.parse\n\n        saveState: ->\n          palette: self.palette()\n          layers: self.layerState()\n          activeLayerIndex: self.activeLayerIndex()\n          history: self.history().invoke \"toJSON\"\n\n        layerState: ->\n          self.layers().invoke \"toJSON\"\n\n        restoreLayerState: (layerData) ->\n          self.pixelExtent Size layerData.first()\n\n          index = self.activeLayerIndex()\n\n          self.layers []\n\n          layerData.forEach (layerData) ->\n            makeLayer layerData.data\n\n          self.activeLayer self.layer(index)\n\n          self.repaint()\n\n        draw: ({x, y}) ->\n          lastCommand.push self.Command.ChangePixel\n            x: x\n            y: y\n            index: activeIndex()\n            layer: self.activeLayerIndex()\n\n        changePixel: (params) ->\n          {x, y, index, layer} = params\n\n          self.layer(layer).set(x, y, index) unless canvas is previewCanvas\n\n          self.repaintPixel(params)\n\n        layers: Observable []\n\n        layer: (index) ->\n          if index?\n            self.layers()[index]\n          else\n            self.activeLayer()\n\n        repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) ->\n          if canvas is previewCanvas\n            # Need to get clever to handle the layers and transparancy, so it gets a little nuts\n\n            index = self.layers.map (layer, i) ->\n              if i is layerIndex # Replace the layer's pixel with our preview pixel\n                if colorIndex is 0\n                  self.layers.map (layer, i) ->\n                    layer.get(x, y)\n                  .filter (index, i) ->\n                    (index != 0) and !self.layers()[i].hidden() and (i < layerIndex)\n                  .last() or self.backgroundIndex()\n                else\n                  colorIndex\n              else\n                layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n          else\n            index = self.layers.map (layer) ->\n              layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n\n          color = self.palette()[index]\n\n          drawPixel(canvas, x, y, color, pixelSize())\n          drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas\n\n        getPixel: ({x, y, layer}) ->\n          x: x\n          y: y\n          index: self.layer(layer).get(x, y)\n          layer: layer ? self.activeLayerIndex()\n\n        # HACK: Adding in transparent to palette\n        palette: Observable([\"transparent\"].concat Palette.dawnBringer32)\n\nThis preview function is a little nuts, but I'm not sure how to clean it up.\n\nIt makes a copy of the current command chunk for undoing, sets the canvas\nequal to the preview canvas, then executes the passed in function.\n\nWe'll probably want to use a whole preview layer, so we don't need to worry about\naccidentally setting the pixel values during the preview.\n\n        preview: (fn) ->\n          realCommand = lastCommand\n          lastCommand = self.Command.Composite()\n          realCanvas = canvas\n          canvas = previewCanvas\n\n          canvas.clear()\n\n          fn()\n\n          canvas = realCanvas\n          lastCommand = realCommand\n\n      makeLayer = (data) ->\n        layer = Layer\n          width: pixelExtent().width\n          height: pixelExtent().height\n          data: data\n          palette: self.palette\n\n        layer.hidden.observe self.repaint\n\n        self.layers.push layer\n        self.activeLayer layer\n\n      makeLayer()\n\n      $('body').append template self\n\n      canvas = TouchCanvas canvasSize()\n      previewCanvas = TouchCanvas canvasSize()\n      thumbnailCanvas = TouchCanvas pixelExtent()\n\n      # TODO: Tempest should have an easier way to do this\n      updateActiveColor = (newIndex) ->\n        color = self.palette()[newIndex]\n\n        $(\".palette .current\").css\n          backgroundColor: color\n\n      updateActiveColor(activeIndex())\n      activeIndex.observe updateActiveColor\n\n      $(\".viewport\")\n        .append(canvas.element())\n        .append($(previewCanvas.element()).addClass(\"preview\"))\n\n      $(\".thumbnail\").append thumbnailCanvas.element()\n\n      updateViewportCentering = (->\n        size = canvasSize()\n        $(\".viewport\").toggleClass \"vertical-center\", size.height < $(\".main\").height()\n      ).debounce(15)\n      $(window).resize updateViewportCentering\n\n      updateCanvasSize = (size) ->\n        gridImage = GridGen(\n          # TODO: Grid size options and matching pixel size/extent\n        ).backgroundImage()\n\n        [canvas, previewCanvas].forEach (canvas) ->\n          element = canvas.element()\n          element.width = size.width\n          element.height = size.height\n\n          canvas.clear()\n\n        $(\".viewport, .overlay\").css\n          width: size.width\n          height: size.height\n\n        $(\".overlay\").css\n          backgroundImage: gridImage\n\n        updateViewportCentering()\n\n        self.repaint()\n\n      updateCanvasSize(canvasSize())\n      canvasSize.observe updateCanvasSize\n\n      updatePixelExtent = (size) ->\n        self.layers.forEach (layer) ->\n          layer.resize size\n\n        element = thumbnailCanvas.element()\n        element.width = size.width\n        element.height = size.height\n\n        thumbnailCanvas.clear()\n\n        self.repaint()\n\n      pixelExtent.observe updatePixelExtent\n\n      self.palette.observe ->\n        self.repaint()\n\n      canvasPosition = (position) ->\n        position.scale(pixelExtent()).floor()\n\n      previewCanvas.on \"touch\", (position) ->\n        lastCommand = self.Command.Composite()\n        self.execute lastCommand\n\n        activeTool().touch\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"move\", (position) ->\n        activeTool().move\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"release\", (position) ->\n        activeTool().release\n          position: canvasPosition position\n          editor: self\n\n        previewCanvas.clear()\n\n      return self\n\n    # For debugging\n    global.editor = Editor()\n\n    editor.notify(\"Welcome to PixiPaint!\")\n",
+      "content": "Pixel Editor\n============\n\nWelcome to this cool pixel editor. Eventually you'll be able to read this for\nhelp, but right now it's mostly code.\n\nEditing pixels in your browser.\n\n    # For debug purposes\n    global.PACKAGE = PACKAGE\n    global.require = require\n\n    require \"appcache\"\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n    saveAs = require \"./lib/file_saver\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    console.log \"starting...\"\n\n    require(\"facebook\").init \"391109411021092\", null, (FB) ->\n      console.log FB\n\n    TouchCanvas = require \"touch-canvas\"\n    GridGen = require \"grid-gen\"\n\n    Drop = require \"./drop\"\n\n    Command = require \"./command\"\n    Undo = require \"undo\"\n    Hotkeys = require \"hotkeys\"\n    Tools = require \"./tools\"\n    Actions = require \"./actions\"\n    Layer = require \"./layer\"\n    Notifications = require \"./notifications\"\n\n    Palette = require(\"./palette\")\n\n    template = require \"./templates/editor\"\n    debugTemplate = require \"./templates/debug\"\n\n    {Size} = require \"./util\"\n\n    Editor = (I={}, self) ->\n      activeIndex = Observable(1)\n\n      pixelExtent = Observable Size(32, 32)\n      pixelSize = Observable 8\n      canvasSize = Observable ->\n        pixelExtent().scale(pixelSize())\n\n      canvas = null\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Command\n      self.include Undo\n      self.include Hotkeys\n      self.include Tools\n      self.include Actions\n      self.include Drop\n      self.include Notifications\n\n      activeTool = self.activeTool\n\n      updateActiveLayer = ->\n        # TODO: This may need to have consideration for undo-ability.\n        if self.layers.indexOf(self.activeLayer()) is -1\n          self.activeLayer self.layers().last()\n\n      drawPixel = (canvas, x, y, color, size) ->\n        # HACK for previewCanvas\n        if canvas is previewCanvas and color is \"transparent\"\n          # TODO: Background color for the canvas area\n          color = \"white\"\n\n        if color is \"transparent\"\n          canvas.clear\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n        else\n          canvas.drawRect\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n            color: color\n\n      self.extend\n        activeIndex: activeIndex\n        activeLayer: Observable()\n        activeLayerIndex: ->\n          self.layers.indexOf(self.activeLayer())\n\n        backgroundIndex: Observable 0\n\n        pixelSize: pixelSize\n        pixelExtent: pixelExtent\n\n        handlePaste: (data) ->\n          command = self.Command.Composite()\n          self.execute command\n\n          if data.width > pixelExtent().width or data.height > pixelExtent().height\n            command.push self.Command.Resize pixelExtent().max(data)\n\n          command.push self.Command.NewLayer(data)\n\n        newLayer: (data) ->\n          makeLayer(data?.data)\n\n          self.repaint()\n\n        removeLayer: ->\n          self.layers.pop()\n          updateActiveLayer()\n\n          self.repaint()\n\n        outputCanvas: (scale=1)->\n          outputCanvas = TouchCanvas pixelExtent().scale(scale)\n\n          self.layers.forEach (layer) ->\n            # TODO: Only paint once per pixel, rather than once per pixel per layer\n            # by being smarter about transparency\n            layer.each (index, x, y) ->\n              outputCanvas.drawRect\n                x: x * scale\n                y: y * scale\n                width: scale\n                height: scale\n                color: self.palette()[index]\n\n          outputCanvas.element()\n\n        resize: (size) ->\n          pixelExtent Size(size)\n\n        repaint: ->\n          self.layers().first().each (_, x, y) ->\n            self.repaintPixel {x, y}\n\n          return self\n\n        restoreState: (state) ->\n          self.palette state.palette\n          self.restoreLayerState(state.layers)\n\n          self.activeLayer self.layers()[state.activeLayerIndex]\n\n          self.history state.history?.map self.Command.parse\n\n        saveState: ->\n          palette: self.palette()\n          layers: self.layerState()\n          activeLayerIndex: self.activeLayerIndex()\n          history: self.history().invoke \"toJSON\"\n\n        layerState: ->\n          self.layers().invoke \"toJSON\"\n\n        restoreLayerState: (layerData) ->\n          self.pixelExtent Size layerData.first()\n\n          index = self.activeLayerIndex()\n\n          self.layers []\n\n          layerData.forEach (layerData) ->\n            makeLayer layerData.data\n\n          self.activeLayer self.layer(index)\n\n          self.repaint()\n\n        draw: ({x, y}) ->\n          lastCommand.push self.Command.ChangePixel\n            x: x\n            y: y\n            index: activeIndex()\n            layer: self.activeLayerIndex()\n\n        changePixel: (params) ->\n          {x, y, index, layer} = params\n\n          self.layer(layer).set(x, y, index) unless canvas is previewCanvas\n\n          self.repaintPixel(params)\n\n        layers: Observable []\n\n        layer: (index) ->\n          if index?\n            self.layers()[index]\n          else\n            self.activeLayer()\n\n        repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) ->\n          if canvas is previewCanvas\n            # Need to get clever to handle the layers and transparancy, so it gets a little nuts\n\n            index = self.layers.map (layer, i) ->\n              if i is layerIndex # Replace the layer's pixel with our preview pixel\n                if colorIndex is 0\n                  self.layers.map (layer, i) ->\n                    layer.get(x, y)\n                  .filter (index, i) ->\n                    (index != 0) and !self.layers()[i].hidden() and (i < layerIndex)\n                  .last() or self.backgroundIndex()\n                else\n                  colorIndex\n              else\n                layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n          else\n            index = self.layers.map (layer) ->\n              layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n\n          color = self.palette()[index]\n\n          drawPixel(canvas, x, y, color, pixelSize())\n          drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas\n\n        getPixel: ({x, y, layer}) ->\n          x: x\n          y: y\n          index: self.layer(layer).get(x, y)\n          layer: layer ? self.activeLayerIndex()\n\n        # HACK: Adding in transparent to palette\n        palette: Observable([\"transparent\"].concat Palette.dawnBringer32)\n\nThis preview function is a little nuts, but I'm not sure how to clean it up.\n\nIt makes a copy of the current command chunk for undoing, sets the canvas\nequal to the preview canvas, then executes the passed in function.\n\nWe'll probably want to use a whole preview layer, so we don't need to worry about\naccidentally setting the pixel values during the preview.\n\n        preview: (fn) ->\n          realCommand = lastCommand\n          lastCommand = self.Command.Composite()\n          realCanvas = canvas\n          canvas = previewCanvas\n\n          canvas.clear()\n\n          fn()\n\n          canvas = realCanvas\n          lastCommand = realCommand\n\n      makeLayer = (data) ->\n        layer = Layer\n          width: pixelExtent().width\n          height: pixelExtent().height\n          data: data\n          palette: self.palette\n\n        layer.hidden.observe self.repaint\n\n        self.layers.push layer\n        self.activeLayer layer\n\n      makeLayer()\n\n      $('body').append template self\n\n      canvas = TouchCanvas canvasSize()\n      previewCanvas = TouchCanvas canvasSize()\n      thumbnailCanvas = TouchCanvas pixelExtent()\n\n      # TODO: Tempest should have an easier way to do this\n      updateActiveColor = (newIndex) ->\n        color = self.palette()[newIndex]\n\n        $(\".palette .current\").css\n          backgroundColor: color\n\n      updateActiveColor(activeIndex())\n      activeIndex.observe updateActiveColor\n\n      $(\".viewport\")\n        .append(canvas.element())\n        .append($(previewCanvas.element()).addClass(\"preview\"))\n\n      $(\".thumbnail\").append thumbnailCanvas.element()\n\n      updateViewportCentering = (->\n        size = canvasSize()\n        $(\".viewport\").toggleClass \"vertical-center\", size.height < $(\".main\").height()\n      ).debounce(15)\n      $(window).resize updateViewportCentering\n\n      updateCanvasSize = (size) ->\n        gridImage = GridGen(\n          # TODO: Grid size options and matching pixel size/extent\n        ).backgroundImage()\n\n        [canvas, previewCanvas].forEach (canvas) ->\n          element = canvas.element()\n          element.width = size.width\n          element.height = size.height\n\n          canvas.clear()\n\n        $(\".viewport, .overlay\").css\n          width: size.width\n          height: size.height\n\n        $(\".overlay\").css\n          backgroundImage: gridImage\n\n        updateViewportCentering()\n\n        self.repaint()\n\n      updateCanvasSize(canvasSize())\n      canvasSize.observe updateCanvasSize\n\n      updatePixelExtent = (size) ->\n        self.layers.forEach (layer) ->\n          layer.resize size\n\n        element = thumbnailCanvas.element()\n        element.width = size.width\n        element.height = size.height\n\n        thumbnailCanvas.clear()\n\n        self.repaint()\n\n      pixelExtent.observe updatePixelExtent\n\n      self.palette.observe ->\n        self.repaint()\n\n      canvasPosition = (position) ->\n        position.scale(pixelExtent()).floor()\n\n      previewCanvas.on \"touch\", (position) ->\n        lastCommand = self.Command.Composite()\n        self.execute lastCommand\n\n        activeTool().touch\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"move\", (position) ->\n        activeTool().move\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"release\", (position) ->\n        activeTool().release\n          position: canvasPosition position\n          editor: self\n\n        previewCanvas.clear()\n\n      return self\n\n    # For debugging\n    global.editor = Editor()\n\n    editor.notify(\"Welcome to PixiPaint!\")\n",
       "type": "blob"
     },
     "file_reading.coffee.md": {
       "path": "file_reading.coffee.md",
       "mode": "100644",
       "content": "File Reading\n============\n\nRead files from a file input triggering an event when a person chooses a file.\n\nCurrently we only care about json, image, and text files, though we may care\nabout others later.\n\n    detectType = (file) ->\n      if file.type.match /^image\\//\n        return \"image\"\n\n      if file.name.match /\\.json$/\n        return \"json\"\n\n      return \"text\"\n\n    module.exports =\n      readerInput: ({chose, encoding, image, json, text, accept}) ->\n        accept ?= \"image/gif,image/png\"\n        encoding ?= \"UTF-8\"\n\n        input = document.createElement('input')\n        input.type = \"file\"\n        input.setAttribute \"accept\", accept\n\n        input.onchange = ->\n          reader = new FileReader()\n\n          file = input.files[0]\n\n          switch detectType(file)\n            when \"image\"\n              reader.onload = (evt) ->\n                image? evt.target.result\n\n              reader.readAsDataURL(file)\n            when \"json\"\n              reader.onload = (evt) ->\n                json? JSON.parse evt.target.result\n\n              reader.readAsText(file, encoding)\n            when \"text\"\n              reader.onload = (evt) ->\n                text? evt.target.result\n\n              reader.readAsText(file, encoding)\n\n          chose(file)\n\n        return input\n",
-      "type": "blob"
-    },
-    "hotkeys.coffee.md": {
-      "path": "hotkeys.coffee.md",
-      "mode": "100644",
-      "content": "Hotkeys\n=======\n\nHotkeys for the pixel editor.\n\n    module.exports = (I={}, self) ->\n      self.extend\n        addHotkey: (key, method) ->\n          $(document).bind \"keydown\", key, (event) ->\n            if typeof method is \"function\"\n              method\n                editor: self\n            else\n              self[method]()\n\n            event.preventDefault()\n\n      return self\n",
       "type": "blob"
     },
     "layer.coffee.md": {
@@ -100,7 +94,7 @@ window["STRd6/pixel-editor:master"]({
     "pixie.cson": {
       "path": "pixie.cson",
       "mode": "100644",
-      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"https://pixipaint.net/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.4\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"undo\": \"distri/undo:v0.1.0\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\nwidth: 1024\nheight: 576\n",
+      "content": "version: \"0.1.0\"\nentryPoint: \"editor\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"https://pixipaint.net/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"STRd6/appcache:v0.1.0\"\n  compression: \"STRd6/lz-string:v1.3.3\"\n  facebook: \"distri/facebook:v0.1.1-alpha.4\"\n  \"grid-gen\": \"STRd6/grid-gen:v0.1.0\"\n  \"hotkeys\": \"distri/hotkeys:v0.1.0\"\n  \"jquery-utils\": \"STRd6/jquery-utils:v0.1.2\"\n  runtime: \"STRd6/runtime:v0.1.1\"\n  \"touch-canvas\": \"STRd6/touch-canvas:v0.2.0\"\n  \"undo\": \"distri/undo:v0.1.0\"\nwidth: 1024\nheight: 576\n",
       "type": "blob"
     },
     "style.styl": {
@@ -164,17 +158,12 @@ window["STRd6/pixel-editor:master"]({
     },
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var Actions, Command, Drop, Editor, GridGen, Hotkeys, Layer, Notifications, Palette, Size, Tools, TouchCanvas, Undo, debugTemplate, runtime, saveAs, template;\n\n  global.PACKAGE = PACKAGE;\n\n  global.require = require;\n\n  require(\"appcache\");\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  saveAs = require(\"./lib/file_saver\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  console.log(\"starting...\");\n\n  require(\"facebook\").init(\"391109411021092\", null, function(FB) {\n    return console.log(FB);\n  });\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  GridGen = require(\"grid-gen\");\n\n  Drop = require(\"./drop\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"undo\");\n\n  Hotkeys = require(\"./hotkeys\");\n\n  Tools = require(\"./tools\");\n\n  Actions = require(\"./actions\");\n\n  Layer = require(\"./layer\");\n\n  Notifications = require(\"./notifications\");\n\n  Palette = require(\"./palette\");\n\n  template = require(\"./templates/editor\");\n\n  debugTemplate = require(\"./templates/debug\");\n\n  Size = require(\"./util\").Size;\n\n  Editor = function(I, self) {\n    var activeIndex, activeTool, canvas, canvasPosition, canvasSize, drawPixel, lastCommand, makeLayer, pixelExtent, pixelSize, previewCanvas, thumbnailCanvas, updateActiveColor, updateActiveLayer, updateCanvasSize, updatePixelExtent, updateViewportCentering;\n    if (I == null) {\n      I = {};\n    }\n    activeIndex = Observable(1);\n    pixelExtent = Observable(Size(32, 32));\n    pixelSize = Observable(8);\n    canvasSize = Observable(function() {\n      return pixelExtent().scale(pixelSize());\n    });\n    canvas = null;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Command);\n    self.include(Undo);\n    self.include(Hotkeys);\n    self.include(Tools);\n    self.include(Actions);\n    self.include(Drop);\n    self.include(Notifications);\n    activeTool = self.activeTool;\n    updateActiveLayer = function() {\n      if (self.layers.indexOf(self.activeLayer()) === -1) {\n        return self.activeLayer(self.layers().last());\n      }\n    };\n    drawPixel = function(canvas, x, y, color, size) {\n      if (canvas === previewCanvas && color === \"transparent\") {\n        color = \"white\";\n      }\n      if (color === \"transparent\") {\n        return canvas.clear({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size\n        });\n      } else {\n        return canvas.drawRect({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size,\n          color: color\n        });\n      }\n    };\n    self.extend({\n      activeIndex: activeIndex,\n      activeLayer: Observable(),\n      activeLayerIndex: function() {\n        return self.layers.indexOf(self.activeLayer());\n      },\n      backgroundIndex: Observable(0),\n      pixelSize: pixelSize,\n      pixelExtent: pixelExtent,\n      handlePaste: function(data) {\n        var command;\n        command = self.Command.Composite();\n        self.execute(command);\n        if (data.width > pixelExtent().width || data.height > pixelExtent().height) {\n          command.push(self.Command.Resize(pixelExtent().max(data)));\n        }\n        return command.push(self.Command.NewLayer(data));\n      },\n      newLayer: function(data) {\n        makeLayer(data != null ? data.data : void 0);\n        return self.repaint();\n      },\n      removeLayer: function() {\n        self.layers.pop();\n        updateActiveLayer();\n        return self.repaint();\n      },\n      outputCanvas: function(scale) {\n        var outputCanvas;\n        if (scale == null) {\n          scale = 1;\n        }\n        outputCanvas = TouchCanvas(pixelExtent().scale(scale));\n        self.layers.forEach(function(layer) {\n          return layer.each(function(index, x, y) {\n            return outputCanvas.drawRect({\n              x: x * scale,\n              y: y * scale,\n              width: scale,\n              height: scale,\n              color: self.palette()[index]\n            });\n          });\n        });\n        return outputCanvas.element();\n      },\n      resize: function(size) {\n        return pixelExtent(Size(size));\n      },\n      repaint: function() {\n        self.layers().first().each(function(_, x, y) {\n          return self.repaintPixel({\n            x: x,\n            y: y\n          });\n        });\n        return self;\n      },\n      restoreState: function(state) {\n        var _ref;\n        self.palette(state.palette);\n        self.restoreLayerState(state.layers);\n        self.activeLayer(self.layers()[state.activeLayerIndex]);\n        return self.history((_ref = state.history) != null ? _ref.map(self.Command.parse) : void 0);\n      },\n      saveState: function() {\n        return {\n          palette: self.palette(),\n          layers: self.layerState(),\n          activeLayerIndex: self.activeLayerIndex(),\n          history: self.history().invoke(\"toJSON\")\n        };\n      },\n      layerState: function() {\n        return self.layers().invoke(\"toJSON\");\n      },\n      restoreLayerState: function(layerData) {\n        var index;\n        self.pixelExtent(Size(layerData.first()));\n        index = self.activeLayerIndex();\n        self.layers([]);\n        layerData.forEach(function(layerData) {\n          return makeLayer(layerData.data);\n        });\n        self.activeLayer(self.layer(index));\n        return self.repaint();\n      },\n      draw: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return lastCommand.push(self.Command.ChangePixel({\n          x: x,\n          y: y,\n          index: activeIndex(),\n          layer: self.activeLayerIndex()\n        }));\n      },\n      changePixel: function(params) {\n        var index, layer, x, y;\n        x = params.x, y = params.y, index = params.index, layer = params.layer;\n        if (canvas !== previewCanvas) {\n          self.layer(layer).set(x, y, index);\n        }\n        return self.repaintPixel(params);\n      },\n      layers: Observable([]),\n      layer: function(index) {\n        if (index != null) {\n          return self.layers()[index];\n        } else {\n          return self.activeLayer();\n        }\n      },\n      repaintPixel: function(_arg) {\n        var color, colorIndex, index, layerIndex, x, y;\n        x = _arg.x, y = _arg.y, colorIndex = _arg.index, layerIndex = _arg.layer;\n        if (canvas === previewCanvas) {\n          index = self.layers.map(function(layer, i) {\n            if (i === layerIndex) {\n              if (colorIndex === 0) {\n                return self.layers.map(function(layer, i) {\n                  return layer.get(x, y);\n                }).filter(function(index, i) {\n                  return (index !== 0) && !self.layers()[i].hidden() && (i < layerIndex);\n                }).last() || self.backgroundIndex();\n              } else {\n                return colorIndex;\n              }\n            } else {\n              return layer.get(x, y);\n            }\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        } else {\n          index = self.layers.map(function(layer) {\n            return layer.get(x, y);\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        }\n        color = self.palette()[index];\n        drawPixel(canvas, x, y, color, pixelSize());\n        if (canvas !== previewCanvas) {\n          return drawPixel(thumbnailCanvas, x, y, color, 1);\n        }\n      },\n      getPixel: function(_arg) {\n        var layer, x, y;\n        x = _arg.x, y = _arg.y, layer = _arg.layer;\n        return {\n          x: x,\n          y: y,\n          index: self.layer(layer).get(x, y),\n          layer: layer != null ? layer : self.activeLayerIndex()\n        };\n      },\n      palette: Observable([\"transparent\"].concat(Palette.dawnBringer32)),\n      preview: function(fn) {\n        var realCanvas, realCommand;\n        realCommand = lastCommand;\n        lastCommand = self.Command.Composite();\n        realCanvas = canvas;\n        canvas = previewCanvas;\n        canvas.clear();\n        fn();\n        canvas = realCanvas;\n        return lastCommand = realCommand;\n      }\n    });\n    makeLayer = function(data) {\n      var layer;\n      layer = Layer({\n        width: pixelExtent().width,\n        height: pixelExtent().height,\n        data: data,\n        palette: self.palette\n      });\n      layer.hidden.observe(self.repaint);\n      self.layers.push(layer);\n      return self.activeLayer(layer);\n    };\n    makeLayer();\n    $('body').append(template(self));\n    canvas = TouchCanvas(canvasSize());\n    previewCanvas = TouchCanvas(canvasSize());\n    thumbnailCanvas = TouchCanvas(pixelExtent());\n    updateActiveColor = function(newIndex) {\n      var color;\n      color = self.palette()[newIndex];\n      return $(\".palette .current\").css({\n        backgroundColor: color\n      });\n    };\n    updateActiveColor(activeIndex());\n    activeIndex.observe(updateActiveColor);\n    $(\".viewport\").append(canvas.element()).append($(previewCanvas.element()).addClass(\"preview\"));\n    $(\".thumbnail\").append(thumbnailCanvas.element());\n    updateViewportCentering = (function() {\n      var size;\n      size = canvasSize();\n      return $(\".viewport\").toggleClass(\"vertical-center\", size.height < $(\".main\").height());\n    }).debounce(15);\n    $(window).resize(updateViewportCentering);\n    updateCanvasSize = function(size) {\n      var gridImage;\n      gridImage = GridGen().backgroundImage();\n      [canvas, previewCanvas].forEach(function(canvas) {\n        var element;\n        element = canvas.element();\n        element.width = size.width;\n        element.height = size.height;\n        return canvas.clear();\n      });\n      $(\".viewport, .overlay\").css({\n        width: size.width,\n        height: size.height\n      });\n      $(\".overlay\").css({\n        backgroundImage: gridImage\n      });\n      updateViewportCentering();\n      return self.repaint();\n    };\n    updateCanvasSize(canvasSize());\n    canvasSize.observe(updateCanvasSize);\n    updatePixelExtent = function(size) {\n      var element;\n      self.layers.forEach(function(layer) {\n        return layer.resize(size);\n      });\n      element = thumbnailCanvas.element();\n      element.width = size.width;\n      element.height = size.height;\n      thumbnailCanvas.clear();\n      return self.repaint();\n    };\n    pixelExtent.observe(updatePixelExtent);\n    self.palette.observe(function() {\n      return self.repaint();\n    });\n    canvasPosition = function(position) {\n      return position.scale(pixelExtent()).floor();\n    };\n    previewCanvas.on(\"touch\", function(position) {\n      lastCommand = self.Command.Composite();\n      self.execute(lastCommand);\n      return activeTool().touch({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"move\", function(position) {\n      return activeTool().move({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"release\", function(position) {\n      activeTool().release({\n        position: canvasPosition(position),\n        editor: self\n      });\n      return previewCanvas.clear();\n    });\n    return self;\n  };\n\n  global.editor = Editor();\n\n  editor.notify(\"Welcome to PixiPaint!\");\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
+      "content": "(function() {\n  var Actions, Command, Drop, Editor, GridGen, Hotkeys, Layer, Notifications, Palette, Size, Tools, TouchCanvas, Undo, debugTemplate, runtime, saveAs, template;\n\n  global.PACKAGE = PACKAGE;\n\n  global.require = require;\n\n  require(\"appcache\");\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  saveAs = require(\"./lib/file_saver\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  console.log(\"starting...\");\n\n  require(\"facebook\").init(\"391109411021092\", null, function(FB) {\n    return console.log(FB);\n  });\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  GridGen = require(\"grid-gen\");\n\n  Drop = require(\"./drop\");\n\n  Command = require(\"./command\");\n\n  Undo = require(\"undo\");\n\n  Hotkeys = require(\"hotkeys\");\n\n  Tools = require(\"./tools\");\n\n  Actions = require(\"./actions\");\n\n  Layer = require(\"./layer\");\n\n  Notifications = require(\"./notifications\");\n\n  Palette = require(\"./palette\");\n\n  template = require(\"./templates/editor\");\n\n  debugTemplate = require(\"./templates/debug\");\n\n  Size = require(\"./util\").Size;\n\n  Editor = function(I, self) {\n    var activeIndex, activeTool, canvas, canvasPosition, canvasSize, drawPixel, lastCommand, makeLayer, pixelExtent, pixelSize, previewCanvas, thumbnailCanvas, updateActiveColor, updateActiveLayer, updateCanvasSize, updatePixelExtent, updateViewportCentering;\n    if (I == null) {\n      I = {};\n    }\n    activeIndex = Observable(1);\n    pixelExtent = Observable(Size(32, 32));\n    pixelSize = Observable(8);\n    canvasSize = Observable(function() {\n      return pixelExtent().scale(pixelSize());\n    });\n    canvas = null;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Command);\n    self.include(Undo);\n    self.include(Hotkeys);\n    self.include(Tools);\n    self.include(Actions);\n    self.include(Drop);\n    self.include(Notifications);\n    activeTool = self.activeTool;\n    updateActiveLayer = function() {\n      if (self.layers.indexOf(self.activeLayer()) === -1) {\n        return self.activeLayer(self.layers().last());\n      }\n    };\n    drawPixel = function(canvas, x, y, color, size) {\n      if (canvas === previewCanvas && color === \"transparent\") {\n        color = \"white\";\n      }\n      if (color === \"transparent\") {\n        return canvas.clear({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size\n        });\n      } else {\n        return canvas.drawRect({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size,\n          color: color\n        });\n      }\n    };\n    self.extend({\n      activeIndex: activeIndex,\n      activeLayer: Observable(),\n      activeLayerIndex: function() {\n        return self.layers.indexOf(self.activeLayer());\n      },\n      backgroundIndex: Observable(0),\n      pixelSize: pixelSize,\n      pixelExtent: pixelExtent,\n      handlePaste: function(data) {\n        var command;\n        command = self.Command.Composite();\n        self.execute(command);\n        if (data.width > pixelExtent().width || data.height > pixelExtent().height) {\n          command.push(self.Command.Resize(pixelExtent().max(data)));\n        }\n        return command.push(self.Command.NewLayer(data));\n      },\n      newLayer: function(data) {\n        makeLayer(data != null ? data.data : void 0);\n        return self.repaint();\n      },\n      removeLayer: function() {\n        self.layers.pop();\n        updateActiveLayer();\n        return self.repaint();\n      },\n      outputCanvas: function(scale) {\n        var outputCanvas;\n        if (scale == null) {\n          scale = 1;\n        }\n        outputCanvas = TouchCanvas(pixelExtent().scale(scale));\n        self.layers.forEach(function(layer) {\n          return layer.each(function(index, x, y) {\n            return outputCanvas.drawRect({\n              x: x * scale,\n              y: y * scale,\n              width: scale,\n              height: scale,\n              color: self.palette()[index]\n            });\n          });\n        });\n        return outputCanvas.element();\n      },\n      resize: function(size) {\n        return pixelExtent(Size(size));\n      },\n      repaint: function() {\n        self.layers().first().each(function(_, x, y) {\n          return self.repaintPixel({\n            x: x,\n            y: y\n          });\n        });\n        return self;\n      },\n      restoreState: function(state) {\n        var _ref;\n        self.palette(state.palette);\n        self.restoreLayerState(state.layers);\n        self.activeLayer(self.layers()[state.activeLayerIndex]);\n        return self.history((_ref = state.history) != null ? _ref.map(self.Command.parse) : void 0);\n      },\n      saveState: function() {\n        return {\n          palette: self.palette(),\n          layers: self.layerState(),\n          activeLayerIndex: self.activeLayerIndex(),\n          history: self.history().invoke(\"toJSON\")\n        };\n      },\n      layerState: function() {\n        return self.layers().invoke(\"toJSON\");\n      },\n      restoreLayerState: function(layerData) {\n        var index;\n        self.pixelExtent(Size(layerData.first()));\n        index = self.activeLayerIndex();\n        self.layers([]);\n        layerData.forEach(function(layerData) {\n          return makeLayer(layerData.data);\n        });\n        self.activeLayer(self.layer(index));\n        return self.repaint();\n      },\n      draw: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return lastCommand.push(self.Command.ChangePixel({\n          x: x,\n          y: y,\n          index: activeIndex(),\n          layer: self.activeLayerIndex()\n        }));\n      },\n      changePixel: function(params) {\n        var index, layer, x, y;\n        x = params.x, y = params.y, index = params.index, layer = params.layer;\n        if (canvas !== previewCanvas) {\n          self.layer(layer).set(x, y, index);\n        }\n        return self.repaintPixel(params);\n      },\n      layers: Observable([]),\n      layer: function(index) {\n        if (index != null) {\n          return self.layers()[index];\n        } else {\n          return self.activeLayer();\n        }\n      },\n      repaintPixel: function(_arg) {\n        var color, colorIndex, index, layerIndex, x, y;\n        x = _arg.x, y = _arg.y, colorIndex = _arg.index, layerIndex = _arg.layer;\n        if (canvas === previewCanvas) {\n          index = self.layers.map(function(layer, i) {\n            if (i === layerIndex) {\n              if (colorIndex === 0) {\n                return self.layers.map(function(layer, i) {\n                  return layer.get(x, y);\n                }).filter(function(index, i) {\n                  return (index !== 0) && !self.layers()[i].hidden() && (i < layerIndex);\n                }).last() || self.backgroundIndex();\n              } else {\n                return colorIndex;\n              }\n            } else {\n              return layer.get(x, y);\n            }\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        } else {\n          index = self.layers.map(function(layer) {\n            return layer.get(x, y);\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        }\n        color = self.palette()[index];\n        drawPixel(canvas, x, y, color, pixelSize());\n        if (canvas !== previewCanvas) {\n          return drawPixel(thumbnailCanvas, x, y, color, 1);\n        }\n      },\n      getPixel: function(_arg) {\n        var layer, x, y;\n        x = _arg.x, y = _arg.y, layer = _arg.layer;\n        return {\n          x: x,\n          y: y,\n          index: self.layer(layer).get(x, y),\n          layer: layer != null ? layer : self.activeLayerIndex()\n        };\n      },\n      palette: Observable([\"transparent\"].concat(Palette.dawnBringer32)),\n      preview: function(fn) {\n        var realCanvas, realCommand;\n        realCommand = lastCommand;\n        lastCommand = self.Command.Composite();\n        realCanvas = canvas;\n        canvas = previewCanvas;\n        canvas.clear();\n        fn();\n        canvas = realCanvas;\n        return lastCommand = realCommand;\n      }\n    });\n    makeLayer = function(data) {\n      var layer;\n      layer = Layer({\n        width: pixelExtent().width,\n        height: pixelExtent().height,\n        data: data,\n        palette: self.palette\n      });\n      layer.hidden.observe(self.repaint);\n      self.layers.push(layer);\n      return self.activeLayer(layer);\n    };\n    makeLayer();\n    $('body').append(template(self));\n    canvas = TouchCanvas(canvasSize());\n    previewCanvas = TouchCanvas(canvasSize());\n    thumbnailCanvas = TouchCanvas(pixelExtent());\n    updateActiveColor = function(newIndex) {\n      var color;\n      color = self.palette()[newIndex];\n      return $(\".palette .current\").css({\n        backgroundColor: color\n      });\n    };\n    updateActiveColor(activeIndex());\n    activeIndex.observe(updateActiveColor);\n    $(\".viewport\").append(canvas.element()).append($(previewCanvas.element()).addClass(\"preview\"));\n    $(\".thumbnail\").append(thumbnailCanvas.element());\n    updateViewportCentering = (function() {\n      var size;\n      size = canvasSize();\n      return $(\".viewport\").toggleClass(\"vertical-center\", size.height < $(\".main\").height());\n    }).debounce(15);\n    $(window).resize(updateViewportCentering);\n    updateCanvasSize = function(size) {\n      var gridImage;\n      gridImage = GridGen().backgroundImage();\n      [canvas, previewCanvas].forEach(function(canvas) {\n        var element;\n        element = canvas.element();\n        element.width = size.width;\n        element.height = size.height;\n        return canvas.clear();\n      });\n      $(\".viewport, .overlay\").css({\n        width: size.width,\n        height: size.height\n      });\n      $(\".overlay\").css({\n        backgroundImage: gridImage\n      });\n      updateViewportCentering();\n      return self.repaint();\n    };\n    updateCanvasSize(canvasSize());\n    canvasSize.observe(updateCanvasSize);\n    updatePixelExtent = function(size) {\n      var element;\n      self.layers.forEach(function(layer) {\n        return layer.resize(size);\n      });\n      element = thumbnailCanvas.element();\n      element.width = size.width;\n      element.height = size.height;\n      thumbnailCanvas.clear();\n      return self.repaint();\n    };\n    pixelExtent.observe(updatePixelExtent);\n    self.palette.observe(function() {\n      return self.repaint();\n    });\n    canvasPosition = function(position) {\n      return position.scale(pixelExtent()).floor();\n    };\n    previewCanvas.on(\"touch\", function(position) {\n      lastCommand = self.Command.Composite();\n      self.execute(lastCommand);\n      return activeTool().touch({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"move\", function(position) {\n      return activeTool().move({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"release\", function(position) {\n      activeTool().release({\n        position: canvasPosition(position),\n        editor: self\n      });\n      return previewCanvas.clear();\n    });\n    return self;\n  };\n\n  global.editor = Editor();\n\n  editor.notify(\"Welcome to PixiPaint!\");\n\n}).call(this);\n\n//# sourceURL=editor.coffee",
       "type": "blob"
     },
     "file_reading": {
       "path": "file_reading",
       "content": "(function() {\n  var detectType;\n\n  detectType = function(file) {\n    if (file.type.match(/^image\\//)) {\n      return \"image\";\n    }\n    if (file.name.match(/\\.json$/)) {\n      return \"json\";\n    }\n    return \"text\";\n  };\n\n  module.exports = {\n    readerInput: function(_arg) {\n      var accept, chose, encoding, image, input, json, text;\n      chose = _arg.chose, encoding = _arg.encoding, image = _arg.image, json = _arg.json, text = _arg.text, accept = _arg.accept;\n      if (accept == null) {\n        accept = \"image/gif,image/png\";\n      }\n      if (encoding == null) {\n        encoding = \"UTF-8\";\n      }\n      input = document.createElement('input');\n      input.type = \"file\";\n      input.setAttribute(\"accept\", accept);\n      input.onchange = function() {\n        var file, reader;\n        reader = new FileReader();\n        file = input.files[0];\n        switch (detectType(file)) {\n          case \"image\":\n            reader.onload = function(evt) {\n              return typeof image === \"function\" ? image(evt.target.result) : void 0;\n            };\n            reader.readAsDataURL(file);\n            break;\n          case \"json\":\n            reader.onload = function(evt) {\n              return typeof json === \"function\" ? json(JSON.parse(evt.target.result)) : void 0;\n            };\n            reader.readAsText(file, encoding);\n            break;\n          case \"text\":\n            reader.onload = function(evt) {\n              return typeof text === \"function\" ? text(evt.target.result) : void 0;\n            };\n            reader.readAsText(file, encoding);\n        }\n        return chose(file);\n      };\n      return input;\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=file_reading.coffee",
-      "type": "blob"
-    },
-    "hotkeys": {
-      "path": "hotkeys",
-      "content": "(function() {\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    self.extend({\n      addHotkey: function(key, method) {\n        return $(document).bind(\"keydown\", key, function(event) {\n          if (typeof method === \"function\") {\n            method({\n              editor: self\n            });\n          } else {\n            self[method]();\n          }\n          return event.preventDefault();\n        });\n      }\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=hotkeys.coffee",
       "type": "blob"
     },
     "layer": {
@@ -214,7 +203,7 @@ window["STRd6/pixel-editor:master"]({
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"https://pixipaint.net/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.4\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"undo\":\"distri/undo:v0.1.0\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\"},\"width\":1024,\"height\":576};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"editor\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"https://pixipaint.net/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"STRd6/appcache:v0.1.0\",\"compression\":\"STRd6/lz-string:v1.3.3\",\"facebook\":\"distri/facebook:v0.1.1-alpha.4\",\"grid-gen\":\"STRd6/grid-gen:v0.1.0\",\"hotkeys\":\"distri/hotkeys:v0.1.0\",\"jquery-utils\":\"STRd6/jquery-utils:v0.1.2\",\"runtime\":\"STRd6/runtime:v0.1.1\",\"touch-canvas\":\"STRd6/touch-canvas:v0.2.0\",\"undo\":\"distri/undo:v0.1.0\"},\"width\":1024,\"height\":576};",
       "type": "blob"
     },
     "style": {
@@ -901,6 +890,336 @@ window["STRd6/pixel-editor:master"]({
         "network_count": 0,
         "subscribers_count": 1,
         "branch": "v0.1.1-alpha.4",
+        "defaultBranch": "master"
+      }
+    },
+    "grid-gen": {
+      "version": "0.1.0",
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "mode": "100644",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+          "type": "blob"
+        },
+        "README.md": {
+          "path": "README.md",
+          "mode": "100644",
+          "content": "grid-gen\n========\n\nGenerate a grid image programatically.\n",
+          "type": "blob"
+        },
+        "grid.coffee.md": {
+          "path": "grid.coffee.md",
+          "mode": "100644",
+          "content": "Grid Generator\n==============\n\n    Grid = ({width, height, guide, color}={}) ->\n      color ?= \"rgba(0, 0, 0, 0.3)\"\n      height ?= 32\n      width ?= 32\n      guide ?= 4\n\n      canvasWidth = width * guide\n      canvasHeight = height * guide\n\n      canvas = document.createElement(\"canvas\")\n      canvas.width = canvasWidth\n      canvas.height = canvasHeight\n\n      context = canvas.getContext(\"2d\")\n\n      context.fillStyle = color\n\n      [0...guide].forEach (i) ->\n        context.fillRect(i * width, 0, 1, canvasHeight)\n        context.fillRect(0, i * height, canvasWidth, 1)\n    \n      # Draw the strong line\n      context.fillRect(0, 0, 1, canvasHeight)\n      context.fillRect(0, 0, canvasWidth, 1)\n    \n      backgroundImage: ->\n        \"url(#{this.toDataURL()})\"\n    \n      toDataURL: ->\n        canvas.toDataURL(\"image/png\")\n\n    module.exports = Grid\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "version: \"0.1.0\"\nentryPoint: \"grid\"\nremoteDependencies: [\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\n",
+          "type": "blob"
+        },
+        "test/test.coffee": {
+          "path": "test/test.coffee",
+          "mode": "100644",
+          "content": "Grid = require \"../grid\"\n\ndocument.body.style[\"background-image\"] = Grid().backgroundImage()\n",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "grid": {
+          "path": "grid",
+          "content": "(function() {\n  var Grid;\n\n  Grid = function(_arg) {\n    var canvas, canvasHeight, canvasWidth, color, context, guide, height, width, _i, _ref, _results;\n    _ref = _arg != null ? _arg : {}, width = _ref.width, height = _ref.height, guide = _ref.guide, color = _ref.color;\n    if (color == null) {\n      color = \"rgba(0, 0, 0, 0.3)\";\n    }\n    if (height == null) {\n      height = 32;\n    }\n    if (width == null) {\n      width = 32;\n    }\n    if (guide == null) {\n      guide = 4;\n    }\n    canvasWidth = width * guide;\n    canvasHeight = height * guide;\n    canvas = document.createElement(\"canvas\");\n    canvas.width = canvasWidth;\n    canvas.height = canvasHeight;\n    context = canvas.getContext(\"2d\");\n    context.fillStyle = color;\n    (function() {\n      _results = [];\n      for (var _i = 0; 0 <= guide ? _i < guide : _i > guide; 0 <= guide ? _i++ : _i--){ _results.push(_i); }\n      return _results;\n    }).apply(this).forEach(function(i) {\n      context.fillRect(i * width, 0, 1, canvasHeight);\n      return context.fillRect(0, i * height, canvasWidth, 1);\n    });\n    context.fillRect(0, 0, 1, canvasHeight);\n    context.fillRect(0, 0, canvasWidth, 1);\n    return {\n      backgroundImage: function() {\n        return \"url(\" + (this.toDataURL()) + \")\";\n      },\n      toDataURL: function() {\n        return canvas.toDataURL(\"image/png\");\n      }\n    };\n  };\n\n  module.exports = Grid;\n\n}).call(this);\n\n//# sourceURL=grid.coffee",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"grid\",\"remoteDependencies\":[\"http://strd6.github.io/require/v0.2.2.js\"]};",
+          "type": "blob"
+        },
+        "test/test": {
+          "path": "test/test",
+          "content": "(function() {\n  var Grid;\n\n  Grid = require(\"../grid\");\n\n  document.body.style[\"background-image\"] = Grid().backgroundImage();\n\n}).call(this);\n\n//# sourceURL=test/test.coffee",
+          "type": "blob"
+        }
+      },
+      "entryPoint": "grid",
+      "dependencies": {},
+      "remoteDependencies": [
+        "http://strd6.github.io/require/v0.2.2.js"
+      ],
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "repository": {
+        "id": 13941148,
+        "name": "grid-gen",
+        "full_name": "STRd6/grid-gen",
+        "owner": {
+          "login": "STRd6",
+          "id": 18894,
+          "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
+          "gravatar_id": "33117162fff8a9cf50544a604f60c045",
+          "url": "https://api.github.com/users/STRd6",
+          "html_url": "https://github.com/STRd6",
+          "followers_url": "https://api.github.com/users/STRd6/followers",
+          "following_url": "https://api.github.com/users/STRd6/following{/other_user}",
+          "gists_url": "https://api.github.com/users/STRd6/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/STRd6/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/STRd6/subscriptions",
+          "organizations_url": "https://api.github.com/users/STRd6/orgs",
+          "repos_url": "https://api.github.com/users/STRd6/repos",
+          "events_url": "https://api.github.com/users/STRd6/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/STRd6/received_events",
+          "type": "User",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/STRd6/grid-gen",
+        "description": "Generate a grid image programatically.",
+        "fork": false,
+        "url": "https://api.github.com/repos/STRd6/grid-gen",
+        "forks_url": "https://api.github.com/repos/STRd6/grid-gen/forks",
+        "keys_url": "https://api.github.com/repos/STRd6/grid-gen/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/STRd6/grid-gen/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/STRd6/grid-gen/teams",
+        "hooks_url": "https://api.github.com/repos/STRd6/grid-gen/hooks",
+        "issue_events_url": "https://api.github.com/repos/STRd6/grid-gen/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/STRd6/grid-gen/events",
+        "assignees_url": "https://api.github.com/repos/STRd6/grid-gen/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/STRd6/grid-gen/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/STRd6/grid-gen/tags",
+        "blobs_url": "https://api.github.com/repos/STRd6/grid-gen/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/STRd6/grid-gen/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/STRd6/grid-gen/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/STRd6/grid-gen/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/STRd6/grid-gen/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/STRd6/grid-gen/languages",
+        "stargazers_url": "https://api.github.com/repos/STRd6/grid-gen/stargazers",
+        "contributors_url": "https://api.github.com/repos/STRd6/grid-gen/contributors",
+        "subscribers_url": "https://api.github.com/repos/STRd6/grid-gen/subscribers",
+        "subscription_url": "https://api.github.com/repos/STRd6/grid-gen/subscription",
+        "commits_url": "https://api.github.com/repos/STRd6/grid-gen/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/STRd6/grid-gen/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/STRd6/grid-gen/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/STRd6/grid-gen/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/STRd6/grid-gen/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/STRd6/grid-gen/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/STRd6/grid-gen/merges",
+        "archive_url": "https://api.github.com/repos/STRd6/grid-gen/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/STRd6/grid-gen/downloads",
+        "issues_url": "https://api.github.com/repos/STRd6/grid-gen/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/STRd6/grid-gen/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/STRd6/grid-gen/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/STRd6/grid-gen/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/STRd6/grid-gen/labels{/name}",
+        "releases_url": "https://api.github.com/repos/STRd6/grid-gen/releases{/id}",
+        "created_at": "2013-10-28T23:06:21Z",
+        "updated_at": "2013-10-28T23:06:22Z",
+        "pushed_at": "2013-10-28T23:06:22Z",
+        "git_url": "git://github.com/STRd6/grid-gen.git",
+        "ssh_url": "git@github.com:STRd6/grid-gen.git",
+        "clone_url": "https://github.com/STRd6/grid-gen.git",
+        "svn_url": "https://github.com/STRd6/grid-gen",
+        "homepage": null,
+        "size": 0,
+        "watchers_count": 0,
+        "language": null,
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "master_branch": "master",
+        "default_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "network_count": 0,
+        "branch": "v0.1.0",
+        "defaultBranch": "master"
+      }
+    },
+    "hotkeys": {
+      "version": "0.1.0",
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "mode": "100644",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2013 distri\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+          "type": "blob"
+        },
+        "README.md": {
+          "path": "README.md",
+          "mode": "100644",
+          "content": "hotkeys\n=======\n\nHotkeys module for editors\n",
+          "type": "blob"
+        },
+        "main.coffee.md": {
+          "path": "main.coffee.md",
+          "mode": "100644",
+          "content": "Hotkeys\n=======\n\nHotkeys module for the editors.\n\n    module.exports = (I={}, self=Core(I)) ->\n      self.extend\n        addHotkey: (key, method) ->\n          $(document).bind \"keydown\", key, (event) ->\n            if typeof method is \"function\"\n              method\n                editor: self\n            else\n              self[method]()\n\n            event.preventDefault()\n\n      return self\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "version: \"0.1.0\"\nremoteDependencies: [\n  \"//code.jquery.com/jquery-1.10.1.min.js\"\n  \"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"\n]\n",
+          "type": "blob"
+        },
+        "test/hotkeys.coffee": {
+          "path": "test/hotkeys.coffee",
+          "mode": "100644",
+          "content": "Hotkeys = require \"../main\"\n\ndescribe \"hotkeys\", ->\n  it \"should be hot\", (done) ->\n    hotkeys = Hotkeys()\n    \n    hotkeys.addHotkey \"a\", ->\n      done()\n\n    $(document).trigger $.Event \"keydown\",\n      which: 65 # a\n      keyCode: 65\n",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "main": {
+          "path": "main",
+          "content": "(function() {\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    self.extend({\n      addHotkey: function(key, method) {\n        return $(document).bind(\"keydown\", key, function(event) {\n          if (typeof method === \"function\") {\n            method({\n              editor: self\n            });\n          } else {\n            self[method]();\n          }\n          return event.preventDefault();\n        });\n      }\n    });\n    return self;\n  };\n\n}).call(this);\n\n//# sourceURL=main.coffee",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.1.0\",\"remoteDependencies\":[\"//code.jquery.com/jquery-1.10.1.min.js\",\"http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js\"]};",
+          "type": "blob"
+        },
+        "test/hotkeys": {
+          "path": "test/hotkeys",
+          "content": "(function() {\n  var Hotkeys;\n\n  Hotkeys = require(\"../main\");\n\n  describe(\"hotkeys\", function() {\n    return it(\"should be hot\", function(done) {\n      var hotkeys;\n      hotkeys = Hotkeys();\n      hotkeys.addHotkey(\"a\", function() {\n        return done();\n      });\n      return $(document).trigger($.Event(\"keydown\", {\n        which: 65,\n        keyCode: 65\n      }));\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/hotkeys.coffee",
+          "type": "blob"
+        }
+      },
+      "entryPoint": "main",
+      "dependencies": {},
+      "remoteDependencies": [
+        "//code.jquery.com/jquery-1.10.1.min.js",
+        "http://strd6.github.io/tempest/javascripts/envweb-v0.4.7.js"
+      ],
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "repository": {
+        "id": 14673639,
+        "name": "hotkeys",
+        "full_name": "distri/hotkeys",
+        "owner": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+          "gravatar_id": null,
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/distri/hotkeys",
+        "description": "Hotkeys module for editors",
+        "fork": false,
+        "url": "https://api.github.com/repos/distri/hotkeys",
+        "forks_url": "https://api.github.com/repos/distri/hotkeys/forks",
+        "keys_url": "https://api.github.com/repos/distri/hotkeys/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/distri/hotkeys/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/distri/hotkeys/teams",
+        "hooks_url": "https://api.github.com/repos/distri/hotkeys/hooks",
+        "issue_events_url": "https://api.github.com/repos/distri/hotkeys/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/distri/hotkeys/events",
+        "assignees_url": "https://api.github.com/repos/distri/hotkeys/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/distri/hotkeys/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/distri/hotkeys/tags",
+        "blobs_url": "https://api.github.com/repos/distri/hotkeys/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/distri/hotkeys/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/distri/hotkeys/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/distri/hotkeys/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/distri/hotkeys/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/distri/hotkeys/languages",
+        "stargazers_url": "https://api.github.com/repos/distri/hotkeys/stargazers",
+        "contributors_url": "https://api.github.com/repos/distri/hotkeys/contributors",
+        "subscribers_url": "https://api.github.com/repos/distri/hotkeys/subscribers",
+        "subscription_url": "https://api.github.com/repos/distri/hotkeys/subscription",
+        "commits_url": "https://api.github.com/repos/distri/hotkeys/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/distri/hotkeys/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/distri/hotkeys/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/distri/hotkeys/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/distri/hotkeys/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/distri/hotkeys/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/distri/hotkeys/merges",
+        "archive_url": "https://api.github.com/repos/distri/hotkeys/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/distri/hotkeys/downloads",
+        "issues_url": "https://api.github.com/repos/distri/hotkeys/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/distri/hotkeys/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/distri/hotkeys/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/distri/hotkeys/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/distri/hotkeys/labels{/name}",
+        "releases_url": "https://api.github.com/repos/distri/hotkeys/releases{/id}",
+        "created_at": "2013-11-25T01:55:42Z",
+        "updated_at": "2013-11-25T01:55:42Z",
+        "pushed_at": "2013-11-25T01:55:42Z",
+        "git_url": "git://github.com/distri/hotkeys.git",
+        "ssh_url": "git@github.com:distri/hotkeys.git",
+        "clone_url": "https://github.com/distri/hotkeys.git",
+        "svn_url": "https://github.com/distri/hotkeys",
+        "homepage": null,
+        "size": 0,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": null,
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "master",
+        "master_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "organization": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+          "gravatar_id": null,
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "network_count": 0,
+        "subscribers_count": 2,
+        "branch": "v0.1.0",
         "defaultBranch": "master"
       }
     },
@@ -2205,160 +2524,6 @@ window["STRd6/pixel-editor:master"]({
         },
         "network_count": 0,
         "subscribers_count": 2,
-        "branch": "v0.1.0",
-        "defaultBranch": "master"
-      }
-    },
-    "grid-gen": {
-      "version": "0.1.0",
-      "source": {
-        "LICENSE": {
-          "path": "LICENSE",
-          "mode": "100644",
-          "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
-          "type": "blob"
-        },
-        "README.md": {
-          "path": "README.md",
-          "mode": "100644",
-          "content": "grid-gen\n========\n\nGenerate a grid image programatically.\n",
-          "type": "blob"
-        },
-        "grid.coffee.md": {
-          "path": "grid.coffee.md",
-          "mode": "100644",
-          "content": "Grid Generator\n==============\n\n    Grid = ({width, height, guide, color}={}) ->\n      color ?= \"rgba(0, 0, 0, 0.3)\"\n      height ?= 32\n      width ?= 32\n      guide ?= 4\n\n      canvasWidth = width * guide\n      canvasHeight = height * guide\n\n      canvas = document.createElement(\"canvas\")\n      canvas.width = canvasWidth\n      canvas.height = canvasHeight\n\n      context = canvas.getContext(\"2d\")\n\n      context.fillStyle = color\n\n      [0...guide].forEach (i) ->\n        context.fillRect(i * width, 0, 1, canvasHeight)\n        context.fillRect(0, i * height, canvasWidth, 1)\n    \n      # Draw the strong line\n      context.fillRect(0, 0, 1, canvasHeight)\n      context.fillRect(0, 0, canvasWidth, 1)\n    \n      backgroundImage: ->\n        \"url(#{this.toDataURL()})\"\n    \n      toDataURL: ->\n        canvas.toDataURL(\"image/png\")\n\n    module.exports = Grid\n",
-          "type": "blob"
-        },
-        "pixie.cson": {
-          "path": "pixie.cson",
-          "mode": "100644",
-          "content": "version: \"0.1.0\"\nentryPoint: \"grid\"\nremoteDependencies: [\n  \"http://strd6.github.io/require/v0.2.2.js\"\n]\n",
-          "type": "blob"
-        },
-        "test/test.coffee": {
-          "path": "test/test.coffee",
-          "mode": "100644",
-          "content": "Grid = require \"../grid\"\n\ndocument.body.style[\"background-image\"] = Grid().backgroundImage()\n",
-          "type": "blob"
-        }
-      },
-      "distribution": {
-        "grid": {
-          "path": "grid",
-          "content": "(function() {\n  var Grid;\n\n  Grid = function(_arg) {\n    var canvas, canvasHeight, canvasWidth, color, context, guide, height, width, _i, _ref, _results;\n    _ref = _arg != null ? _arg : {}, width = _ref.width, height = _ref.height, guide = _ref.guide, color = _ref.color;\n    if (color == null) {\n      color = \"rgba(0, 0, 0, 0.3)\";\n    }\n    if (height == null) {\n      height = 32;\n    }\n    if (width == null) {\n      width = 32;\n    }\n    if (guide == null) {\n      guide = 4;\n    }\n    canvasWidth = width * guide;\n    canvasHeight = height * guide;\n    canvas = document.createElement(\"canvas\");\n    canvas.width = canvasWidth;\n    canvas.height = canvasHeight;\n    context = canvas.getContext(\"2d\");\n    context.fillStyle = color;\n    (function() {\n      _results = [];\n      for (var _i = 0; 0 <= guide ? _i < guide : _i > guide; 0 <= guide ? _i++ : _i--){ _results.push(_i); }\n      return _results;\n    }).apply(this).forEach(function(i) {\n      context.fillRect(i * width, 0, 1, canvasHeight);\n      return context.fillRect(0, i * height, canvasWidth, 1);\n    });\n    context.fillRect(0, 0, 1, canvasHeight);\n    context.fillRect(0, 0, canvasWidth, 1);\n    return {\n      backgroundImage: function() {\n        return \"url(\" + (this.toDataURL()) + \")\";\n      },\n      toDataURL: function() {\n        return canvas.toDataURL(\"image/png\");\n      }\n    };\n  };\n\n  module.exports = Grid;\n\n}).call(this);\n\n//# sourceURL=grid.coffee",
-          "type": "blob"
-        },
-        "pixie": {
-          "path": "pixie",
-          "content": "module.exports = {\"version\":\"0.1.0\",\"entryPoint\":\"grid\",\"remoteDependencies\":[\"http://strd6.github.io/require/v0.2.2.js\"]};",
-          "type": "blob"
-        },
-        "test/test": {
-          "path": "test/test",
-          "content": "(function() {\n  var Grid;\n\n  Grid = require(\"../grid\");\n\n  document.body.style[\"background-image\"] = Grid().backgroundImage();\n\n}).call(this);\n\n//# sourceURL=test/test.coffee",
-          "type": "blob"
-        }
-      },
-      "entryPoint": "grid",
-      "dependencies": {},
-      "remoteDependencies": [
-        "http://strd6.github.io/require/v0.2.2.js"
-      ],
-      "progenitor": {
-        "url": "http://strd6.github.io/editor/"
-      },
-      "repository": {
-        "id": 13941148,
-        "name": "grid-gen",
-        "full_name": "STRd6/grid-gen",
-        "owner": {
-          "login": "STRd6",
-          "id": 18894,
-          "avatar_url": "https://2.gravatar.com/avatar/33117162fff8a9cf50544a604f60c045?d=https%3A%2F%2Fidenticons.github.com%2F39df222bffe39629d904e4883eabc654.png&r=x",
-          "gravatar_id": "33117162fff8a9cf50544a604f60c045",
-          "url": "https://api.github.com/users/STRd6",
-          "html_url": "https://github.com/STRd6",
-          "followers_url": "https://api.github.com/users/STRd6/followers",
-          "following_url": "https://api.github.com/users/STRd6/following{/other_user}",
-          "gists_url": "https://api.github.com/users/STRd6/gists{/gist_id}",
-          "starred_url": "https://api.github.com/users/STRd6/starred{/owner}{/repo}",
-          "subscriptions_url": "https://api.github.com/users/STRd6/subscriptions",
-          "organizations_url": "https://api.github.com/users/STRd6/orgs",
-          "repos_url": "https://api.github.com/users/STRd6/repos",
-          "events_url": "https://api.github.com/users/STRd6/events{/privacy}",
-          "received_events_url": "https://api.github.com/users/STRd6/received_events",
-          "type": "User",
-          "site_admin": false
-        },
-        "private": false,
-        "html_url": "https://github.com/STRd6/grid-gen",
-        "description": "Generate a grid image programatically.",
-        "fork": false,
-        "url": "https://api.github.com/repos/STRd6/grid-gen",
-        "forks_url": "https://api.github.com/repos/STRd6/grid-gen/forks",
-        "keys_url": "https://api.github.com/repos/STRd6/grid-gen/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/STRd6/grid-gen/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/STRd6/grid-gen/teams",
-        "hooks_url": "https://api.github.com/repos/STRd6/grid-gen/hooks",
-        "issue_events_url": "https://api.github.com/repos/STRd6/grid-gen/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/STRd6/grid-gen/events",
-        "assignees_url": "https://api.github.com/repos/STRd6/grid-gen/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/STRd6/grid-gen/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/STRd6/grid-gen/tags",
-        "blobs_url": "https://api.github.com/repos/STRd6/grid-gen/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/STRd6/grid-gen/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/STRd6/grid-gen/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/STRd6/grid-gen/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/STRd6/grid-gen/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/STRd6/grid-gen/languages",
-        "stargazers_url": "https://api.github.com/repos/STRd6/grid-gen/stargazers",
-        "contributors_url": "https://api.github.com/repos/STRd6/grid-gen/contributors",
-        "subscribers_url": "https://api.github.com/repos/STRd6/grid-gen/subscribers",
-        "subscription_url": "https://api.github.com/repos/STRd6/grid-gen/subscription",
-        "commits_url": "https://api.github.com/repos/STRd6/grid-gen/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/STRd6/grid-gen/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/STRd6/grid-gen/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/STRd6/grid-gen/issues/comments/{number}",
-        "contents_url": "https://api.github.com/repos/STRd6/grid-gen/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/STRd6/grid-gen/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/STRd6/grid-gen/merges",
-        "archive_url": "https://api.github.com/repos/STRd6/grid-gen/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/STRd6/grid-gen/downloads",
-        "issues_url": "https://api.github.com/repos/STRd6/grid-gen/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/STRd6/grid-gen/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/STRd6/grid-gen/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/STRd6/grid-gen/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/STRd6/grid-gen/labels{/name}",
-        "releases_url": "https://api.github.com/repos/STRd6/grid-gen/releases{/id}",
-        "created_at": "2013-10-28T23:06:21Z",
-        "updated_at": "2013-10-28T23:06:22Z",
-        "pushed_at": "2013-10-28T23:06:22Z",
-        "git_url": "git://github.com/STRd6/grid-gen.git",
-        "ssh_url": "git@github.com:STRd6/grid-gen.git",
-        "clone_url": "https://github.com/STRd6/grid-gen.git",
-        "svn_url": "https://github.com/STRd6/grid-gen",
-        "homepage": null,
-        "size": 0,
-        "watchers_count": 0,
-        "language": null,
-        "has_issues": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "forks_count": 0,
-        "mirror_url": null,
-        "open_issues_count": 0,
-        "forks": 0,
-        "open_issues": 0,
-        "watchers": 0,
-        "master_branch": "master",
-        "default_branch": "master",
-        "permissions": {
-          "admin": true,
-          "push": true,
-          "pull": true
-        },
-        "network_count": 0,
         "branch": "v0.1.0",
         "defaultBranch": "master"
       }
