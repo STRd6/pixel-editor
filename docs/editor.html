@@ -62,7 +62,7 @@ GridGen = require <span class="string">"grid-gen"</span>
 Drop = require <span class="string">"./drop"</span>
 
 Command = require <span class="string">"./command"</span>
-Undo = require <span class="string">"./undo"</span>
+Undo = require <span class="string">"undo"</span>
 Hotkeys = require <span class="string">"./hotkeys"</span>
 Tools = require <span class="string">"./tools"</span>
 Actions = require <span class="string">"./actions"</span>
@@ -186,7 +186,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
       self.activeLayer self.layers()[state.activeLayerIndex]
 
-      self.history state.history
+      self.history state.history?.map self.Command.parse
 
     saveState: -&gt;
       palette: self.palette()
