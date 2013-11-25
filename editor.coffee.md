@@ -32,7 +32,7 @@ Editing pixels in your browser.
 
     Command = require "./command"
     Undo = require "undo"
-    Hotkeys = require "./hotkeys"
+    Hotkeys = require "hotkeys"
     Tools = require "./tools"
     Actions = require "./actions"
     Layer = require "./layer"
