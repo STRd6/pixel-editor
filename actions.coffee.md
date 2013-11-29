@@ -7,7 +7,6 @@ Actions
     Modal = require("./modal")
     Palette = require("./palette")
     saveAs = require "./lib/file_saver"
-    {compressToUTF16:compress, decompressFromUTF16:decompress} = global.Compressor = require "compression"
 
     module.exports = Actions = (I={}, self=Core(I)) ->
       self.extend

@@ -6,14 +6,13 @@ remoteDependencies: [
   "https://pixipaint.net/envweb-v0.4.7.js"
 ]
 dependencies:
-  appcache: "STRd6/appcache:v0.1.0"
-  compression: "STRd6/lz-string:v1.3.3"
-  facebook: "distri/facebook:v0.1.1-alpha.4"
-  "grid-gen": "STRd6/grid-gen:v0.1.0"
-  "hotkeys": "distri/hotkeys:v0.1.0"
-  "jquery-utils": "STRd6/jquery-utils:v0.1.2"
-  runtime: "STRd6/runtime:v0.1.1"
-  "touch-canvas": "STRd6/touch-canvas:v0.2.0"
-  "undo": "distri/undo:v0.1.0"
+  appcache: "distri/appcache:v0.2.0"
+  facebook: "distri/facebook:v0.1.1"
+  "grid-gen": "distri/grid-gen:v0.2.0"
+  "hotkeys": "distri/hotkeys:v0.2.0"
+  "jquery-utils": "distri/jquery-utils:v0.2.0"
+  runtime: "STRd6/runtime:v0.2.0"
+  "touch-canvas": "distri/touch-canvas:v0.3.0"
+  "undo": "distri/undo:v0.2.0"
 width: 1024
 height: 576
