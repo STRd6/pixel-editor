@@ -93,7 +93,8 @@ Actions
           Download localStorage images as json.
         """
         method: ({editor}) ->
-          blob = new Blob [localStorage.images],
+          imagesData = JSON.parse(localStorage.images)
+          blob = new Blob [JSON.stringify(imagesData, null, 2)],
             type: "text/plain"
           saveAs blob, "images.json"
 
