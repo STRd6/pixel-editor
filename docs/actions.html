@@ -126,7 +126,8 @@ Actions.defaults =
       Download localStorage images as json.
     """</span>
     method: ({editor}) -&gt;
-      blob = <span class="keyword">new</span> Blob [localStorage.images],
+      imagesData = JSON.parse(localStorage.images)
+      blob = <span class="keyword">new</span> Blob [JSON.stringify(imagesData, <span class="literal">null</span>, <span class="number">2</span>)],
         type: <span class="string">"text/plain"</span>
       saveAs blob, <span class="string">"images.json"</span>
 
