@@ -7,6 +7,7 @@ remoteDependencies: [
 ]
 dependencies:
   appcache: "distri/appcache:v0.2.0"
+  byte_array: "distri/byte_array:v0.1.1"
   facebook: "distri/facebook:v0.1.1"
   "grid-gen": "distri/grid-gen:v0.2.0"
   "hotkeys": "distri/hotkeys:v0.2.0"
