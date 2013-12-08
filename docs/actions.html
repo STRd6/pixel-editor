@@ -34,7 +34,8 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">Facebook = require <span class="string">"facebook"</span>
+            <div class="content"><pre><code class="lang-coffeescript">ByteArray = require <span class="string">"byte_array"</span>
+Facebook = require <span class="string">"facebook"</span>
 loader = require(<span class="string">"./loader"</span>)()
 FileReading = require(<span class="string">"./file_reading"</span>)
 Modal = require(<span class="string">"./modal"</span>)
@@ -130,6 +131,30 @@ Actions.defaults =
       blob = <span class="keyword">new</span> Blob [JSON.stringify(imagesData, <span class="literal">null</span>, <span class="number">2</span>)],
         type: <span class="string">"text/plain"</span>
       saveAs blob, <span class="string">"images.json"</span>
+  <span class="string">"."</span>:
+    description: <span class="string">"""
+      Download image as base64-encoded byte array.
+    """</span>
+    method: ({editor}) -&gt;
+      {width, height} = size = editor.pixelExtent()
+
+      byteArray = ByteArray(width * height)
+
+      [<span class="number">0.</span>..height].forEach (y) -&gt;
+        [<span class="number">0.</span>..width].forEach (x) -&gt;
+
+          <span class="comment"># TODO: Assumes only one layer</span>
+          {index} = editor.getPixel
+            x: x
+            y: y
+
+          byteArray.set(x + y * width, index)
+
+      blob = <span class="keyword">new</span> Blob [JSON.stringify(byteArray)],
+        type: <span class="string">"text/plain"</span>
+      saveAs blob, <span class="string">"array.dat"</span>
+
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADh0lEQVQ4T12TbWxTVRjH/+f2dr3t+kbTdVtKGQtmyliNdhKYG5MhOkJ40YkoBjYMZhACiSTG+MGEGL9A9Isx4ktEMJlLdCEGhE1exqo1Q+KAVTokDB3UdW23dV3v1u729px7vMxIFp9vJ8/z/M/v/M/zEPwvDgZ3ruEG8SDhfKWeKgGIyAnPEJCrjNJjx5o6flzYQv47rO1bK/oNFSf1hm2bK9abXOYSZHLFyKkAZQookugd66aMsovTGba9a3vX7IPeeYH2z2uNRctr+lZ6auqbfesgKybkoWJYJijiJqRyGjhVYUYW8XwIA6MDv+cn5cauvZd0Mj0OhHZ/U+uueu0Zbx0USODMDlUt4JZshNFgQizNUShQGBQZlSUziMq9+OnOYM/3bT0byf6+1gZBFC6//USbMUyzUHTJYmYFcm7EskbkCwS3788AmorS8hQ87hE8JXlx+IdPWUGlLxH99lMbvKtaymw+3BEpBF6OSiohFBOhURHDiVkQaQoW718QpAQ0TUFgthREmcNX/WcvkAM/7462V7f4buQSmJAEVBtWYxGj6LzOoSgMjnIO2fUdxrRpnYLDSU2ojJuwvjKAd7s+jj8gyL7p32XpTIQwbsjBb9kAm2pH968aHCVzqFiSw5A2hZF8GCY+A8tEGovTFux5eiv2H39/TidozR3yt5lPRM8hDR8CjhoE+3UPzFZkkzK8ywCrJ4kZ3VA5VtBNHoBTHcG+plfQ/sVhhezr3TW6t6bFG5y4CVVqgJIWEbllQZHNDg4B0xMpKJNZHV+BwyPAWfwn3OQGmmvX4K2vP0ySN87vOLNxyerNRpMdl+KjesEjuBvxoSBYwQ1OFPT/z8spsNkMnA4Gu/gbVixVYOUSPrl4Kkjazmx7nlJ27p2GPeLJ8FkwYgTNv4CplP4MyQPGNOTG/4al9C7s0jBILIodzZtw6MsjXEfcOT9IL3duOr2qfPmWqrJluJa4B014FpNxC7jkAqUc+akYrK4OaON5PFn9GKKJMXQPXgkOHrnZNC+w5Xi9TWPmX+oWr3h8XaARt8dduH9PJyFF+gQK0E2Ar+oKHrUvxeVr/egJXx0uMNY49MFQ4uEy1R+tt5mM+Jaq2nOtDa+LYGXg3AIiELidMpKp6/js/Gmmc4foHH818lEk+XCZFq5n3XuBF6nG2xnV/Fzji/7N8Qw4+UPj2onw0UjHwvp/AEX+mWg8VyxBAAAAAElFTkSuQmCC"</span>
 
   <span class="string">"ctrl+r"</span>:
     description: <span class="string">"""
