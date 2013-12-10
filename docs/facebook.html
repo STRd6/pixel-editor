@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>modal</title>
+  <title>facebook</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,7 +18,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="modal">Modal</h1>
+              <h1 id="facebook">Facebook</h1>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">
@@ -32,21 +32,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Messing around with some modal BS</p>
+              <p>Integrate with our Facebook app.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># HACK: Dismiss modal by clicking on overlay</span>
-$ -&gt;
-  $(<span class="string">"#modal"</span>).click (e) -&gt;
-    <span class="keyword">if</span> e.target <span class="keyword">is</span> <span class="keyword">this</span>
-      Modal.hide()
-
-module.exports = Modal =
-  show: (element) -&gt;
-    $(<span class="string">"#modal"</span>).empty().append(element).addClass(<span class="string">"active"</span>)
-
-  hide: -&gt;
-    $(<span class="string">"#modal"</span>).removeClass(<span class="string">"active"</span>)</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">require(<span class="string">"facebook"</span>).init <span class="string">"391109411021092"</span>, <span class="literal">null</span>, (FB) -&gt;
+  console.log FB</code></pre>
 </div>
         </li>
         

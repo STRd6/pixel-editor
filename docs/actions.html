@@ -36,7 +36,6 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">ByteArray = require <span class="string">"byte_array"</span>
 Facebook = require <span class="string">"facebook"</span>
-loader = require(<span class="string">"./loader"</span>)()
 FileReading = require(<span class="string">"./file_reading"</span>)
 Modal = require(<span class="string">"./modal"</span>)
 Palette = require(<span class="string">"./palette"</span>)
@@ -83,9 +82,7 @@ Actions.defaults =
     method: ({editor}) -&gt;
       Modal.show FileReading.readerInput
         image: (dataURL) -&gt;
-          loader.load(dataURL)
-          .<span class="keyword">then</span> (imageData) -&gt;
-            editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
+          editor.fromDataURL(dataURL)
         json: (data) -&gt;
           editor.restoreState data
         text: -&gt;
@@ -276,6 +273,8 @@ Actions.extras =
   <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
   $.ajax({
     url: "http://strd6.github.io/interactive/v0.8.1.jsonp",

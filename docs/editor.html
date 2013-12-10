@@ -51,10 +51,7 @@ runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
 runtime.boot()
 runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
-console.log <span class="string">"starting..."</span>
-
-require(<span class="string">"facebook"</span>).init <span class="string">"391109411021092"</span>, <span class="literal">null</span>, (FB) -&gt;
-  console.log FB
+loader = require(<span class="string">"./loader"</span>)()
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
@@ -181,6 +178,11 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
         self.repaintPixel {x, y}
 
       <span class="keyword">return</span> self
+
+    fromDataURL: (dataURL) -&gt;
+      loader.load(dataURL)
+      .<span class="keyword">then</span> (imageData) -&gt;
+        editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
 
     restoreState: (state) -&gt;
       self.palette state.palette
@@ -427,6 +429,8 @@ editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
   <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
 <script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
   $.ajax({
     url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
