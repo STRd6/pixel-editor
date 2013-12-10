@@ -417,6 +417,7 @@ accidentally setting the pixel values during the preview.</p>
 global.editor = Editor()
 
 <span class="keyword">if</span> global.parent? <span class="keyword">and</span> global.parent != global
+  console.log <span class="string">"postin ready"</span>
   parent.postMessage
     status: <span class="string">"ready"</span>
   , <span class="string">"*"</span>
