@@ -378,4 +378,9 @@ accidentally setting the pixel values during the preview.
     # For debugging
     global.editor = Editor()
 
+    if global.parent? and global.parent != global
+      parent.postMessage
+        status: "ready"
+      , "*"
+
     editor.notify("Welcome to PixiPaint!")
