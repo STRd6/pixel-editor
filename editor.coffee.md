@@ -378,6 +378,8 @@ accidentally setting the pixel values during the preview.
     # For debugging
     global.editor = Editor()
 
+    console.log "radical!"
+
     if global.parent? and global.parent != global
       console.log "postin ready"
       parent.postMessage
