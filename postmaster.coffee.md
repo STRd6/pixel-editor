@@ -10,7 +10,7 @@ Bind editor events to postMessage events.
           {method, params, id} = event.data
 
           try
-            result = self[method].apply(params)
+            result = self[method](params...)
 
             send
               success: id
