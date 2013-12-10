@@ -379,6 +379,7 @@ accidentally setting the pixel values during the preview.
     global.editor = Editor()
 
     if global.parent? and global.parent != global
+      console.log "postin ready"
       parent.postMessage
         status: "ready"
       , "*"
