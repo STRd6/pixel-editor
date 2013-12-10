@@ -13,12 +13,14 @@ Bind editor events to postMessage events.
             result = self[method](params...)
 
             send
-              success: id
-              result: result
+              success: 
+                id: id
+                result: result
           catch error
             send
-              data: event.data
-              error: error
+              error: 
+                id: id
+                result: error
 
       addEventListener "unload", ->
         send
