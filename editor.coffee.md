@@ -37,6 +37,7 @@ Editing pixels in your browser.
     Actions = require "./actions"
     Layer = require "./layer"
     Notifications = require "./notifications"
+    Postmaster = require "./postmaster"
 
     Palette = require("./palette")
 
@@ -65,6 +66,7 @@ Editing pixels in your browser.
       self.include Actions
       self.include Drop
       self.include Notifications
+      self.include Postmaster
 
       activeTool = self.activeTool
 
@@ -377,11 +379,5 @@ accidentally setting the pixel values during the preview.
 
     # For debugging
     global.editor = Editor()
-
-    if global.opener?
-      console.log "postin ready"
-      global.opener.postMessage
-        status: "ready"
-      , "*"
 
     editor.notify("Welcome to PixiPaint!")
