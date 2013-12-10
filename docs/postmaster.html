@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>postmaster</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="postmaster">Postmaster</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Bind editor events to postMessage events.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
+  <span class="comment"># Only listening to messages from `opener`</span>
+  addEventListener <span class="string">"message"</span>, (event) -&gt;
+    <span class="keyword">if</span> event.source <span class="keyword">is</span> opener
+      {method, params, id} = event.data
+
+      <span class="keyword">try</span>
+        result = self[method].apply(params)
+
+        send
+          success: id
+          result: result
+      <span class="keyword">catch</span> error
+        send
+          data: event.data
+          error: error
+
+  addEventListener <span class="string">"unload"</span>, -&gt;
+    send
+      status: <span class="string">"unload"</span>
+
+  <span class="comment"># Tell our opener that we're ready</span>
+  send
+    status: <span class="string">"ready"</span>
+
+  <span class="keyword">return</span> self
+
+<span class="function"><span class="title">send</span></span> = (data) -&gt;
+  opener?.postMessage data, <span class="string">"*"</span></code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script>
+<script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
+  $.ajax({
+    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
+    dataType: "jsonp",
+    jsonpCallback: "STRd6/interactive:v0.8.1",
+    cache: true
+  }).then(function(PACKAGE) {
+    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
+  })
+</script><script src="package.js"></script>
+</body>
+</html>

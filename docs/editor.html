@@ -68,6 +68,7 @@ Tools = require <span class="string">"./tools"</span>
 Actions = require <span class="string">"./actions"</span>
 Layer = require <span class="string">"./layer"</span>
 Notifications = require <span class="string">"./notifications"</span>
+Postmaster = require <span class="string">"./postmaster"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 
@@ -96,6 +97,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
   self.include Actions
   self.include Drop
   self.include Notifications
+  self.include Postmaster
 
   activeTool = self.activeTool
 
@@ -415,12 +417,6 @@ accidentally setting the pixel values during the preview.</p>
 
 <span class="comment"># For debugging</span>
 global.editor = Editor()
-
-<span class="keyword">if</span> global.opener?
-  console.log <span class="string">"postin ready"</span>
-  global.opener.postMessage
-    status: <span class="string">"ready"</span>
-  , <span class="string">"*"</span>
 
 editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
 </div>
