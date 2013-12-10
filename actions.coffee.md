@@ -3,7 +3,6 @@ Actions
 
     ByteArray = require "byte_array"
     Facebook = require "facebook"
-    loader = require("./loader")()
     FileReading = require("./file_reading")
     Modal = require("./modal")
     Palette = require("./palette")
@@ -50,9 +49,7 @@ Actions
         method: ({editor}) ->
           Modal.show FileReading.readerInput
             image: (dataURL) ->
-              loader.load(dataURL)
-              .then (imageData) ->
-                editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
+              editor.fromDataURL(dataURL)
             json: (data) ->
               editor.restoreState data
             text: ->

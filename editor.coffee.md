@@ -19,11 +19,8 @@ Editing pixels in your browser.
     runtime = require("runtime")(PACKAGE)
     runtime.boot()
     runtime.applyStyleSheet(require('./style'))
-
-    console.log "starting..."
-
-    require("facebook").init "391109411021092", null, (FB) ->
-      console.log FB
+  
+    loader = require("./loader")()
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
@@ -150,6 +147,11 @@ Editing pixels in your browser.
             self.repaintPixel {x, y}
 
           return self
+
+        fromDataURL: (dataURL) ->
+          loader.load(dataURL)
+          .then (imageData) ->
+            editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
 
         restoreState: (state) ->
           self.palette state.palette
