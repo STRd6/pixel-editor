@@ -1,6 +1,8 @@
 Drop and Paste Events
 =====================
 
+    require "jquery-utils"
+
     Loader = require "./loader"
 
     loader = Loader()

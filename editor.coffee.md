@@ -1,40 +1,20 @@
-Pixel Editor
-============
+Editor
+======
 
-Welcome to this cool pixel editor. Eventually you'll be able to read this for
-help, but right now it's mostly code.
-
-Editing pixels in your browser.
-
-    # For debug purposes
-    global.PACKAGE = PACKAGE
-    global.require = require
-
-    require "appcache"
-    require "jquery-utils"
-
-    require "./lib/canvas-to-blob"
-    saveAs = require "./lib/file_saver"
-
-    runtime = require("runtime")(PACKAGE)
-    runtime.boot()
-    runtime.applyStyleSheet(require('./style'))
-  
     loader = require("./loader")()
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
 
-    Drop = require "./drop"
-
-    Command = require "./command"
-    Undo = require "undo"
-    Hotkeys = require "hotkeys"
-    Tools = require "./tools"
     Actions = require "./actions"
+    Command = require "./command"
+    Drop = require "./drop"
+    Eval = require "eval"
     Layer = require "./layer"
     Notifications = require "./notifications"
     Postmaster = require "./postmaster"
+    Tools = require "./tools"
+    Undo = require "undo"
 
     Palette = require("./palette")
 
@@ -43,7 +23,10 @@ Editing pixels in your browser.
 
     {Size} = require "./util"
 
-    Editor = (I={}, self) ->
+    module.exports = (I={}, self) ->
+      Object.defaults I,
+        selector: "body"
+
       activeIndex = Observable(1)
 
       pixelExtent = Observable Size(32, 32)
@@ -56,14 +39,14 @@ Editing pixels in your browser.
 
       self ?= Model(I)
 
-      self.include Command
-      self.include Undo
-      self.include Hotkeys
-      self.include Tools
       self.include Actions
+      self.include Command
       self.include Drop
+      self.include Eval
       self.include Notifications
       self.include Postmaster
+      self.include Undo
+      self.include Tools
 
       activeTool = self.activeTool
 
@@ -283,7 +266,8 @@ accidentally setting the pixel values during the preview.
 
       makeLayer()
 
-      $('body').append template self
+      $selector = $(I.selector)
+      $(I.selector).append template self
 
       canvas = TouchCanvas canvasSize()
       previewCanvas = TouchCanvas canvasSize()
@@ -293,21 +277,21 @@ accidentally setting the pixel values during the preview.
       updateActiveColor = (newIndex) ->
         color = self.palette()[newIndex]
 
-        $(".palette .current").css
+        $selector.find(".palette .current").css
           backgroundColor: color
 
       updateActiveColor(activeIndex())
       activeIndex.observe updateActiveColor
 
-      $(".viewport")
+      $selector.find(".viewport")
         .append(canvas.element())
         .append($(previewCanvas.element()).addClass("preview"))
 
-      $(".thumbnail").append thumbnailCanvas.element()
+      $selector.find(".thumbnail").append thumbnailCanvas.element()
 
       updateViewportCentering = (->
         size = canvasSize()
-        $(".viewport").toggleClass "vertical-center", size.height < $(".main").height()
+        $selector.find(".viewport").toggleClass "vertical-center", size.height < $selector.find(".main").height()
       ).debounce(15)
       $(window).resize updateViewportCentering
 
@@ -323,11 +307,11 @@ accidentally setting the pixel values during the preview.
 
           canvas.clear()
 
-        $(".viewport, .overlay").css
+        $selector.find(".viewport, .overlay").css
           width: size.width
           height: size.height
 
-        $(".overlay").css
+        $selector.find(".overlay").css
           backgroundImage: gridImage
 
         updateViewportCentering()
@@ -378,8 +362,3 @@ accidentally setting the pixel values during the preview.
         previewCanvas.clear()
 
       return self
-
-    # For debugging
-    global.editor = Editor()
-
-    editor.notify("Welcome to PixiPaint!")

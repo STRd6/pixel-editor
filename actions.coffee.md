@@ -4,11 +4,14 @@ Actions
     ByteArray = require "byte_array"
     Facebook = require "facebook"
     FileReading = require("./file_reading")
+    Hotkeys = require "hotkeys"
     Modal = require("./modal")
     Palette = require("./palette")
     saveAs = require "./lib/file_saver"
 
     module.exports = Actions = (I={}, self=Core(I)) ->
+      self.include Hotkeys
+
       self.extend
         addAction: (action) ->
           self.actions.push action
