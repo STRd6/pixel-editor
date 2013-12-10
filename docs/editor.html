@@ -18,7 +18,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="pixel-editor">Pixel Editor</h1>
+              <h1 id="editor">Editor</h1>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">
@@ -32,40 +32,22 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Welcome to this cool pixel editor. Eventually you&#39;ll be able to read this for
-help, but right now it&#39;s mostly code.</p>
-<p>Editing pixels in your browser.</p>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># For debug purposes</span>
-global.PACKAGE = PACKAGE
-global.require = require
-
-require <span class="string">"appcache"</span>
-require <span class="string">"jquery-utils"</span>
-
-require <span class="string">"./lib/canvas-to-blob"</span>
-saveAs = require <span class="string">"./lib/file_saver"</span>
-
-runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
-runtime.boot()
-runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
-
-loader = require(<span class="string">"./loader"</span>)()
+            <div class="content"><pre><code class="lang-coffeescript">loader = require(<span class="string">"./loader"</span>)()
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
 
-Drop = require <span class="string">"./drop"</span>
-
-Command = require <span class="string">"./command"</span>
-Undo = require <span class="string">"undo"</span>
-Hotkeys = require <span class="string">"hotkeys"</span>
-Tools = require <span class="string">"./tools"</span>
 Actions = require <span class="string">"./actions"</span>
+Command = require <span class="string">"./command"</span>
+Drop = require <span class="string">"./drop"</span>
+Eval = require <span class="string">"eval"</span>
 Layer = require <span class="string">"./layer"</span>
 Notifications = require <span class="string">"./notifications"</span>
 Postmaster = require <span class="string">"./postmaster"</span>
+Tools = require <span class="string">"./tools"</span>
+Undo = require <span class="string">"undo"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 
@@ -74,7 +56,10 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
 {Size} = require <span class="string">"./util"</span>
 
-<span class="function"><span class="title">Editor</span></span> = (I={}, self) -&gt;
+module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
+  Object.defaults I,
+    selector: <span class="string">"body"</span>
+
   activeIndex = Observable(<span class="number">1</span>)
 
   pixelExtent = Observable Size(<span class="number">32</span>, <span class="number">32</span>)
@@ -87,14 +72,14 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 
   self ?= Model(I)
 
-  self.include Command
-  self.include Undo
-  self.include Hotkeys
-  self.include Tools
   self.include Actions
+  self.include Command
   self.include Drop
+  self.include Eval
   self.include Notifications
   self.include Postmaster
+  self.include Undo
+  self.include Tools
 
   activeTool = self.activeTool
 
@@ -321,7 +306,8 @@ accidentally setting the pixel values during the preview.</p>
 
   makeLayer()
 
-  $(<span class="string">'body'</span>).append template self
+  $selector = $(I.selector)
+  $(I.selector).append template self
 
   canvas = TouchCanvas canvasSize()
   previewCanvas = TouchCanvas canvasSize()
@@ -331,21 +317,21 @@ accidentally setting the pixel values during the preview.</p>
   <span class="function"><span class="title">updateActiveColor</span></span> = (newIndex) -&gt;
     color = self.palette()[newIndex]
 
-    $(<span class="string">".palette .current"</span>).css
+    $selector.find(<span class="string">".palette .current"</span>).css
       backgroundColor: color
 
   updateActiveColor(activeIndex())
   activeIndex.observe updateActiveColor
 
-  $(<span class="string">".viewport"</span>)
+  $selector.find(<span class="string">".viewport"</span>)
     .append(canvas.element())
     .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
 
-  $(<span class="string">".thumbnail"</span>).append thumbnailCanvas.element()
+  $selector.find(<span class="string">".thumbnail"</span>).append thumbnailCanvas.element()
 
   updateViewportCentering = (-&gt;
     size = canvasSize()
-    $(<span class="string">".viewport"</span>).toggleClass <span class="string">"vertical-center"</span>, size.height &lt; $(<span class="string">".main"</span>).height()
+    $selector.find(<span class="string">".viewport"</span>).toggleClass <span class="string">"vertical-center"</span>, size.height &lt; $selector.find(<span class="string">".main"</span>).height()
   ).debounce(<span class="number">15</span>)
   $(window).resize updateViewportCentering
 
@@ -361,11 +347,11 @@ accidentally setting the pixel values during the preview.</p>
 
       canvas.clear()
 
-    $(<span class="string">".viewport, .overlay"</span>).css
+    $selector.find(<span class="string">".viewport, .overlay"</span>).css
       width: size.width
       height: size.height
 
-    $(<span class="string">".overlay"</span>).css
+    $selector.find(<span class="string">".overlay"</span>).css
       backgroundImage: gridImage
 
     updateViewportCentering()
@@ -415,12 +401,7 @@ accidentally setting the pixel values during the preview.</p>
 
     previewCanvas.clear()
 
-  <span class="keyword">return</span> self
-
-<span class="comment"># For debugging</span>
-global.editor = Editor()
-
-editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
+  <span class="keyword">return</span> self</code></pre>
 </div>
         </li>
         

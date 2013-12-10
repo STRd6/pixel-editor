@@ -37,11 +37,14 @@
             <div class="content"><pre><code class="lang-coffeescript">ByteArray = require <span class="string">"byte_array"</span>
 Facebook = require <span class="string">"facebook"</span>
 FileReading = require(<span class="string">"./file_reading"</span>)
+Hotkeys = require <span class="string">"hotkeys"</span>
 Modal = require(<span class="string">"./modal"</span>)
 Palette = require(<span class="string">"./palette"</span>)
 saveAs = require <span class="string">"./lib/file_saver"</span>
 
 module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
+  self.include Hotkeys
+
   self.extend
     addAction: (action) -&gt;
       self.actions.push action
