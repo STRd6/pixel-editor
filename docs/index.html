@@ -416,6 +416,11 @@ accidentally setting the pixel values during the preview.</p>
 <span class="comment"># For debugging</span>
 global.editor = Editor()
 
+<span class="keyword">if</span> global.parent? <span class="keyword">and</span> global.parent != global
+  parent.postMessage
+    status: <span class="string">"ready"</span>
+  , <span class="string">"*"</span>
+
 editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
 </div>
         </li>
