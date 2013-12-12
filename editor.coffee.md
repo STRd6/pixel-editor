@@ -96,6 +96,8 @@ Editor
 
           command.push self.Command.NewLayer(data)
 
+          self.trigger "change"
+
         newLayer: (data) ->
           makeLayer(data?.data)
 
