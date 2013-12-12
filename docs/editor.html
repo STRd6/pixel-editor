@@ -73,6 +73,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self ?= Model(I)
 
   self.include Actions
+  self.include Bindable
   self.include Command
   self.include Drop
   self.include Eval
@@ -399,7 +400,21 @@ accidentally setting the pixel values during the preview.</p>
       position: canvasPosition position
       editor: self
 
+    self.trigger <span class="string">"release"</span>
+
+  self.<span class="literal">on</span> <span class="string">"release"</span>, -&gt;
     previewCanvas.clear()
+
+    <span class="comment"># TODO: Think more about triggering change events</span>
+    self.trigger <span class="string">"change"</span>
+
+  <span class="comment"># TODO: Extract this decorator pattern</span>
+  [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;
+    oldMethod = self[method]
+
+    self[method] = -&gt;
+      oldMethod.apply(self, arguments)
+      self.trigger <span class="string">"change"</span>
 
   <span class="keyword">return</span> self</code></pre>
 </div>
