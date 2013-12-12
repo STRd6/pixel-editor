@@ -40,6 +40,7 @@ Editor
       self ?= Model(I)
 
       self.include Actions
+      self.include Bindable
       self.include Command
       self.include Drop
       self.include Eval
@@ -359,6 +360,20 @@ accidentally setting the pixel values during the preview.
           position: canvasPosition position
           editor: self
 
+        self.trigger "release"
+
+      self.on "release", ->
         previewCanvas.clear()
+
+        # TODO: Think more about triggering change events
+        self.trigger "change"
+
+      # TODO: Extract this decorator pattern
+      ["undo", "execute", "redo"].forEach (method) ->
+        oldMethod = self[method]
+
+        self[method] = ->
+          oldMethod.apply(self, arguments)
+          self.trigger "change"
 
       return self
