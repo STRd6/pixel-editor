@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache?1386811002588">
+<html manifest="manifest.appcache?1386812289044">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -277,7 +277,7 @@ require('./main')
     "postmaster.coffee.md": {
       "path": "postmaster.coffee.md",
       "mode": "100644",
-      "content": "Postmaster\n==========\n\nBind editor events to postMessage events.\n\n    module.exports = (I={}, self=Core(I)) ->\n      # Only listening to messages from `opener`\n      addEventListener \"message\", (event) ->\n        if event.source is opener\n          {method, params, id} = event.data\n\n          try\n            result = self[method](params...)\n\n            send\n              success: \n                id: id\n                result: result\n          catch error\n            send\n              error: \n                id: id\n                result: error\n\n      addEventListener \"unload\", ->\n        send\n          status: \"unload\"\n\n      # Tell our opener that we're ready\n      send\n        status: \"ready\"\n\n      return self\n\n    send = (data) ->\n      opener?.postMessage data, \"*\"\n",
+      "content": "Postmaster\n==========\n\nBind editor events to postMessage events.\n\n    module.exports = (I={}, self=Core(I)) ->\n      # Only listening to messages from `opener`\n      addEventListener \"message\", (event) ->\n        if event.source is opener\n          {method, params, id} = event.data\n\n          try\n            result = self[method](params...)\n\n            send\n              success:\n                id: id\n                result: result\n          catch error\n            send\n              error:\n                id: id\n                result: error\n\n      addEventListener \"unload\", ->\n        send\n          status: \"unload\"\n\n      # Tell our opener that we're ready\n      send\n        status: \"ready\"\n\n      self.sendToParent = send\n\n      return self\n\n    send = (data) ->\n      opener?.postMessage data, \"*\"\n",
       "type": "blob"
     },
     "style.styl": {
@@ -401,7 +401,7 @@ require('./main')
     },
     "postmaster": {
       "path": "postmaster",
-      "content": "(function() {\n  var send;\n\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    addEventListener(\"message\", function(event) {\n      var error, id, method, params, result, _ref;\n      if (event.source === opener) {\n        _ref = event.data, method = _ref.method, params = _ref.params, id = _ref.id;\n        try {\n          result = self[method].apply(self, params);\n          return send({\n            success: {\n              id: id,\n              result: result\n            }\n          });\n        } catch (_error) {\n          error = _error;\n          return send({\n            error: {\n              id: id,\n              result: error\n            }\n          });\n        }\n      }\n    });\n    addEventListener(\"unload\", function() {\n      return send({\n        status: \"unload\"\n      });\n    });\n    send({\n      status: \"ready\"\n    });\n    return self;\n  };\n\n  send = function(data) {\n    return typeof opener !== \"undefined\" && opener !== null ? opener.postMessage(data, \"*\") : void 0;\n  };\n\n}).call(this);\n\n//# sourceURL=postmaster.coffee",
+      "content": "(function() {\n  var send;\n\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    addEventListener(\"message\", function(event) {\n      var error, id, method, params, result, _ref;\n      if (event.source === opener) {\n        _ref = event.data, method = _ref.method, params = _ref.params, id = _ref.id;\n        try {\n          result = self[method].apply(self, params);\n          return send({\n            success: {\n              id: id,\n              result: result\n            }\n          });\n        } catch (_error) {\n          error = _error;\n          return send({\n            error: {\n              id: id,\n              result: error\n            }\n          });\n        }\n      }\n    });\n    addEventListener(\"unload\", function() {\n      return send({\n        status: \"unload\"\n      });\n    });\n    send({\n      status: \"ready\"\n    });\n    self.sendToParent = send;\n    return self;\n  };\n\n  send = function(data) {\n    return typeof opener !== \"undefined\" && opener !== null ? opener.postMessage(data, \"*\") : void 0;\n  };\n\n}).call(this);\n\n//# sourceURL=postmaster.coffee",
       "type": "blob"
     },
     "style": {

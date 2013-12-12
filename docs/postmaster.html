@@ -45,12 +45,12 @@
         result = self[method](params...)
 
         send
-          success: 
+          success:
             id: id
             result: result
       <span class="keyword">catch</span> error
         send
-          error: 
+          error:
             id: id
             result: error
 
@@ -61,6 +61,8 @@
   <span class="comment"># Tell our opener that we're ready</span>
   send
     status: <span class="string">"ready"</span>
+
+  self.sendToParent = send
 
   <span class="keyword">return</span> self
 
