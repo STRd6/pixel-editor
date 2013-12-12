@@ -13,12 +13,12 @@ Bind editor events to postMessage events.
             result = self[method](params...)
 
             send
-              success: 
+              success:
                 id: id
                 result: result
           catch error
             send
-              error: 
+              error:
                 id: id
                 result: error
 
@@ -29,6 +29,8 @@ Bind editor events to postMessage events.
       # Tell our opener that we're ready
       send
         status: "ready"
+
+      self.sendToParent = send
 
       return self
 
