@@ -129,6 +129,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       command.push self.Command.NewLayer(data)
 
+      self.trigger <span class="string">"change"</span>
+
     newLayer: (data) -&gt;
       makeLayer(data?.data)
 
