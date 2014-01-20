@@ -1,5 +1,10 @@
-require "../editor"
+
+
+Editor = require "../editor"
 
 describe "editor", ->
-  it "should be radical", ->
-    assert true
+  it "should have eval", ->
+    editor = Editor
+      selector: "#not_present"
+    
+    assert.equal editor.eval("5"), 5
