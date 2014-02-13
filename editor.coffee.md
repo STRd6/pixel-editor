@@ -12,7 +12,7 @@ Editor
     Eval = require "eval"
     Layer = require "./layer"
     Notifications = require "./notifications"
-    Postmaster = require "./postmaster"
+    Postmaster = require "postmaster"
     Tools = require "./tools"
     Undo = require "undo"
 
