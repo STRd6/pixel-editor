@@ -7,7 +7,7 @@ Loader
           deferred = Deferred()
 
           context = document.createElement('canvas').getContext('2d')
-          image = document.createElement("image")
+          image = document.createElement("img")
 
           image.onload = ->
             {width, height} = image
