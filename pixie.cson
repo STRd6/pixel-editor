@@ -13,7 +13,7 @@ dependencies:
   "hotkeys": "distri/hotkeys:v0.2.0"
   "jquery-utils": "distri/jquery-utils:v0.2.0"
   postmaster: "distri/postmaster:v0.2.0"
-  runtime: "STRd6/runtime:v0.2.0"
+  runtime: "distri/runtime:v0.3.0"
   "touch-canvas": "distri/touch-canvas:v0.3.0"
   "undo": "distri/undo:v0.2.0"
 width: 1024
