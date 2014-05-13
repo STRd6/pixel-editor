@@ -30,6 +30,12 @@ eventNames = """
   scroll
   select
   submit
+  touchstart
+  touchend
+  touchmove
+  touchenter
+  touchleave
+  touchcancel
   unload
 """.split("\n")
 

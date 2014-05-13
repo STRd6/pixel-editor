@@ -2,6 +2,7 @@ Editor
 ======
 
     loader = require("./loader")()
+    {defaults} = require "util"
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
@@ -24,7 +25,7 @@ Editor
     {Size} = require "./util"
 
     module.exports = (I={}, self) ->
-      Object.defaults I,
+      defaults I,
         selector: "body"
 
       activeIndex = Observable(1)

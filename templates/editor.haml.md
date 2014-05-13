@@ -3,6 +3,7 @@ Editor template
     - activeIndex = @activeIndex
     - activeTool = @activeTool
     - editor = this
+    - Observable = require "observable"
 
     .editor
 
