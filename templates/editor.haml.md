@@ -3,6 +3,7 @@ Editor template
     - activeIndex = @activeIndex
     - activeTool = @activeTool
     - editor = this
+    - Observable = require "observable"
 
     .editor
 
@@ -11,9 +12,8 @@ The toolbar holds our tools.
       .toolbar
         - each @tools, (tool) ->
           - activeClass = -> "active" if tool is activeTool()
-          .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass)
-            -on "click", (e) ->
-              - activeTool(tool)
+          - activate = -> activeTool(tool)
+          .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
 
 Our layers and preview canvases are placed in the viewport.
 
@@ -31,19 +31,13 @@ The palette holds our colors.
       .palette
         .color.current
         - each @palette, (color, index) ->
-          .color(style="background-color: #{color}")
-            - on "click", ->
-              - activeIndex index
-            - on "touchstart", ->
-              - activeIndex index
+          - activate = -> activeIndex index
+          .color(click=activate touchstart=activate style="background-color: #{color}")
 
       .actions
         - each @actions, (action) ->
-          .action(style="background-image: url(#{action.iconUrl})")
-            - on "click", ->
-              - action.perform()
-            - on "touchstart", ->
-              - action.perform()
+          - perform = -> action.perform()
+          .action(click=perform touchstart=perform style="background-image: url(#{action.iconUrl})")
 
 Modal junk
 

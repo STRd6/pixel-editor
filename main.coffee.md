@@ -9,6 +9,12 @@ Editing pixels in your browser.
     # For debug purposes
     global.PACKAGE = PACKAGE
     global.require = require
+    
+    # Setup
+    global.Observable = require "observable"
+    global.Model = require "model"
+    global.Bindable = require "bindable"
+    require "cornerstone"
 
     require "appcache"
     require "jquery-utils"
