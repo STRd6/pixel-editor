@@ -32,11 +32,9 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Commands that can be done/undone in the editor.</p>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
-  self.Command = {}</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">{extend} = require <span class="string">"util"</span></code></pre>
 </div>
         </li>
         
@@ -46,6 +44,20 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
+              <p>Commands that can be done/undone in the editor.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
+  self.Command = {}</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
               <p>This is a weird DSL for each command to inherit a toJSON method and to register
 to be de-serialized by name.</p>
 <p><em>IMPORTANT:</em> If the names change then old command data may fail to load in newer
@@ -54,7 +66,7 @@ versions.</p>
             </div>
             <div class="content"><pre><code class="lang-coffeescript">  <span class="function"><span class="title">C</span></span> = (name, constructor) -&gt;
     self.Command[name] = (data={}) -&gt;
-      data = Object.extend {}, data
+      data = extend {}, data
       data.name = name
 
       command = constructor(data)
@@ -81,7 +93,7 @@ versions.</p>
       self.changePixel(data)
 
     undo: -&gt;
-      self.changePixel Object.extend {}, data, index: data.previous
+      self.changePixel extend {}, data, index: data.previous
 
   C <span class="string">"Resize"</span>, (data) -&gt;
     {width, height, state} = data
@@ -131,7 +143,7 @@ versions.</p>
       command.execute() <span class="keyword">unless</span> noExecute
 
     toJSON: -&gt;
-      Object.extend {}, data,
+      extend {}, data,
         commands: commands.invoke <span class="string">"toJSON"</span>
 
   self.Command.<span class="function"><span class="title">parse</span></span> = (commandData) -&gt;
@@ -143,7 +155,7 @@ versions.</p>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 

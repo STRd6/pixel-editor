@@ -192,7 +192,7 @@
     },
     "command.coffee.md": {
       "path": "command.coffee.md",
-      "content": "Command\n=======\n\nCommands that can be done/undone in the editor.\n\n    module.exports = (I={}, self) ->\n      self.Command = {}\n\nThis is a weird DSL for each command to inherit a toJSON method and to register\nto be de-serialized by name.\n\n*IMPORTANT:* If the names change then old command data may fail to load in newer\nversions.\n\n      C = (name, constructor) ->\n        self.Command[name] = (data={}) ->\n          data = Object.extend {}, data\n          data.name = name\n\n          command = constructor(data)\n\n          command.toJSON ?= ->\n            # TODO: May want to return a copy of the data to be super-duper safe\n            data\n\n          return command\n\n      C \"ChangePalette\", (data) ->\n        data.previous ?= self.palette()\n\n        execute: ->\n          self.palette data.palette\n\n        undo: ->\n          self.palette data.previous\n\n      C \"ChangePixel\", (data) ->\n        data.previous ?= self.getPixel(data).index\n\n        execute: ->\n          self.changePixel(data)\n\n        undo: ->\n          self.changePixel Object.extend {}, data, index: data.previous\n\n      C \"Resize\", (data) ->\n        {width, height, state} = data\n\n        data.previous ?= self.pixelExtent()\n\n        state ?= self.layerState()\n\n        execute: ->\n          self.resize(data)\n\n        undo: ->\n          self.restoreLayerState state\n\n      C \"NewLayer\", (data) ->\n        execute: ->\n          self.newLayer(data)\n\n        undo: ->\n          # TODO: May need to know layer index and previously active layer\n          # index\n          self.removeLayer()\n\n      C \"Composite\", (data) ->\n        if data.commands\n          # We came from JSON so rehydrate the commands.\n          data.commands = data.commands.map self.Command.parse\n        else\n          data.commands = []\n\n        commands = data.commands\n\n        execute: ->\n          commands.invoke \"execute\"\n\n        undo: ->\n          # Undo last command first because the order matters\n          commands.copy().reverse().invoke \"undo\"\n\n        push: (command, noExecute) ->\n          # We execute commands immediately when pushed in the compound\n          # so that the effects of events during mousemove appear\n          # immediately but they are all revoked together on undo/redo\n          # Passing noExecute as true will skip executing if we are\n          # adding commands that have already executed.\n          commands.push command\n          command.execute() unless noExecute\n\n        toJSON: ->\n          Object.extend {}, data,\n            commands: commands.invoke \"toJSON\"\n\n      self.Command.parse = (commandData) ->\n        self.Command[commandData.name](commandData)\n",
+      "content": "Command\n=======\n\n    {extend} = require \"util\"\n\nCommands that can be done/undone in the editor.\n\n    module.exports = (I={}, self) ->\n      self.Command = {}\n\nThis is a weird DSL for each command to inherit a toJSON method and to register\nto be de-serialized by name.\n\n*IMPORTANT:* If the names change then old command data may fail to load in newer\nversions.\n\n      C = (name, constructor) ->\n        self.Command[name] = (data={}) ->\n          data = extend {}, data\n          data.name = name\n\n          command = constructor(data)\n\n          command.toJSON ?= ->\n            # TODO: May want to return a copy of the data to be super-duper safe\n            data\n\n          return command\n\n      C \"ChangePalette\", (data) ->\n        data.previous ?= self.palette()\n\n        execute: ->\n          self.palette data.palette\n\n        undo: ->\n          self.palette data.previous\n\n      C \"ChangePixel\", (data) ->\n        data.previous ?= self.getPixel(data).index\n\n        execute: ->\n          self.changePixel(data)\n\n        undo: ->\n          self.changePixel extend {}, data, index: data.previous\n\n      C \"Resize\", (data) ->\n        {width, height, state} = data\n\n        data.previous ?= self.pixelExtent()\n\n        state ?= self.layerState()\n\n        execute: ->\n          self.resize(data)\n\n        undo: ->\n          self.restoreLayerState state\n\n      C \"NewLayer\", (data) ->\n        execute: ->\n          self.newLayer(data)\n\n        undo: ->\n          # TODO: May need to know layer index and previously active layer\n          # index\n          self.removeLayer()\n\n      C \"Composite\", (data) ->\n        if data.commands\n          # We came from JSON so rehydrate the commands.\n          data.commands = data.commands.map self.Command.parse\n        else\n          data.commands = []\n\n        commands = data.commands\n\n        execute: ->\n          commands.invoke \"execute\"\n\n        undo: ->\n          # Undo last command first because the order matters\n          commands.copy().reverse().invoke \"undo\"\n\n        push: (command, noExecute) ->\n          # We execute commands immediately when pushed in the compound\n          # so that the effects of events during mousemove appear\n          # immediately but they are all revoked together on undo/redo\n          # Passing noExecute as true will skip executing if we are\n          # adding commands that have already executed.\n          commands.push command\n          command.execute() unless noExecute\n\n        toJSON: ->\n          extend {}, data,\n            commands: commands.invoke \"toJSON\"\n\n      self.Command.parse = (commandData) ->\n        self.Command[commandData.name](commandData)\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -204,7 +204,7 @@
     },
     "editor.coffee.md": {
       "path": "editor.coffee.md",
-      "content": "Editor\n======\n\n    loader = require(\"./loader\")()\n\n    TouchCanvas = require \"touch-canvas\"\n    GridGen = require \"grid-gen\"\n\n    Actions = require \"./actions\"\n    Command = require \"./command\"\n    Drop = require \"./drop\"\n    Eval = require \"eval\"\n    Layer = require \"./layer\"\n    Notifications = require \"./notifications\"\n    Postmaster = require \"postmaster\"\n    Tools = require \"./tools\"\n    Undo = require \"undo\"\n\n    Palette = require(\"./palette\")\n\n    template = require \"./templates/editor\"\n    debugTemplate = require \"./templates/debug\"\n\n    {Size} = require \"./util\"\n\n    module.exports = (I={}, self) ->\n      Object.defaults I,\n        selector: \"body\"\n\n      activeIndex = Observable(1)\n\n      pixelExtent = Observable Size(32, 32)\n      pixelSize = Observable 8\n      canvasSize = Observable ->\n        pixelExtent().scale(pixelSize())\n\n      canvas = null\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Actions\n      self.include Bindable\n      self.include Command\n      self.include Drop\n      self.include Eval\n      self.include Notifications\n      self.include Postmaster\n      self.include Undo\n      self.include Tools\n\n      activeTool = self.activeTool\n\n      updateActiveLayer = ->\n        # TODO: This may need to have consideration for undo-ability.\n        if self.layers.indexOf(self.activeLayer()) is -1\n          self.activeLayer self.layers().last()\n\n      drawPixel = (canvas, x, y, color, size) ->\n        # HACK for previewCanvas\n        if canvas is previewCanvas and color is \"transparent\"\n          # TODO: Background color for the canvas area\n          color = \"white\"\n\n        if color is \"transparent\"\n          canvas.clear\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n        else\n          canvas.drawRect\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n            color: color\n\n      self.extend\n        activeIndex: activeIndex\n        activeLayer: Observable()\n        activeLayerIndex: ->\n          self.layers.indexOf(self.activeLayer())\n\n        backgroundIndex: Observable 0\n\n        pixelSize: pixelSize\n        pixelExtent: pixelExtent\n\n        handlePaste: (data) ->\n          command = self.Command.Composite()\n          self.execute command\n\n          if data.width > pixelExtent().width or data.height > pixelExtent().height\n            command.push self.Command.Resize pixelExtent().max(data)\n\n          command.push self.Command.NewLayer(data)\n\n          self.trigger \"change\"\n\n        newLayer: (data) ->\n          makeLayer(data?.data)\n\n          self.repaint()\n\n        removeLayer: ->\n          self.layers.pop()\n          updateActiveLayer()\n\n          self.repaint()\n\n        outputCanvas: (scale=1)->\n          outputCanvas = TouchCanvas pixelExtent().scale(scale)\n\n          self.layers.forEach (layer) ->\n            # TODO: Only paint once per pixel, rather than once per pixel per layer\n            # by being smarter about transparency\n            layer.each (index, x, y) ->\n              outputCanvas.drawRect\n                x: x * scale\n                y: y * scale\n                width: scale\n                height: scale\n                color: self.palette()[index]\n\n          outputCanvas.element()\n\n        resize: (size) ->\n          pixelExtent Size(size)\n\n        repaint: ->\n          self.layers().first().each (_, x, y) ->\n            self.repaintPixel {x, y}\n\n          return self\n\n        fromDataURL: (dataURL) ->\n          loader.load(dataURL)\n          .then (imageData) ->\n            editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())\n\n        restoreState: (state) ->\n          self.palette state.palette\n          self.restoreLayerState(state.layers)\n\n          self.activeLayer self.layers()[state.activeLayerIndex]\n\n          self.history state.history?.map self.Command.parse\n\n        saveState: ->\n          palette: self.palette()\n          layers: self.layerState()\n          activeLayerIndex: self.activeLayerIndex()\n          history: self.history().invoke \"toJSON\"\n\n        layerState: ->\n          self.layers().invoke \"toJSON\"\n\n        restoreLayerState: (layerData) ->\n          self.pixelExtent Size layerData.first()\n\n          index = self.activeLayerIndex()\n\n          self.layers []\n\n          layerData.forEach (layerData) ->\n            makeLayer layerData.data\n\n          self.activeLayer self.layer(index)\n\n          self.repaint()\n\n        draw: ({x, y}) ->\n          lastCommand.push self.Command.ChangePixel\n            x: x\n            y: y\n            index: activeIndex()\n            layer: self.activeLayerIndex()\n\n        changePixel: (params) ->\n          {x, y, index, layer} = params\n\n          self.layer(layer).set(x, y, index) unless canvas is previewCanvas\n\n          self.repaintPixel(params)\n\n        layers: Observable []\n\n        layer: (index) ->\n          if index?\n            self.layers()[index]\n          else\n            self.activeLayer()\n\n        repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) ->\n          if canvas is previewCanvas\n            # Need to get clever to handle the layers and transparancy, so it gets a little nuts\n\n            index = self.layers.map (layer, i) ->\n              if i is layerIndex # Replace the layer's pixel with our preview pixel\n                if colorIndex is 0\n                  self.layers.map (layer, i) ->\n                    layer.get(x, y)\n                  .filter (index, i) ->\n                    (index != 0) and !self.layers()[i].hidden() and (i < layerIndex)\n                  .last() or self.backgroundIndex()\n                else\n                  colorIndex\n              else\n                layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n          else\n            index = self.layers.map (layer) ->\n              layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n\n          color = self.palette()[index]\n\n          drawPixel(canvas, x, y, color, pixelSize())\n          drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas\n\n        getPixel: ({x, y, layer}) ->\n          x: x\n          y: y\n          index: self.layer(layer).get(x, y)\n          layer: layer ? self.activeLayerIndex()\n\n        # HACK: Adding in transparent to palette\n        palette: Observable([\"transparent\"].concat Palette.dawnBringer32)\n\nThis preview function is a little nuts, but I'm not sure how to clean it up.\n\nIt makes a copy of the current command chunk for undoing, sets the canvas\nequal to the preview canvas, then executes the passed in function.\n\nWe'll probably want to use a whole preview layer, so we don't need to worry about\naccidentally setting the pixel values during the preview.\n\n        preview: (fn) ->\n          realCommand = lastCommand\n          lastCommand = self.Command.Composite()\n          realCanvas = canvas\n          canvas = previewCanvas\n\n          canvas.clear()\n\n          fn()\n\n          canvas = realCanvas\n          lastCommand = realCommand\n\n      makeLayer = (data) ->\n        layer = Layer\n          width: pixelExtent().width\n          height: pixelExtent().height\n          data: data\n          palette: self.palette\n\n        layer.hidden.observe self.repaint\n\n        self.layers.push layer\n        self.activeLayer layer\n\n      makeLayer()\n\n      $selector = $(I.selector)\n      $(I.selector).append template self\n\n      canvas = TouchCanvas canvasSize()\n      previewCanvas = TouchCanvas canvasSize()\n      thumbnailCanvas = TouchCanvas pixelExtent()\n\n      # TODO: Tempest should have an easier way to do this\n      updateActiveColor = (newIndex) ->\n        color = self.palette()[newIndex]\n\n        $selector.find(\".palette .current\").css\n          backgroundColor: color\n\n      updateActiveColor(activeIndex())\n      activeIndex.observe updateActiveColor\n\n      $selector.find(\".viewport\")\n        .append(canvas.element())\n        .append($(previewCanvas.element()).addClass(\"preview\"))\n\n      $selector.find(\".thumbnail\").append thumbnailCanvas.element()\n\n      updateViewportCentering = (->\n        size = canvasSize()\n        $selector.find(\".viewport\").toggleClass \"vertical-center\", size.height < $selector.find(\".main\").height()\n      ).debounce(15)\n      $(window).resize updateViewportCentering\n\n      updateCanvasSize = (size) ->\n        gridImage = GridGen(\n          # TODO: Grid size options and matching pixel size/extent\n        ).backgroundImage()\n\n        [canvas, previewCanvas].forEach (canvas) ->\n          element = canvas.element()\n          element.width = size.width\n          element.height = size.height\n\n          canvas.clear()\n\n        $selector.find(\".viewport, .overlay\").css\n          width: size.width\n          height: size.height\n\n        $selector.find(\".overlay\").css\n          backgroundImage: gridImage\n\n        updateViewportCentering()\n\n        self.repaint()\n\n      updateCanvasSize(canvasSize())\n      canvasSize.observe updateCanvasSize\n\n      updatePixelExtent = (size) ->\n        self.layers.forEach (layer) ->\n          layer.resize size\n\n        element = thumbnailCanvas.element()\n        element.width = size.width\n        element.height = size.height\n\n        thumbnailCanvas.clear()\n\n        self.repaint()\n\n      pixelExtent.observe updatePixelExtent\n\n      self.palette.observe ->\n        self.repaint()\n\n      canvasPosition = (position) ->\n        position.scale(pixelExtent()).floor()\n\n      previewCanvas.on \"touch\", (position) ->\n        lastCommand = self.Command.Composite()\n        self.execute lastCommand\n\n        activeTool().touch\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"move\", (position) ->\n        activeTool().move\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"release\", (position) ->\n        activeTool().release\n          position: canvasPosition position\n          editor: self\n\n        self.trigger \"release\"\n\n      self.on \"release\", ->\n        previewCanvas.clear()\n\n        # TODO: Think more about triggering change events\n        self.trigger \"change\"\n\n      # TODO: Extract this decorator pattern\n      [\"undo\", \"execute\", \"redo\"].forEach (method) ->\n        oldMethod = self[method]\n\n        self[method] = ->\n          oldMethod.apply(self, arguments)\n          self.trigger \"change\"\n\n      return self\n",
+      "content": "Editor\n======\n\n    loader = require(\"./loader\")()\n    {defaults} = require \"util\"\n\n    TouchCanvas = require \"touch-canvas\"\n    GridGen = require \"grid-gen\"\n\n    Actions = require \"./actions\"\n    Command = require \"./command\"\n    Drop = require \"./drop\"\n    Eval = require \"eval\"\n    Layer = require \"./layer\"\n    Notifications = require \"./notifications\"\n    Postmaster = require \"postmaster\"\n    Tools = require \"./tools\"\n    Undo = require \"undo\"\n\n    Palette = require(\"./palette\")\n\n    template = require \"./templates/editor\"\n    debugTemplate = require \"./templates/debug\"\n\n    {Size} = require \"./util\"\n\n    module.exports = (I={}, self) ->\n      defaults I,\n        selector: \"body\"\n\n      activeIndex = Observable(1)\n\n      pixelExtent = Observable Size(32, 32)\n      pixelSize = Observable 8\n      canvasSize = Observable ->\n        pixelExtent().scale(pixelSize())\n\n      canvas = null\n      lastCommand = null\n\n      self ?= Model(I)\n\n      self.include Actions\n      self.include Bindable\n      self.include Command\n      self.include Drop\n      self.include Eval\n      self.include Notifications\n      self.include Postmaster\n      self.include Undo\n      self.include Tools\n\n      activeTool = self.activeTool\n\n      updateActiveLayer = ->\n        # TODO: This may need to have consideration for undo-ability.\n        if self.layers.indexOf(self.activeLayer()) is -1\n          self.activeLayer self.layers().last()\n\n      drawPixel = (canvas, x, y, color, size) ->\n        # HACK for previewCanvas\n        if canvas is previewCanvas and color is \"transparent\"\n          # TODO: Background color for the canvas area\n          color = \"white\"\n\n        if color is \"transparent\"\n          canvas.clear\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n        else\n          canvas.drawRect\n            x: x * size\n            y: y * size\n            width: size\n            height: size\n            color: color\n\n      self.extend\n        activeIndex: activeIndex\n        activeLayer: Observable()\n        activeLayerIndex: ->\n          self.layers.indexOf(self.activeLayer())\n\n        backgroundIndex: Observable 0\n\n        pixelSize: pixelSize\n        pixelExtent: pixelExtent\n\n        handlePaste: (data) ->\n          command = self.Command.Composite()\n          self.execute command\n\n          if data.width > pixelExtent().width or data.height > pixelExtent().height\n            command.push self.Command.Resize pixelExtent().max(data)\n\n          command.push self.Command.NewLayer(data)\n\n          self.trigger \"change\"\n\n        newLayer: (data) ->\n          makeLayer(data?.data)\n\n          self.repaint()\n\n        removeLayer: ->\n          self.layers.pop()\n          updateActiveLayer()\n\n          self.repaint()\n\n        outputCanvas: (scale=1)->\n          outputCanvas = TouchCanvas pixelExtent().scale(scale)\n\n          self.layers.forEach (layer) ->\n            # TODO: Only paint once per pixel, rather than once per pixel per layer\n            # by being smarter about transparency\n            layer.each (index, x, y) ->\n              outputCanvas.drawRect\n                x: x * scale\n                y: y * scale\n                width: scale\n                height: scale\n                color: self.palette()[index]\n\n          outputCanvas.element()\n\n        resize: (size) ->\n          pixelExtent Size(size)\n\n        repaint: ->\n          self.layers().first().each (_, x, y) ->\n            self.repaintPixel {x, y}\n\n          return self\n\n        fromDataURL: (dataURL) ->\n          loader.load(dataURL)\n          .then (imageData) ->\n            editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())\n\n        restoreState: (state) ->\n          self.palette state.palette\n          self.restoreLayerState(state.layers)\n\n          self.activeLayer self.layers()[state.activeLayerIndex]\n\n          self.history state.history?.map self.Command.parse\n\n        saveState: ->\n          palette: self.palette()\n          layers: self.layerState()\n          activeLayerIndex: self.activeLayerIndex()\n          history: self.history().invoke \"toJSON\"\n\n        layerState: ->\n          self.layers().invoke \"toJSON\"\n\n        restoreLayerState: (layerData) ->\n          self.pixelExtent Size layerData.first()\n\n          index = self.activeLayerIndex()\n\n          self.layers []\n\n          layerData.forEach (layerData) ->\n            makeLayer layerData.data\n\n          self.activeLayer self.layer(index)\n\n          self.repaint()\n\n        draw: ({x, y}) ->\n          lastCommand.push self.Command.ChangePixel\n            x: x\n            y: y\n            index: activeIndex()\n            layer: self.activeLayerIndex()\n\n        changePixel: (params) ->\n          {x, y, index, layer} = params\n\n          self.layer(layer).set(x, y, index) unless canvas is previewCanvas\n\n          self.repaintPixel(params)\n\n        layers: Observable []\n\n        layer: (index) ->\n          if index?\n            self.layers()[index]\n          else\n            self.activeLayer()\n\n        repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) ->\n          if canvas is previewCanvas\n            # Need to get clever to handle the layers and transparancy, so it gets a little nuts\n\n            index = self.layers.map (layer, i) ->\n              if i is layerIndex # Replace the layer's pixel with our preview pixel\n                if colorIndex is 0\n                  self.layers.map (layer, i) ->\n                    layer.get(x, y)\n                  .filter (index, i) ->\n                    (index != 0) and !self.layers()[i].hidden() and (i < layerIndex)\n                  .last() or self.backgroundIndex()\n                else\n                  colorIndex\n              else\n                layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n          else\n            index = self.layers.map (layer) ->\n              layer.get(x, y)\n            .filter (index, i) ->\n              # HACK: Transparent is assumed to be index zero\n              (index != 0) and !self.layers()[i].hidden()\n            .last() or self.backgroundIndex()\n\n          color = self.palette()[index]\n\n          drawPixel(canvas, x, y, color, pixelSize())\n          drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas\n\n        getPixel: ({x, y, layer}) ->\n          x: x\n          y: y\n          index: self.layer(layer).get(x, y)\n          layer: layer ? self.activeLayerIndex()\n\n        # HACK: Adding in transparent to palette\n        palette: Observable([\"transparent\"].concat Palette.dawnBringer32)\n\nThis preview function is a little nuts, but I'm not sure how to clean it up.\n\nIt makes a copy of the current command chunk for undoing, sets the canvas\nequal to the preview canvas, then executes the passed in function.\n\nWe'll probably want to use a whole preview layer, so we don't need to worry about\naccidentally setting the pixel values during the preview.\n\n        preview: (fn) ->\n          realCommand = lastCommand\n          lastCommand = self.Command.Composite()\n          realCanvas = canvas\n          canvas = previewCanvas\n\n          canvas.clear()\n\n          fn()\n\n          canvas = realCanvas\n          lastCommand = realCommand\n\n      makeLayer = (data) ->\n        layer = Layer\n          width: pixelExtent().width\n          height: pixelExtent().height\n          data: data\n          palette: self.palette\n\n        layer.hidden.observe self.repaint\n\n        self.layers.push layer\n        self.activeLayer layer\n\n      makeLayer()\n\n      $selector = $(I.selector)\n      $(I.selector).append template self\n\n      canvas = TouchCanvas canvasSize()\n      previewCanvas = TouchCanvas canvasSize()\n      thumbnailCanvas = TouchCanvas pixelExtent()\n\n      # TODO: Tempest should have an easier way to do this\n      updateActiveColor = (newIndex) ->\n        color = self.palette()[newIndex]\n\n        $selector.find(\".palette .current\").css\n          backgroundColor: color\n\n      updateActiveColor(activeIndex())\n      activeIndex.observe updateActiveColor\n\n      $selector.find(\".viewport\")\n        .append(canvas.element())\n        .append($(previewCanvas.element()).addClass(\"preview\"))\n\n      $selector.find(\".thumbnail\").append thumbnailCanvas.element()\n\n      updateViewportCentering = (->\n        size = canvasSize()\n        $selector.find(\".viewport\").toggleClass \"vertical-center\", size.height < $selector.find(\".main\").height()\n      ).debounce(15)\n      $(window).resize updateViewportCentering\n\n      updateCanvasSize = (size) ->\n        gridImage = GridGen(\n          # TODO: Grid size options and matching pixel size/extent\n        ).backgroundImage()\n\n        [canvas, previewCanvas].forEach (canvas) ->\n          element = canvas.element()\n          element.width = size.width\n          element.height = size.height\n\n          canvas.clear()\n\n        $selector.find(\".viewport, .overlay\").css\n          width: size.width\n          height: size.height\n\n        $selector.find(\".overlay\").css\n          backgroundImage: gridImage\n\n        updateViewportCentering()\n\n        self.repaint()\n\n      updateCanvasSize(canvasSize())\n      canvasSize.observe updateCanvasSize\n\n      updatePixelExtent = (size) ->\n        self.layers.forEach (layer) ->\n          layer.resize size\n\n        element = thumbnailCanvas.element()\n        element.width = size.width\n        element.height = size.height\n\n        thumbnailCanvas.clear()\n\n        self.repaint()\n\n      pixelExtent.observe updatePixelExtent\n\n      self.palette.observe ->\n        self.repaint()\n\n      canvasPosition = (position) ->\n        position.scale(pixelExtent()).floor()\n\n      previewCanvas.on \"touch\", (position) ->\n        lastCommand = self.Command.Composite()\n        self.execute lastCommand\n\n        activeTool().touch\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"move\", (position) ->\n        activeTool().move\n          position: canvasPosition position\n          editor: self\n\n      previewCanvas.on \"release\", (position) ->\n        activeTool().release\n          position: canvasPosition position\n          editor: self\n\n        self.trigger \"release\"\n\n      self.on \"release\", ->\n        previewCanvas.clear()\n\n        # TODO: Think more about triggering change events\n        self.trigger \"change\"\n\n      # TODO: Extract this decorator pattern\n      [\"undo\", \"execute\", \"redo\"].forEach (method) ->\n        oldMethod = self[method]\n\n        self[method] = ->\n          oldMethod.apply(self, arguments)\n          self.trigger \"change\"\n\n      return self\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -228,7 +228,7 @@
     },
     "lib/canvas-to-blob.js": {
       "path": "lib/canvas-to-blob.js",
-      "content": "/* canvas-toBlob.js\n * A canvas.toBlob() implementation.\n * 2011-07-13\n * \n * By Eli Grey, http://eligrey.com and Devin Samarin, https://github.com/eboyjr\n * License: X11/MIT\n *   See LICENSE.md\n */\n\n/*global self */\n/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,\n  plusplus: true */\n\n/*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */\n\n(function(view) {\n\"use strict\";\nvar\n    Uint8Array = view.Uint8Array\n\t, HTMLCanvasElement = view.HTMLCanvasElement\n\t, is_base64_regex = /\\s*;\\s*base64\\s*(?:;|$)/i\n\t, base64_ranks\n\t, decode_base64 = function(base64) {\n\t\tvar\n\t\t\t  len = base64.length\n\t\t\t, buffer = new Uint8Array(len / 4 * 3 | 0)\n\t\t\t, i = 0\n\t\t\t, outptr = 0\n\t\t\t, last = [0, 0]\n\t\t\t, state = 0\n\t\t\t, save = 0\n\t\t\t, rank\n\t\t\t, code\n\t\t\t, undef\n\t\t;\n\t\twhile (len--) {\n\t\t\tcode = base64.charCodeAt(i++);\n\t\t\trank = base64_ranks[code-43];\n\t\t\tif (rank !== 255 && rank !== undef) {\n\t\t\t\tlast[1] = last[0];\n\t\t\t\tlast[0] = code;\n\t\t\t\tsave = (save << 6) | rank;\n\t\t\t\tstate++;\n\t\t\t\tif (state === 4) {\n\t\t\t\t\tbuffer[outptr++] = save >>> 16;\n\t\t\t\t\tif (last[1] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save >>> 8;\n\t\t\t\t\t}\n\t\t\t\t\tif (last[0] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save;\n\t\t\t\t\t}\n\t\t\t\t\tstate = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t// 2/3 chance there's going to be some null bytes at the end, but that\n\t\t// doesn't really matter with most image formats.\n\t\t// If it somehow matters for you, truncate the buffer up outptr.\n\t\treturn buffer;\n\t}\n;\nif (Uint8Array) {\n\tbase64_ranks = new Uint8Array([\n\t\t  62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1\n\t\t, -1, -1,  0, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9\n\t\t, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25\n\t\t, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35\n\t\t, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51\n\t]);\n}\nif (HTMLCanvasElement && !HTMLCanvasElement.prototype.toBlob) {\n\tHTMLCanvasElement.prototype.toBlob = function(callback, type /*, ...args*/) {\n\t\t  if (!type) {\n\t\t\ttype = \"image/png\";\n\t\t} if (this.mozGetAsFile) {\n\t\t\tcallback(this.mozGetAsFile(\"canvas\", type));\n\t\t\treturn;\n\t\t}\n\t\tvar\n\t\t\t  args = Array.prototype.slice.call(arguments, 1)\n\t\t\t, dataURI = this.toDataURL.apply(this, args)\n\t\t\t, header_end = dataURI.indexOf(\",\")\n\t\t\t, data = dataURI.substring(header_end + 1)\n\t\t\t, is_base64 = is_base64_regex.test(dataURI.substring(0, header_end))\n\t\t\t, blob\n\t\t;\n\t\tif (Blob.fake) {\n\t\t\t// no reason to decode a data: URI that's just going to become a data URI again\n\t\t\tblob = new Blob\n\t\t\tif (is_base64) {\n\t\t\t\tblob.encoding = \"base64\";\n\t\t\t} else {\n\t\t\t\tblob.encoding = \"URI\";\n\t\t\t}\n\t\t\tblob.data = data;\n\t\t\tblob.size = data.length;\n\t\t} else if (Uint8Array) {\n\t\t\tif (is_base64) {\n\t\t\t\tblob = new Blob([decode_base64(data)], {type: type});\n\t\t\t} else {\n\t\t\t\tblob = new Blob([decodeURIComponent(data)], {type: type});\n\t\t\t}\n\t\t}\n\t\tcallback(blob);\n\t};\n}\n}(self));\n",
+      "content": "/* canvas-toBlob.js\n * A canvas.toBlob() implementation.\n * 2011-07-13\n *\n * By Eli Grey, http://eligrey.com and Devin Samarin, https://github.com/eboyjr\n * License: X11/MIT\n *   See LICENSE.md\n */\n\n/*global self */\n/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,\n  plusplus: true */\n\n/*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */\n\n(function(view) {\n\"use strict\";\nvar\n    Uint8Array = view.Uint8Array\n\t, HTMLCanvasElement = view.HTMLCanvasElement\n\t, is_base64_regex = /\\s*;\\s*base64\\s*(?:;|$)/i\n\t, base64_ranks\n\t, decode_base64 = function(base64) {\n\t\tvar\n\t\t\t  len = base64.length\n\t\t\t, buffer = new Uint8Array(len / 4 * 3 | 0)\n\t\t\t, i = 0\n\t\t\t, outptr = 0\n\t\t\t, last = [0, 0]\n\t\t\t, state = 0\n\t\t\t, save = 0\n\t\t\t, rank\n\t\t\t, code\n\t\t\t, undef\n\t\t;\n\t\twhile (len--) {\n\t\t\tcode = base64.charCodeAt(i++);\n\t\t\trank = base64_ranks[code-43];\n\t\t\tif (rank !== 255 && rank !== undef) {\n\t\t\t\tlast[1] = last[0];\n\t\t\t\tlast[0] = code;\n\t\t\t\tsave = (save << 6) | rank;\n\t\t\t\tstate++;\n\t\t\t\tif (state === 4) {\n\t\t\t\t\tbuffer[outptr++] = save >>> 16;\n\t\t\t\t\tif (last[1] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save >>> 8;\n\t\t\t\t\t}\n\t\t\t\t\tif (last[0] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save;\n\t\t\t\t\t}\n\t\t\t\t\tstate = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t// 2/3 chance there's going to be some null bytes at the end, but that\n\t\t// doesn't really matter with most image formats.\n\t\t// If it somehow matters for you, truncate the buffer up outptr.\n\t\treturn buffer;\n\t}\n;\nif (Uint8Array) {\n\tbase64_ranks = new Uint8Array([\n\t\t  62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1\n\t\t, -1, -1,  0, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9\n\t\t, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25\n\t\t, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35\n\t\t, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51\n\t]);\n}\nif (HTMLCanvasElement && !HTMLCanvasElement.prototype.toBlob) {\n\tHTMLCanvasElement.prototype.toBlob = function(callback, type /*, ...args*/) {\n\t\t  if (!type) {\n\t\t\ttype = \"image/png\";\n\t\t} if (this.mozGetAsFile) {\n\t\t\tcallback(this.mozGetAsFile(\"canvas\", type));\n\t\t\treturn;\n\t\t}\n\t\tvar\n\t\t\t  args = Array.prototype.slice.call(arguments, 1)\n\t\t\t, dataURI = this.toDataURL.apply(this, args)\n\t\t\t, header_end = dataURI.indexOf(\",\")\n\t\t\t, data = dataURI.substring(header_end + 1)\n\t\t\t, is_base64 = is_base64_regex.test(dataURI.substring(0, header_end))\n\t\t\t, blob\n\t\t;\n\t\tif (Blob.fake) {\n\t\t\t// no reason to decode a data: URI that's just going to become a data URI again\n\t\t\tblob = new Blob\n\t\t\tif (is_base64) {\n\t\t\t\tblob.encoding = \"base64\";\n\t\t\t} else {\n\t\t\t\tblob.encoding = \"URI\";\n\t\t\t}\n\t\t\tblob.data = data;\n\t\t\tblob.size = data.length;\n\t\t} else if (Uint8Array) {\n\t\t\tif (is_base64) {\n\t\t\t\tblob = new Blob([decode_base64(data)], {type: type});\n\t\t\t} else {\n\t\t\t\tblob = new Blob([decodeURIComponent(data)], {type: type});\n\t\t\t}\n\t\t}\n\t\tcallback(blob);\n\t};\n}\n}(self));\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -246,7 +246,7 @@
     },
     "main.coffee.md": {
       "path": "main.coffee.md",
-      "content": "Pixel Editor\n============\n\nWelcome to this cool pixel editor. Eventually you'll be able to read this for\nhelp, but right now it's mostly code.\n\nEditing pixels in your browser.\n\n    # For debug purposes\n    global.PACKAGE = PACKAGE\n    global.require = require\n\n    require \"appcache\"\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    Editor = require \"./editor\"\n\n    # For debugging\n    global.editor = Editor()\n\n    editor.notify(\"Welcome to PixiPaint!\")\n",
+      "content": "Pixel Editor\n============\n\nWelcome to this cool pixel editor. Eventually you'll be able to read this for\nhelp, but right now it's mostly code.\n\nEditing pixels in your browser.\n\n    # For debug purposes\n    global.PACKAGE = PACKAGE\n    global.require = require\n    \n    # Setup\n    global.Observable = require \"observable\"\n    global.Model = require \"model\"\n    global.Bindable = require \"bindable\"\n    require \"cornerstone\"\n\n    require \"appcache\"\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    Editor = require \"./editor\"\n\n    # For debugging\n    global.editor = Editor()\n\n    editor.notify(\"Welcome to PixiPaint!\")\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -270,7 +270,7 @@
     },
     "pixie.cson": {
       "path": "pixie.cson",
-      "content": "version: \"0.1.0\"\nremoteDependencies: [\n  \"https://code.jquery.com/jquery-1.10.1.min.js\"\n  \"https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\"\n  \"https://pixipaint.net/envweb-v0.4.7.js\"\n]\ndependencies:\n  appcache: \"distri/appcache:v0.2.0\"\n  byte_array: \"distri/byte_array:v0.1.1\"\n  eval: \"distri/eval:v0.1.0\"\n  facebook: \"distri/facebook:v0.1.1\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  \"hotkeys\": \"distri/hotkeys:v0.2.0\"\n  \"jquery-utils\": \"distri/jquery-utils:v0.2.0\"\n  postmaster: \"distri/postmaster:v0.2.0\"\n  runtime: \"distri/runtime:v0.3.0\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.3.0\"\n  \"undo\": \"distri/undo:v0.2.0\"\nwidth: 1024\nheight: 576\n",
+      "content": "version: \"0.1.0\"\nremoteDependencies: [\n  \"https://code.jquery.com/jquery-1.11.0.min.js\"\n]\ndependencies:\n  appcache: \"distri/appcache:v0.2.0\"\n  bindable: \"distri/bindable:v0.1.0\"\n  byte_array: \"distri/byte_array:v0.1.1\"\n  cornerstone: \"distri/cornerstone:v0.2.2-pre.0\"\n  model: \"distri/compositions:v0.1.1\"\n  eval: \"distri/eval:v0.1.0\"\n  facebook: \"distri/facebook:v0.1.1\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  \"hotkeys\": \"distri/hotkeys:v0.2.0\"\n  \"jquery-utils\": \"distri/jquery-utils:v0.2.0\"\n  observable: \"distri/observable:v0.1.2\"\n  postmaster: \"distri/postmaster:v0.2.0\"\n  runtime: \"distri/runtime:v0.3.0\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.3.0\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1024\nheight: 576\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -288,13 +288,13 @@
     },
     "templates/editor.haml.md": {
       "path": "templates/editor.haml.md",
-      "content": "Editor template\n\n    - activeIndex = @activeIndex\n    - activeTool = @activeTool\n    - editor = this\n\n    .editor\n\nThe toolbar holds our tools.\n\n      .toolbar\n        - each @tools, (tool) ->\n          - activeClass = -> \"active\" if tool is activeTool()\n          - activate = -> activeTool(tool)\n          .tool(style=\"background-image: url(#{tool.iconUrl})\" class=activeClass click=activate)\n\nOur layers and preview canvases are placed in the viewport.\n\n      .main\n        .viewport\n          .overlay\n\n      .notifications\n        - each @notifications, (notification) ->\n          %p\n            = notification\n\nThe palette holds our colors.\n\n      .palette\n        .color.current\n        - each @palette, (color, index) ->\n          - activate = -> activeIndex index\n          .color(click=activate touchstart=activate style=\"background-color: #{color}\")\n\n      .actions\n        - each @actions, (action) ->\n          - perform = -> action.perform()\n          .action(click=perform touchstart=perform style=\"background-image: url(#{action.iconUrl})\")\n\nModal junk\n\n    #modal\n",
+      "content": "Editor template\n\n    - activeIndex = @activeIndex\n    - activeTool = @activeTool\n    - editor = this\n    - Observable = require \"observable\"\n\n    .editor\n\nThe toolbar holds our tools.\n\n      .toolbar\n        - each @tools, (tool) ->\n          - activeClass = -> \"active\" if tool is activeTool()\n          - activate = -> activeTool(tool)\n          .tool(style=\"background-image: url(#{tool.iconUrl})\" class=activeClass click=activate)\n\nOur layers and preview canvases are placed in the viewport.\n\n      .main\n        .viewport\n          .overlay\n\n      .notifications\n        - each @notifications, (notification) ->\n          %p\n            = notification\n\nThe palette holds our colors.\n\n      .palette\n        .color.current\n        - each @palette, (color, index) ->\n          - activate = -> activeIndex index\n          .color(click=activate touchstart=activate style=\"background-color: #{color}\")\n\n      .actions\n        - each @actions, (action) ->\n          - perform = -> action.perform()\n          .action(click=perform touchstart=perform style=\"background-image: url(#{action.iconUrl})\")\n\nModal junk\n\n    #modal\n",
       "mode": "100644",
       "type": "blob"
     },
     "test/editor.coffee": {
       "path": "test/editor.coffee",
-      "content": "\n\nEditor = require \"../editor\"\n\ndescribe \"editor\", ->\n  it \"should have eval\", ->\n    editor = Editor\n      selector: \"#not_present\"\n    \n    assert.equal editor.eval(\"5\"), 5\n",
+      "content": "\n\nEditor = require \"../editor\"\n\ndescribe \"editor\", ->\n  it \"should have eval\", ->\n    editor = Editor\n      selector: \"#not_present\"\n\n    assert.equal editor.eval(\"5\"), 5\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -310,9 +310,9 @@
       "mode": "100644",
       "type": "blob"
     },
-    "lib/_hamljr-runtime.coffee": {
-      "path": "lib/_hamljr-runtime.coffee",
-      "content": "Observable = require \"observable\"\n\neventNames = \"\"\"\n  abort\n  blur\n  change\n  click\n  dblclick\n  drag\n  dragend\n  dragenter\n  dragleave\n  dragover\n  dragstart\n  drop\n  error\n  focus\n  input\n  keydown\n  keypress\n  keyup\n  load\n  mousedown\n  mousemove\n  mouseout\n  mouseover\n  mouseup\n  reset\n  resize\n  scroll\n  select\n  submit\n  unload\n\"\"\".split(\"\\n\")\n\nisEvent = (name) ->\n  eventNames.indexOf(name) != -1\n\nisFragment = (node) ->\n  node.nodeType is 11\n\nvalueBind = (element, value) ->\n  element.value = value()\n\n  # Because firing twice with the same value is idempotent just binding both\n  # oninput and onchange handles the widest range of inputs and browser\n  # inconsistencies.\n  element.oninput = ->\n    value(element.value)\n  element.onchange = ->\n    value(element.value)\n\n  value.observe? (newValue) ->\n    element.value = newValue\n\n  switch element.nodeName\n    when \"SELECT\"\n      # HACK: Need to set the value, but probably don't have the option contents yet\n      # so let's just do it after our execution suspends and we probably have them\n      setTimeout ->\n        element.value = value()\n      , 0\n\n  return\n\nRuntime = (context) ->\n  stack = []\n\n  # HAX: A document fragment is not your real dad\n  lastParent = ->\n    i = stack.length - 1\n    while (element = stack[i]) and isFragment(element)\n      i -= 1\n\n    element\n\n  top = ->\n    stack[stack.length-1]\n\n  append = (child) ->\n    parent = top()\n\n    # TODO: This seems a little gross\n    # The problem is that in each blocks our fragments are being emptied\n    # because they are appended to the parent before we return\n    # By appending and returning the child instead we should be able to\n    # keep a reference to the actual elements\n    if parent and isFragment(child) and child.childNodes.length is 1\n      child = child.childNodes[0]\n\n    top()?.appendChild(child)\n\n    return child\n\n  push = (child) ->\n    stack.push(child)\n\n  pop = ->\n    append(stack.pop())\n\n  render = (child) ->\n    push(child)\n    pop()\n\n  bindObservable = (element, value, update) ->\n    observable = Observable(value)\n    update observable()\n\n    observe = ->\n      observable.observe update\n      update observable()\n\n    unobserve = ->\n      observable.stopObserving update\n\n    element.addEventListener(\"DOMNodeInserted\", observe, true)\n    element.addEventListener(\"DOMNodeRemoved\", unobserve, true)\n\n    return element\n\n  id = (sources...) ->\n    element = top()\n\n    update = (newValue) ->\n      if typeof newValue is \"function\"\n        newValue = newValue()\n\n      element.id = newValue\n\n    value = ->\n      possibleValues = sources.map (source) ->\n        if typeof source is \"function\"\n          source()\n        else\n          source\n      .filter (idValue) ->\n        idValue?\n\n      possibleValues[possibleValues.length-1]\n\n    bindObservable(element, value, update)\n\n  classes = (sources...) ->\n    element = top()\n\n    update = (newValue) ->\n      if typeof newValue is \"function\"\n        newValue = newValue()\n\n      element.className = newValue\n\n    value = ->\n      possibleValues = sources.map (source) ->\n        if typeof source is \"function\"\n          source()\n        else\n          source\n      .filter (sourceValue) ->\n        sourceValue?\n\n      possibleValues.join(\" \")\n\n    bindObservable(element, value, update)\n\n  observeAttribute = (name, value) ->\n    element = top()\n\n    update = (newValue) ->\n      if newValue? and newValue != false\n        element.setAttribute name, newValue\n      else\n        element.removeAttribute name\n\n    if (name is \"value\") and (typeof value is \"function\")\n      valueBind(element, value)\n    else if (name is \"checked\") and (typeof value is \"function\")\n      element.onchange = ->\n        value element.checked\n      bindObservable(element, value, update)\n    # Straight up onclicks, etc.\n    else if name.match(/^on/) and isEvent(name.substr(2))\n      element[name] = value\n    # Handle click=@method\n    else if isEvent(name)\n      element[\"on#{name}\"] = value\n    else\n      bindObservable(element, value, update)\n\n    return element\n\n  observeText = (value) ->\n    # Kind of a hack for handling sub renders\n    # or adding explicit html nodes to the output\n    # TODO: May want to make more sure that it's a real dom node\n    #       and not some other object with a nodeType property\n    # TODO: This shouldn't be inside of the observeText method\n    switch value?.nodeType\n      when 1, 3, 11\n        return render(value)\n\n    # HACK: We don't really want to know about the document inside here.\n    # Creating our text nodes in here cleans up the external call\n    # so it may be worth it.\n    element = document.createTextNode('')\n\n    update = (newValue) ->\n      element.nodeValue = newValue\n\n    bindObservable element, value, update\n\n    render element\n\n  self =\n    # Pushing and popping creates the node tree\n    push: push\n    pop: pop\n\n    id: id\n    classes: classes\n    attribute: observeAttribute\n    text: observeText\n\n    filter: (name, content) ->\n      ; # TODO self.filters[name](content)\n\n    each: (items, fn) ->\n      items = Observable(items)\n      elements = null\n      parent = lastParent()\n\n      # TODO: Work when rendering many sibling elements\n      items.observe (newItems) ->\n        replace elements, newItems\n\n      replace = (oldElements, items) ->\n        elements = []\n        items.forEach (item, index, array) ->\n          element = fn.call(item, item, index, array)\n\n          if isFragment(element)\n            elements.push element.childNodes...\n          else\n            elements.push element\n\n          parent.appendChild element\n\n          return element\n\n        oldElements?.forEach (element) ->\n          element.remove()\n\n      replace(null, items)\n\n  return self\n\nmodule.exports = Runtime\n",
+    "lib/_hamljr_runtime.coffee": {
+      "path": "lib/_hamljr_runtime.coffee",
+      "content": "Observable = require \"observable\"\n\neventNames = \"\"\"\n  abort\n  blur\n  change\n  click\n  dblclick\n  drag\n  dragend\n  dragenter\n  dragleave\n  dragover\n  dragstart\n  drop\n  error\n  focus\n  input\n  keydown\n  keypress\n  keyup\n  load\n  mousedown\n  mousemove\n  mouseout\n  mouseover\n  mouseup\n  reset\n  resize\n  scroll\n  select\n  submit\n  touchstart\n  touchend\n  touchmove\n  touchenter\n  touchleave\n  touchcancel\n  unload\n\"\"\".split(\"\\n\")\n\nisEvent = (name) ->\n  eventNames.indexOf(name) != -1\n\nisFragment = (node) ->\n  node.nodeType is 11\n\nvalueBind = (element, value) ->\n  element.value = value()\n\n  # Because firing twice with the same value is idempotent just binding both\n  # oninput and onchange handles the widest range of inputs and browser\n  # inconsistencies.\n  element.oninput = ->\n    value(element.value)\n  element.onchange = ->\n    value(element.value)\n\n  value.observe? (newValue) ->\n    element.value = newValue\n\n  switch element.nodeName\n    when \"SELECT\"\n      # HACK: Need to set the value, but probably don't have the option contents yet\n      # so let's just do it after our execution suspends and we probably have them\n      setTimeout ->\n        element.value = value()\n      , 0\n\n  return\n\nRuntime = (context) ->\n  stack = []\n\n  # HAX: A document fragment is not your real dad\n  lastParent = ->\n    i = stack.length - 1\n    while (element = stack[i]) and isFragment(element)\n      i -= 1\n\n    element\n\n  top = ->\n    stack[stack.length-1]\n\n  append = (child) ->\n    parent = top()\n\n    # TODO: This seems a little gross\n    # The problem is that in each blocks our fragments are being emptied\n    # because they are appended to the parent before we return\n    # By appending and returning the child instead we should be able to\n    # keep a reference to the actual elements\n    if parent and isFragment(child) and child.childNodes.length is 1\n      child = child.childNodes[0]\n\n    top()?.appendChild(child)\n\n    return child\n\n  push = (child) ->\n    stack.push(child)\n\n  pop = ->\n    append(stack.pop())\n\n  render = (child) ->\n    push(child)\n    pop()\n\n  bindObservable = (element, value, update) ->\n    observable = Observable(value)\n    update observable()\n\n    observe = ->\n      observable.observe update\n      update observable()\n\n    unobserve = ->\n      observable.stopObserving update\n\n    element.addEventListener(\"DOMNodeInserted\", observe, true)\n    element.addEventListener(\"DOMNodeRemoved\", unobserve, true)\n\n    return element\n\n  id = (sources...) ->\n    element = top()\n\n    update = (newValue) ->\n      if typeof newValue is \"function\"\n        newValue = newValue()\n\n      element.id = newValue\n\n    value = ->\n      possibleValues = sources.map (source) ->\n        if typeof source is \"function\"\n          source()\n        else\n          source\n      .filter (idValue) ->\n        idValue?\n\n      possibleValues[possibleValues.length-1]\n\n    bindObservable(element, value, update)\n\n  classes = (sources...) ->\n    element = top()\n\n    update = (newValue) ->\n      if typeof newValue is \"function\"\n        newValue = newValue()\n\n      element.className = newValue\n\n    value = ->\n      possibleValues = sources.map (source) ->\n        if typeof source is \"function\"\n          source()\n        else\n          source\n      .filter (sourceValue) ->\n        sourceValue?\n\n      possibleValues.join(\" \")\n\n    bindObservable(element, value, update)\n\n  observeAttribute = (name, value) ->\n    element = top()\n\n    update = (newValue) ->\n      if newValue? and newValue != false\n        element.setAttribute name, newValue\n      else\n        element.removeAttribute name\n\n    if (name is \"value\") and (typeof value is \"function\")\n      valueBind(element, value)\n    else if (name is \"checked\") and (typeof value is \"function\")\n      element.onchange = ->\n        value element.checked\n      bindObservable(element, value, update)\n    # Straight up onclicks, etc.\n    else if name.match(/^on/) and isEvent(name.substr(2))\n      element[name] = value\n    # Handle click=@method\n    else if isEvent(name)\n      element[\"on#{name}\"] = value\n    else\n      bindObservable(element, value, update)\n\n    return element\n\n  observeText = (value) ->\n    # Kind of a hack for handling sub renders\n    # or adding explicit html nodes to the output\n    # TODO: May want to make more sure that it's a real dom node\n    #       and not some other object with a nodeType property\n    # TODO: This shouldn't be inside of the observeText method\n    switch value?.nodeType\n      when 1, 3, 11\n        return render(value)\n\n    # HACK: We don't really want to know about the document inside here.\n    # Creating our text nodes in here cleans up the external call\n    # so it may be worth it.\n    element = document.createTextNode('')\n\n    update = (newValue) ->\n      element.nodeValue = newValue\n\n    bindObservable element, value, update\n\n    render element\n\n  self =\n    # Pushing and popping creates the node tree\n    push: push\n    pop: pop\n\n    id: id\n    classes: classes\n    attribute: observeAttribute\n    text: observeText\n\n    filter: (name, content) ->\n      ; # TODO self.filters[name](content)\n\n    each: (items, fn) ->\n      items = Observable(items)\n      elements = null\n      parent = lastParent()\n\n      # TODO: Work when rendering many sibling elements\n      items.observe (newItems) ->\n        replace elements, newItems\n\n      replace = (oldElements, items) ->\n        elements = []\n        items.forEach (item, index, array) ->\n          element = fn.call(item, item, index, array)\n\n          if isFragment(element)\n            elements.push element.childNodes...\n          else\n            elements.push element\n\n          parent.appendChild element\n\n          return element\n\n        oldElements?.forEach (element) ->\n          element.remove()\n\n      replace(null, items)\n\n  return self\n\nmodule.exports = Runtime\n",
       "mode": "100644"
     }
   },
@@ -324,7 +324,7 @@
     },
     "command": {
       "path": "command",
-      "content": "(function() {\n  module.exports = function(I, self) {\n    var C;\n    if (I == null) {\n      I = {};\n    }\n    self.Command = {};\n    C = function(name, constructor) {\n      return self.Command[name] = function(data) {\n        var command;\n        if (data == null) {\n          data = {};\n        }\n        data = Object.extend({}, data);\n        data.name = name;\n        command = constructor(data);\n        if (command.toJSON == null) {\n          command.toJSON = function() {\n            return data;\n          };\n        }\n        return command;\n      };\n    };\n    C(\"ChangePalette\", function(data) {\n      if (data.previous == null) {\n        data.previous = self.palette();\n      }\n      return {\n        execute: function() {\n          return self.palette(data.palette);\n        },\n        undo: function() {\n          return self.palette(data.previous);\n        }\n      };\n    });\n    C(\"ChangePixel\", function(data) {\n      if (data.previous == null) {\n        data.previous = self.getPixel(data).index;\n      }\n      return {\n        execute: function() {\n          return self.changePixel(data);\n        },\n        undo: function() {\n          return self.changePixel(Object.extend({}, data, {\n            index: data.previous\n          }));\n        }\n      };\n    });\n    C(\"Resize\", function(data) {\n      var height, state, width;\n      width = data.width, height = data.height, state = data.state;\n      if (data.previous == null) {\n        data.previous = self.pixelExtent();\n      }\n      if (state == null) {\n        state = self.layerState();\n      }\n      return {\n        execute: function() {\n          return self.resize(data);\n        },\n        undo: function() {\n          return self.restoreLayerState(state);\n        }\n      };\n    });\n    C(\"NewLayer\", function(data) {\n      return {\n        execute: function() {\n          return self.newLayer(data);\n        },\n        undo: function() {\n          return self.removeLayer();\n        }\n      };\n    });\n    C(\"Composite\", function(data) {\n      var commands;\n      if (data.commands) {\n        data.commands = data.commands.map(self.Command.parse);\n      } else {\n        data.commands = [];\n      }\n      commands = data.commands;\n      return {\n        execute: function() {\n          return commands.invoke(\"execute\");\n        },\n        undo: function() {\n          return commands.copy().reverse().invoke(\"undo\");\n        },\n        push: function(command, noExecute) {\n          commands.push(command);\n          if (!noExecute) {\n            return command.execute();\n          }\n        },\n        toJSON: function() {\n          return Object.extend({}, data, {\n            commands: commands.invoke(\"toJSON\")\n          });\n        }\n      };\n    });\n    return self.Command.parse = function(commandData) {\n      return self.Command[commandData.name](commandData);\n    };\n  };\n\n}).call(this);\n",
+      "content": "(function() {\n  var extend;\n\n  extend = require(\"util\").extend;\n\n  module.exports = function(I, self) {\n    var C;\n    if (I == null) {\n      I = {};\n    }\n    self.Command = {};\n    C = function(name, constructor) {\n      return self.Command[name] = function(data) {\n        var command;\n        if (data == null) {\n          data = {};\n        }\n        data = extend({}, data);\n        data.name = name;\n        command = constructor(data);\n        if (command.toJSON == null) {\n          command.toJSON = function() {\n            return data;\n          };\n        }\n        return command;\n      };\n    };\n    C(\"ChangePalette\", function(data) {\n      if (data.previous == null) {\n        data.previous = self.palette();\n      }\n      return {\n        execute: function() {\n          return self.palette(data.palette);\n        },\n        undo: function() {\n          return self.palette(data.previous);\n        }\n      };\n    });\n    C(\"ChangePixel\", function(data) {\n      if (data.previous == null) {\n        data.previous = self.getPixel(data).index;\n      }\n      return {\n        execute: function() {\n          return self.changePixel(data);\n        },\n        undo: function() {\n          return self.changePixel(extend({}, data, {\n            index: data.previous\n          }));\n        }\n      };\n    });\n    C(\"Resize\", function(data) {\n      var height, state, width;\n      width = data.width, height = data.height, state = data.state;\n      if (data.previous == null) {\n        data.previous = self.pixelExtent();\n      }\n      if (state == null) {\n        state = self.layerState();\n      }\n      return {\n        execute: function() {\n          return self.resize(data);\n        },\n        undo: function() {\n          return self.restoreLayerState(state);\n        }\n      };\n    });\n    C(\"NewLayer\", function(data) {\n      return {\n        execute: function() {\n          return self.newLayer(data);\n        },\n        undo: function() {\n          return self.removeLayer();\n        }\n      };\n    });\n    C(\"Composite\", function(data) {\n      var commands;\n      if (data.commands) {\n        data.commands = data.commands.map(self.Command.parse);\n      } else {\n        data.commands = [];\n      }\n      commands = data.commands;\n      return {\n        execute: function() {\n          return commands.invoke(\"execute\");\n        },\n        undo: function() {\n          return commands.copy().reverse().invoke(\"undo\");\n        },\n        push: function(command, noExecute) {\n          commands.push(command);\n          if (!noExecute) {\n            return command.execute();\n          }\n        },\n        toJSON: function() {\n          return extend({}, data, {\n            commands: commands.invoke(\"toJSON\")\n          });\n        }\n      };\n    });\n    return self.Command.parse = function(commandData) {\n      return self.Command[commandData.name](commandData);\n    };\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "drop": {
@@ -334,7 +334,7 @@
     },
     "editor": {
       "path": "editor",
-      "content": "(function() {\n  var Actions, Command, Drop, Eval, GridGen, Layer, Notifications, Palette, Postmaster, Size, Tools, TouchCanvas, Undo, debugTemplate, loader, template;\n\n  loader = require(\"./loader\")();\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  GridGen = require(\"grid-gen\");\n\n  Actions = require(\"./actions\");\n\n  Command = require(\"./command\");\n\n  Drop = require(\"./drop\");\n\n  Eval = require(\"eval\");\n\n  Layer = require(\"./layer\");\n\n  Notifications = require(\"./notifications\");\n\n  Postmaster = require(\"postmaster\");\n\n  Tools = require(\"./tools\");\n\n  Undo = require(\"undo\");\n\n  Palette = require(\"./palette\");\n\n  template = require(\"./templates/editor\");\n\n  debugTemplate = require(\"./templates/debug\");\n\n  Size = require(\"./util\").Size;\n\n  module.exports = function(I, self) {\n    var $selector, activeIndex, activeTool, canvas, canvasPosition, canvasSize, drawPixel, lastCommand, makeLayer, pixelExtent, pixelSize, previewCanvas, thumbnailCanvas, updateActiveColor, updateActiveLayer, updateCanvasSize, updatePixelExtent, updateViewportCentering;\n    if (I == null) {\n      I = {};\n    }\n    Object.defaults(I, {\n      selector: \"body\"\n    });\n    activeIndex = Observable(1);\n    pixelExtent = Observable(Size(32, 32));\n    pixelSize = Observable(8);\n    canvasSize = Observable(function() {\n      return pixelExtent().scale(pixelSize());\n    });\n    canvas = null;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Actions);\n    self.include(Bindable);\n    self.include(Command);\n    self.include(Drop);\n    self.include(Eval);\n    self.include(Notifications);\n    self.include(Postmaster);\n    self.include(Undo);\n    self.include(Tools);\n    activeTool = self.activeTool;\n    updateActiveLayer = function() {\n      if (self.layers.indexOf(self.activeLayer()) === -1) {\n        return self.activeLayer(self.layers().last());\n      }\n    };\n    drawPixel = function(canvas, x, y, color, size) {\n      if (canvas === previewCanvas && color === \"transparent\") {\n        color = \"white\";\n      }\n      if (color === \"transparent\") {\n        return canvas.clear({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size\n        });\n      } else {\n        return canvas.drawRect({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size,\n          color: color\n        });\n      }\n    };\n    self.extend({\n      activeIndex: activeIndex,\n      activeLayer: Observable(),\n      activeLayerIndex: function() {\n        return self.layers.indexOf(self.activeLayer());\n      },\n      backgroundIndex: Observable(0),\n      pixelSize: pixelSize,\n      pixelExtent: pixelExtent,\n      handlePaste: function(data) {\n        var command;\n        command = self.Command.Composite();\n        self.execute(command);\n        if (data.width > pixelExtent().width || data.height > pixelExtent().height) {\n          command.push(self.Command.Resize(pixelExtent().max(data)));\n        }\n        command.push(self.Command.NewLayer(data));\n        return self.trigger(\"change\");\n      },\n      newLayer: function(data) {\n        makeLayer(data != null ? data.data : void 0);\n        return self.repaint();\n      },\n      removeLayer: function() {\n        self.layers.pop();\n        updateActiveLayer();\n        return self.repaint();\n      },\n      outputCanvas: function(scale) {\n        var outputCanvas;\n        if (scale == null) {\n          scale = 1;\n        }\n        outputCanvas = TouchCanvas(pixelExtent().scale(scale));\n        self.layers.forEach(function(layer) {\n          return layer.each(function(index, x, y) {\n            return outputCanvas.drawRect({\n              x: x * scale,\n              y: y * scale,\n              width: scale,\n              height: scale,\n              color: self.palette()[index]\n            });\n          });\n        });\n        return outputCanvas.element();\n      },\n      resize: function(size) {\n        return pixelExtent(Size(size));\n      },\n      repaint: function() {\n        self.layers().first().each(function(_, x, y) {\n          return self.repaintPixel({\n            x: x,\n            y: y\n          });\n        });\n        return self;\n      },\n      fromDataURL: function(dataURL) {\n        return loader.load(dataURL).then(function(imageData) {\n          return editor.handlePaste(loader.fromImageDataWithPalette(imageData, editor.palette()));\n        });\n      },\n      restoreState: function(state) {\n        var _ref;\n        self.palette(state.palette);\n        self.restoreLayerState(state.layers);\n        self.activeLayer(self.layers()[state.activeLayerIndex]);\n        return self.history((_ref = state.history) != null ? _ref.map(self.Command.parse) : void 0);\n      },\n      saveState: function() {\n        return {\n          palette: self.palette(),\n          layers: self.layerState(),\n          activeLayerIndex: self.activeLayerIndex(),\n          history: self.history().invoke(\"toJSON\")\n        };\n      },\n      layerState: function() {\n        return self.layers().invoke(\"toJSON\");\n      },\n      restoreLayerState: function(layerData) {\n        var index;\n        self.pixelExtent(Size(layerData.first()));\n        index = self.activeLayerIndex();\n        self.layers([]);\n        layerData.forEach(function(layerData) {\n          return makeLayer(layerData.data);\n        });\n        self.activeLayer(self.layer(index));\n        return self.repaint();\n      },\n      draw: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return lastCommand.push(self.Command.ChangePixel({\n          x: x,\n          y: y,\n          index: activeIndex(),\n          layer: self.activeLayerIndex()\n        }));\n      },\n      changePixel: function(params) {\n        var index, layer, x, y;\n        x = params.x, y = params.y, index = params.index, layer = params.layer;\n        if (canvas !== previewCanvas) {\n          self.layer(layer).set(x, y, index);\n        }\n        return self.repaintPixel(params);\n      },\n      layers: Observable([]),\n      layer: function(index) {\n        if (index != null) {\n          return self.layers()[index];\n        } else {\n          return self.activeLayer();\n        }\n      },\n      repaintPixel: function(_arg) {\n        var color, colorIndex, index, layerIndex, x, y;\n        x = _arg.x, y = _arg.y, colorIndex = _arg.index, layerIndex = _arg.layer;\n        if (canvas === previewCanvas) {\n          index = self.layers.map(function(layer, i) {\n            if (i === layerIndex) {\n              if (colorIndex === 0) {\n                return self.layers.map(function(layer, i) {\n                  return layer.get(x, y);\n                }).filter(function(index, i) {\n                  return (index !== 0) && !self.layers()[i].hidden() && (i < layerIndex);\n                }).last() || self.backgroundIndex();\n              } else {\n                return colorIndex;\n              }\n            } else {\n              return layer.get(x, y);\n            }\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        } else {\n          index = self.layers.map(function(layer) {\n            return layer.get(x, y);\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        }\n        color = self.palette()[index];\n        drawPixel(canvas, x, y, color, pixelSize());\n        if (canvas !== previewCanvas) {\n          return drawPixel(thumbnailCanvas, x, y, color, 1);\n        }\n      },\n      getPixel: function(_arg) {\n        var layer, x, y;\n        x = _arg.x, y = _arg.y, layer = _arg.layer;\n        return {\n          x: x,\n          y: y,\n          index: self.layer(layer).get(x, y),\n          layer: layer != null ? layer : self.activeLayerIndex()\n        };\n      },\n      palette: Observable([\"transparent\"].concat(Palette.dawnBringer32)),\n      preview: function(fn) {\n        var realCanvas, realCommand;\n        realCommand = lastCommand;\n        lastCommand = self.Command.Composite();\n        realCanvas = canvas;\n        canvas = previewCanvas;\n        canvas.clear();\n        fn();\n        canvas = realCanvas;\n        return lastCommand = realCommand;\n      }\n    });\n    makeLayer = function(data) {\n      var layer;\n      layer = Layer({\n        width: pixelExtent().width,\n        height: pixelExtent().height,\n        data: data,\n        palette: self.palette\n      });\n      layer.hidden.observe(self.repaint);\n      self.layers.push(layer);\n      return self.activeLayer(layer);\n    };\n    makeLayer();\n    $selector = $(I.selector);\n    $(I.selector).append(template(self));\n    canvas = TouchCanvas(canvasSize());\n    previewCanvas = TouchCanvas(canvasSize());\n    thumbnailCanvas = TouchCanvas(pixelExtent());\n    updateActiveColor = function(newIndex) {\n      var color;\n      color = self.palette()[newIndex];\n      return $selector.find(\".palette .current\").css({\n        backgroundColor: color\n      });\n    };\n    updateActiveColor(activeIndex());\n    activeIndex.observe(updateActiveColor);\n    $selector.find(\".viewport\").append(canvas.element()).append($(previewCanvas.element()).addClass(\"preview\"));\n    $selector.find(\".thumbnail\").append(thumbnailCanvas.element());\n    updateViewportCentering = (function() {\n      var size;\n      size = canvasSize();\n      return $selector.find(\".viewport\").toggleClass(\"vertical-center\", size.height < $selector.find(\".main\").height());\n    }).debounce(15);\n    $(window).resize(updateViewportCentering);\n    updateCanvasSize = function(size) {\n      var gridImage;\n      gridImage = GridGen().backgroundImage();\n      [canvas, previewCanvas].forEach(function(canvas) {\n        var element;\n        element = canvas.element();\n        element.width = size.width;\n        element.height = size.height;\n        return canvas.clear();\n      });\n      $selector.find(\".viewport, .overlay\").css({\n        width: size.width,\n        height: size.height\n      });\n      $selector.find(\".overlay\").css({\n        backgroundImage: gridImage\n      });\n      updateViewportCentering();\n      return self.repaint();\n    };\n    updateCanvasSize(canvasSize());\n    canvasSize.observe(updateCanvasSize);\n    updatePixelExtent = function(size) {\n      var element;\n      self.layers.forEach(function(layer) {\n        return layer.resize(size);\n      });\n      element = thumbnailCanvas.element();\n      element.width = size.width;\n      element.height = size.height;\n      thumbnailCanvas.clear();\n      return self.repaint();\n    };\n    pixelExtent.observe(updatePixelExtent);\n    self.palette.observe(function() {\n      return self.repaint();\n    });\n    canvasPosition = function(position) {\n      return position.scale(pixelExtent()).floor();\n    };\n    previewCanvas.on(\"touch\", function(position) {\n      lastCommand = self.Command.Composite();\n      self.execute(lastCommand);\n      return activeTool().touch({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"move\", function(position) {\n      return activeTool().move({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"release\", function(position) {\n      activeTool().release({\n        position: canvasPosition(position),\n        editor: self\n      });\n      return self.trigger(\"release\");\n    });\n    self.on(\"release\", function() {\n      previewCanvas.clear();\n      return self.trigger(\"change\");\n    });\n    [\"undo\", \"execute\", \"redo\"].forEach(function(method) {\n      var oldMethod;\n      oldMethod = self[method];\n      return self[method] = function() {\n        oldMethod.apply(self, arguments);\n        return self.trigger(\"change\");\n      };\n    });\n    return self;\n  };\n\n}).call(this);\n",
+      "content": "(function() {\n  var Actions, Command, Drop, Eval, GridGen, Layer, Notifications, Palette, Postmaster, Size, Tools, TouchCanvas, Undo, debugTemplate, defaults, loader, template;\n\n  loader = require(\"./loader\")();\n\n  defaults = require(\"util\").defaults;\n\n  TouchCanvas = require(\"touch-canvas\");\n\n  GridGen = require(\"grid-gen\");\n\n  Actions = require(\"./actions\");\n\n  Command = require(\"./command\");\n\n  Drop = require(\"./drop\");\n\n  Eval = require(\"eval\");\n\n  Layer = require(\"./layer\");\n\n  Notifications = require(\"./notifications\");\n\n  Postmaster = require(\"postmaster\");\n\n  Tools = require(\"./tools\");\n\n  Undo = require(\"undo\");\n\n  Palette = require(\"./palette\");\n\n  template = require(\"./templates/editor\");\n\n  debugTemplate = require(\"./templates/debug\");\n\n  Size = require(\"./util\").Size;\n\n  module.exports = function(I, self) {\n    var $selector, activeIndex, activeTool, canvas, canvasPosition, canvasSize, drawPixel, lastCommand, makeLayer, pixelExtent, pixelSize, previewCanvas, thumbnailCanvas, updateActiveColor, updateActiveLayer, updateCanvasSize, updatePixelExtent, updateViewportCentering;\n    if (I == null) {\n      I = {};\n    }\n    defaults(I, {\n      selector: \"body\"\n    });\n    activeIndex = Observable(1);\n    pixelExtent = Observable(Size(32, 32));\n    pixelSize = Observable(8);\n    canvasSize = Observable(function() {\n      return pixelExtent().scale(pixelSize());\n    });\n    canvas = null;\n    lastCommand = null;\n    if (self == null) {\n      self = Model(I);\n    }\n    self.include(Actions);\n    self.include(Bindable);\n    self.include(Command);\n    self.include(Drop);\n    self.include(Eval);\n    self.include(Notifications);\n    self.include(Postmaster);\n    self.include(Undo);\n    self.include(Tools);\n    activeTool = self.activeTool;\n    updateActiveLayer = function() {\n      if (self.layers.indexOf(self.activeLayer()) === -1) {\n        return self.activeLayer(self.layers().last());\n      }\n    };\n    drawPixel = function(canvas, x, y, color, size) {\n      if (canvas === previewCanvas && color === \"transparent\") {\n        color = \"white\";\n      }\n      if (color === \"transparent\") {\n        return canvas.clear({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size\n        });\n      } else {\n        return canvas.drawRect({\n          x: x * size,\n          y: y * size,\n          width: size,\n          height: size,\n          color: color\n        });\n      }\n    };\n    self.extend({\n      activeIndex: activeIndex,\n      activeLayer: Observable(),\n      activeLayerIndex: function() {\n        return self.layers.indexOf(self.activeLayer());\n      },\n      backgroundIndex: Observable(0),\n      pixelSize: pixelSize,\n      pixelExtent: pixelExtent,\n      handlePaste: function(data) {\n        var command;\n        command = self.Command.Composite();\n        self.execute(command);\n        if (data.width > pixelExtent().width || data.height > pixelExtent().height) {\n          command.push(self.Command.Resize(pixelExtent().max(data)));\n        }\n        command.push(self.Command.NewLayer(data));\n        return self.trigger(\"change\");\n      },\n      newLayer: function(data) {\n        makeLayer(data != null ? data.data : void 0);\n        return self.repaint();\n      },\n      removeLayer: function() {\n        self.layers.pop();\n        updateActiveLayer();\n        return self.repaint();\n      },\n      outputCanvas: function(scale) {\n        var outputCanvas;\n        if (scale == null) {\n          scale = 1;\n        }\n        outputCanvas = TouchCanvas(pixelExtent().scale(scale));\n        self.layers.forEach(function(layer) {\n          return layer.each(function(index, x, y) {\n            return outputCanvas.drawRect({\n              x: x * scale,\n              y: y * scale,\n              width: scale,\n              height: scale,\n              color: self.palette()[index]\n            });\n          });\n        });\n        return outputCanvas.element();\n      },\n      resize: function(size) {\n        return pixelExtent(Size(size));\n      },\n      repaint: function() {\n        self.layers().first().each(function(_, x, y) {\n          return self.repaintPixel({\n            x: x,\n            y: y\n          });\n        });\n        return self;\n      },\n      fromDataURL: function(dataURL) {\n        return loader.load(dataURL).then(function(imageData) {\n          return editor.handlePaste(loader.fromImageDataWithPalette(imageData, editor.palette()));\n        });\n      },\n      restoreState: function(state) {\n        var _ref;\n        self.palette(state.palette);\n        self.restoreLayerState(state.layers);\n        self.activeLayer(self.layers()[state.activeLayerIndex]);\n        return self.history((_ref = state.history) != null ? _ref.map(self.Command.parse) : void 0);\n      },\n      saveState: function() {\n        return {\n          palette: self.palette(),\n          layers: self.layerState(),\n          activeLayerIndex: self.activeLayerIndex(),\n          history: self.history().invoke(\"toJSON\")\n        };\n      },\n      layerState: function() {\n        return self.layers().invoke(\"toJSON\");\n      },\n      restoreLayerState: function(layerData) {\n        var index;\n        self.pixelExtent(Size(layerData.first()));\n        index = self.activeLayerIndex();\n        self.layers([]);\n        layerData.forEach(function(layerData) {\n          return makeLayer(layerData.data);\n        });\n        self.activeLayer(self.layer(index));\n        return self.repaint();\n      },\n      draw: function(_arg) {\n        var x, y;\n        x = _arg.x, y = _arg.y;\n        return lastCommand.push(self.Command.ChangePixel({\n          x: x,\n          y: y,\n          index: activeIndex(),\n          layer: self.activeLayerIndex()\n        }));\n      },\n      changePixel: function(params) {\n        var index, layer, x, y;\n        x = params.x, y = params.y, index = params.index, layer = params.layer;\n        if (canvas !== previewCanvas) {\n          self.layer(layer).set(x, y, index);\n        }\n        return self.repaintPixel(params);\n      },\n      layers: Observable([]),\n      layer: function(index) {\n        if (index != null) {\n          return self.layers()[index];\n        } else {\n          return self.activeLayer();\n        }\n      },\n      repaintPixel: function(_arg) {\n        var color, colorIndex, index, layerIndex, x, y;\n        x = _arg.x, y = _arg.y, colorIndex = _arg.index, layerIndex = _arg.layer;\n        if (canvas === previewCanvas) {\n          index = self.layers.map(function(layer, i) {\n            if (i === layerIndex) {\n              if (colorIndex === 0) {\n                return self.layers.map(function(layer, i) {\n                  return layer.get(x, y);\n                }).filter(function(index, i) {\n                  return (index !== 0) && !self.layers()[i].hidden() && (i < layerIndex);\n                }).last() || self.backgroundIndex();\n              } else {\n                return colorIndex;\n              }\n            } else {\n              return layer.get(x, y);\n            }\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        } else {\n          index = self.layers.map(function(layer) {\n            return layer.get(x, y);\n          }).filter(function(index, i) {\n            return (index !== 0) && !self.layers()[i].hidden();\n          }).last() || self.backgroundIndex();\n        }\n        color = self.palette()[index];\n        drawPixel(canvas, x, y, color, pixelSize());\n        if (canvas !== previewCanvas) {\n          return drawPixel(thumbnailCanvas, x, y, color, 1);\n        }\n      },\n      getPixel: function(_arg) {\n        var layer, x, y;\n        x = _arg.x, y = _arg.y, layer = _arg.layer;\n        return {\n          x: x,\n          y: y,\n          index: self.layer(layer).get(x, y),\n          layer: layer != null ? layer : self.activeLayerIndex()\n        };\n      },\n      palette: Observable([\"transparent\"].concat(Palette.dawnBringer32)),\n      preview: function(fn) {\n        var realCanvas, realCommand;\n        realCommand = lastCommand;\n        lastCommand = self.Command.Composite();\n        realCanvas = canvas;\n        canvas = previewCanvas;\n        canvas.clear();\n        fn();\n        canvas = realCanvas;\n        return lastCommand = realCommand;\n      }\n    });\n    makeLayer = function(data) {\n      var layer;\n      layer = Layer({\n        width: pixelExtent().width,\n        height: pixelExtent().height,\n        data: data,\n        palette: self.palette\n      });\n      layer.hidden.observe(self.repaint);\n      self.layers.push(layer);\n      return self.activeLayer(layer);\n    };\n    makeLayer();\n    $selector = $(I.selector);\n    $(I.selector).append(template(self));\n    canvas = TouchCanvas(canvasSize());\n    previewCanvas = TouchCanvas(canvasSize());\n    thumbnailCanvas = TouchCanvas(pixelExtent());\n    updateActiveColor = function(newIndex) {\n      var color;\n      color = self.palette()[newIndex];\n      return $selector.find(\".palette .current\").css({\n        backgroundColor: color\n      });\n    };\n    updateActiveColor(activeIndex());\n    activeIndex.observe(updateActiveColor);\n    $selector.find(\".viewport\").append(canvas.element()).append($(previewCanvas.element()).addClass(\"preview\"));\n    $selector.find(\".thumbnail\").append(thumbnailCanvas.element());\n    updateViewportCentering = (function() {\n      var size;\n      size = canvasSize();\n      return $selector.find(\".viewport\").toggleClass(\"vertical-center\", size.height < $selector.find(\".main\").height());\n    }).debounce(15);\n    $(window).resize(updateViewportCentering);\n    updateCanvasSize = function(size) {\n      var gridImage;\n      gridImage = GridGen().backgroundImage();\n      [canvas, previewCanvas].forEach(function(canvas) {\n        var element;\n        element = canvas.element();\n        element.width = size.width;\n        element.height = size.height;\n        return canvas.clear();\n      });\n      $selector.find(\".viewport, .overlay\").css({\n        width: size.width,\n        height: size.height\n      });\n      $selector.find(\".overlay\").css({\n        backgroundImage: gridImage\n      });\n      updateViewportCentering();\n      return self.repaint();\n    };\n    updateCanvasSize(canvasSize());\n    canvasSize.observe(updateCanvasSize);\n    updatePixelExtent = function(size) {\n      var element;\n      self.layers.forEach(function(layer) {\n        return layer.resize(size);\n      });\n      element = thumbnailCanvas.element();\n      element.width = size.width;\n      element.height = size.height;\n      thumbnailCanvas.clear();\n      return self.repaint();\n    };\n    pixelExtent.observe(updatePixelExtent);\n    self.palette.observe(function() {\n      return self.repaint();\n    });\n    canvasPosition = function(position) {\n      return position.scale(pixelExtent()).floor();\n    };\n    previewCanvas.on(\"touch\", function(position) {\n      lastCommand = self.Command.Composite();\n      self.execute(lastCommand);\n      return activeTool().touch({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"move\", function(position) {\n      return activeTool().move({\n        position: canvasPosition(position),\n        editor: self\n      });\n    });\n    previewCanvas.on(\"release\", function(position) {\n      activeTool().release({\n        position: canvasPosition(position),\n        editor: self\n      });\n      return self.trigger(\"release\");\n    });\n    self.on(\"release\", function() {\n      previewCanvas.clear();\n      return self.trigger(\"change\");\n    });\n    [\"undo\", \"execute\", \"redo\"].forEach(function(method) {\n      var oldMethod;\n      oldMethod = self[method];\n      return self[method] = function() {\n        oldMethod.apply(self, arguments);\n        return self.trigger(\"change\");\n      };\n    });\n    return self;\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "facebook": {
@@ -354,7 +354,7 @@
     },
     "lib/canvas-to-blob": {
       "path": "lib/canvas-to-blob",
-      "content": "/* canvas-toBlob.js\n * A canvas.toBlob() implementation.\n * 2011-07-13\n * \n * By Eli Grey, http://eligrey.com and Devin Samarin, https://github.com/eboyjr\n * License: X11/MIT\n *   See LICENSE.md\n */\n\n/*global self */\n/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,\n  plusplus: true */\n\n/*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */\n\n(function(view) {\n\"use strict\";\nvar\n    Uint8Array = view.Uint8Array\n\t, HTMLCanvasElement = view.HTMLCanvasElement\n\t, is_base64_regex = /\\s*;\\s*base64\\s*(?:;|$)/i\n\t, base64_ranks\n\t, decode_base64 = function(base64) {\n\t\tvar\n\t\t\t  len = base64.length\n\t\t\t, buffer = new Uint8Array(len / 4 * 3 | 0)\n\t\t\t, i = 0\n\t\t\t, outptr = 0\n\t\t\t, last = [0, 0]\n\t\t\t, state = 0\n\t\t\t, save = 0\n\t\t\t, rank\n\t\t\t, code\n\t\t\t, undef\n\t\t;\n\t\twhile (len--) {\n\t\t\tcode = base64.charCodeAt(i++);\n\t\t\trank = base64_ranks[code-43];\n\t\t\tif (rank !== 255 && rank !== undef) {\n\t\t\t\tlast[1] = last[0];\n\t\t\t\tlast[0] = code;\n\t\t\t\tsave = (save << 6) | rank;\n\t\t\t\tstate++;\n\t\t\t\tif (state === 4) {\n\t\t\t\t\tbuffer[outptr++] = save >>> 16;\n\t\t\t\t\tif (last[1] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save >>> 8;\n\t\t\t\t\t}\n\t\t\t\t\tif (last[0] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save;\n\t\t\t\t\t}\n\t\t\t\t\tstate = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t// 2/3 chance there's going to be some null bytes at the end, but that\n\t\t// doesn't really matter with most image formats.\n\t\t// If it somehow matters for you, truncate the buffer up outptr.\n\t\treturn buffer;\n\t}\n;\nif (Uint8Array) {\n\tbase64_ranks = new Uint8Array([\n\t\t  62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1\n\t\t, -1, -1,  0, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9\n\t\t, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25\n\t\t, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35\n\t\t, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51\n\t]);\n}\nif (HTMLCanvasElement && !HTMLCanvasElement.prototype.toBlob) {\n\tHTMLCanvasElement.prototype.toBlob = function(callback, type /*, ...args*/) {\n\t\t  if (!type) {\n\t\t\ttype = \"image/png\";\n\t\t} if (this.mozGetAsFile) {\n\t\t\tcallback(this.mozGetAsFile(\"canvas\", type));\n\t\t\treturn;\n\t\t}\n\t\tvar\n\t\t\t  args = Array.prototype.slice.call(arguments, 1)\n\t\t\t, dataURI = this.toDataURL.apply(this, args)\n\t\t\t, header_end = dataURI.indexOf(\",\")\n\t\t\t, data = dataURI.substring(header_end + 1)\n\t\t\t, is_base64 = is_base64_regex.test(dataURI.substring(0, header_end))\n\t\t\t, blob\n\t\t;\n\t\tif (Blob.fake) {\n\t\t\t// no reason to decode a data: URI that's just going to become a data URI again\n\t\t\tblob = new Blob\n\t\t\tif (is_base64) {\n\t\t\t\tblob.encoding = \"base64\";\n\t\t\t} else {\n\t\t\t\tblob.encoding = \"URI\";\n\t\t\t}\n\t\t\tblob.data = data;\n\t\t\tblob.size = data.length;\n\t\t} else if (Uint8Array) {\n\t\t\tif (is_base64) {\n\t\t\t\tblob = new Blob([decode_base64(data)], {type: type});\n\t\t\t} else {\n\t\t\t\tblob = new Blob([decodeURIComponent(data)], {type: type});\n\t\t\t}\n\t\t}\n\t\tcallback(blob);\n\t};\n}\n}(self));\n",
+      "content": "/* canvas-toBlob.js\n * A canvas.toBlob() implementation.\n * 2011-07-13\n *\n * By Eli Grey, http://eligrey.com and Devin Samarin, https://github.com/eboyjr\n * License: X11/MIT\n *   See LICENSE.md\n */\n\n/*global self */\n/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,\n  plusplus: true */\n\n/*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */\n\n(function(view) {\n\"use strict\";\nvar\n    Uint8Array = view.Uint8Array\n\t, HTMLCanvasElement = view.HTMLCanvasElement\n\t, is_base64_regex = /\\s*;\\s*base64\\s*(?:;|$)/i\n\t, base64_ranks\n\t, decode_base64 = function(base64) {\n\t\tvar\n\t\t\t  len = base64.length\n\t\t\t, buffer = new Uint8Array(len / 4 * 3 | 0)\n\t\t\t, i = 0\n\t\t\t, outptr = 0\n\t\t\t, last = [0, 0]\n\t\t\t, state = 0\n\t\t\t, save = 0\n\t\t\t, rank\n\t\t\t, code\n\t\t\t, undef\n\t\t;\n\t\twhile (len--) {\n\t\t\tcode = base64.charCodeAt(i++);\n\t\t\trank = base64_ranks[code-43];\n\t\t\tif (rank !== 255 && rank !== undef) {\n\t\t\t\tlast[1] = last[0];\n\t\t\t\tlast[0] = code;\n\t\t\t\tsave = (save << 6) | rank;\n\t\t\t\tstate++;\n\t\t\t\tif (state === 4) {\n\t\t\t\t\tbuffer[outptr++] = save >>> 16;\n\t\t\t\t\tif (last[1] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save >>> 8;\n\t\t\t\t\t}\n\t\t\t\t\tif (last[0] !== 61 /* padding character */) {\n\t\t\t\t\t\tbuffer[outptr++] = save;\n\t\t\t\t\t}\n\t\t\t\t\tstate = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t// 2/3 chance there's going to be some null bytes at the end, but that\n\t\t// doesn't really matter with most image formats.\n\t\t// If it somehow matters for you, truncate the buffer up outptr.\n\t\treturn buffer;\n\t}\n;\nif (Uint8Array) {\n\tbase64_ranks = new Uint8Array([\n\t\t  62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1\n\t\t, -1, -1,  0, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9\n\t\t, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25\n\t\t, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35\n\t\t, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51\n\t]);\n}\nif (HTMLCanvasElement && !HTMLCanvasElement.prototype.toBlob) {\n\tHTMLCanvasElement.prototype.toBlob = function(callback, type /*, ...args*/) {\n\t\t  if (!type) {\n\t\t\ttype = \"image/png\";\n\t\t} if (this.mozGetAsFile) {\n\t\t\tcallback(this.mozGetAsFile(\"canvas\", type));\n\t\t\treturn;\n\t\t}\n\t\tvar\n\t\t\t  args = Array.prototype.slice.call(arguments, 1)\n\t\t\t, dataURI = this.toDataURL.apply(this, args)\n\t\t\t, header_end = dataURI.indexOf(\",\")\n\t\t\t, data = dataURI.substring(header_end + 1)\n\t\t\t, is_base64 = is_base64_regex.test(dataURI.substring(0, header_end))\n\t\t\t, blob\n\t\t;\n\t\tif (Blob.fake) {\n\t\t\t// no reason to decode a data: URI that's just going to become a data URI again\n\t\t\tblob = new Blob\n\t\t\tif (is_base64) {\n\t\t\t\tblob.encoding = \"base64\";\n\t\t\t} else {\n\t\t\t\tblob.encoding = \"URI\";\n\t\t\t}\n\t\t\tblob.data = data;\n\t\t\tblob.size = data.length;\n\t\t} else if (Uint8Array) {\n\t\t\tif (is_base64) {\n\t\t\t\tblob = new Blob([decode_base64(data)], {type: type});\n\t\t\t} else {\n\t\t\t\tblob = new Blob([decodeURIComponent(data)], {type: type});\n\t\t\t}\n\t\t}\n\t\tcallback(blob);\n\t};\n}\n}(self));\n",
       "type": "blob"
     },
     "lib/file_saver": {
@@ -369,7 +369,7 @@
     },
     "main": {
       "path": "main",
-      "content": "(function() {\n  var Editor, runtime;\n\n  global.PACKAGE = PACKAGE;\n\n  global.require = require;\n\n  require(\"appcache\");\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  Editor = require(\"./editor\");\n\n  global.editor = Editor();\n\n  editor.notify(\"Welcome to PixiPaint!\");\n\n}).call(this);\n",
+      "content": "(function() {\n  var Editor, runtime;\n\n  global.PACKAGE = PACKAGE;\n\n  global.require = require;\n\n  global.Observable = require(\"observable\");\n\n  global.Model = require(\"model\");\n\n  global.Bindable = require(\"bindable\");\n\n  require(\"cornerstone\");\n\n  require(\"appcache\");\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  Editor = require(\"./editor\");\n\n  global.editor = Editor();\n\n  editor.notify(\"Welcome to PixiPaint!\");\n\n}).call(this);\n",
       "type": "blob"
     },
     "modal": {
@@ -389,7 +389,7 @@
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"remoteDependencies\":[\"https://code.jquery.com/jquery-1.10.1.min.js\",\"https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js\",\"https://pixipaint.net/envweb-v0.4.7.js\"],\"dependencies\":{\"appcache\":\"distri/appcache:v0.2.0\",\"byte_array\":\"distri/byte_array:v0.1.1\",\"eval\":\"distri/eval:v0.1.0\",\"facebook\":\"distri/facebook:v0.1.1\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"hotkeys\":\"distri/hotkeys:v0.2.0\",\"jquery-utils\":\"distri/jquery-utils:v0.2.0\",\"postmaster\":\"distri/postmaster:v0.2.0\",\"runtime\":\"distri/runtime:v0.3.0\",\"touch-canvas\":\"distri/touch-canvas:v0.3.0\",\"undo\":\"distri/undo:v0.2.0\"},\"width\":1024,\"height\":576};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"remoteDependencies\":[\"https://code.jquery.com/jquery-1.11.0.min.js\"],\"dependencies\":{\"appcache\":\"distri/appcache:v0.2.0\",\"bindable\":\"distri/bindable:v0.1.0\",\"byte_array\":\"distri/byte_array:v0.1.1\",\"cornerstone\":\"distri/cornerstone:v0.2.2-pre.0\",\"model\":\"distri/compositions:v0.1.1\",\"eval\":\"distri/eval:v0.1.0\",\"facebook\":\"distri/facebook:v0.1.1\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"hotkeys\":\"distri/hotkeys:v0.2.0\",\"jquery-utils\":\"distri/jquery-utils:v0.2.0\",\"observable\":\"distri/observable:v0.1.2\",\"postmaster\":\"distri/postmaster:v0.2.0\",\"runtime\":\"distri/runtime:v0.3.0\",\"touch-canvas\":\"distri/touch-canvas:v0.3.0\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1024,\"height\":576};",
       "type": "blob"
     },
     "style": {
@@ -404,7 +404,7 @@
     },
     "templates/editor": {
       "path": "templates/editor",
-      "content": "Runtime = require(\"/lib/_hamljr_runtime\");\n\nmodule.exports = (function(data) {\n  return (function() {\n    var activeIndex, activeTool, editor, __runtime;\n    __runtime = Runtime(this);\n    __runtime.push(document.createDocumentFragment());\n    activeIndex = this.activeIndex;\n    activeTool = this.activeTool;\n    editor = this;\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"editor\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"toolbar\");\n    __runtime.each(this.tools, function(tool) {\n      var activate, activeClass;\n      activeClass = function() {\n        if (tool === activeTool()) {\n          return \"active\";\n        }\n      };\n      activate = function() {\n        return activeTool(tool);\n      };\n      __runtime.push(document.createElement(\"div\"));\n      __runtime.classes(\"tool\", activeClass);\n      __runtime.attribute(\"style\", \"background-image: url(\" + tool.iconUrl + \")\");\n      __runtime.attribute(\"click\", activate);\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"main\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"viewport\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"overlay\");\n    __runtime.pop();\n    __runtime.pop();\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"notifications\");\n    __runtime.each(this.notifications, function(notification) {\n      __runtime.push(document.createElement(\"p\"));\n      __runtime.text(notification);\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"palette\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"color\", \"current\");\n    __runtime.pop();\n    __runtime.each(this.palette, function(color, index) {\n      var activate;\n      activate = function() {\n        return activeIndex(index);\n      };\n      __runtime.push(document.createElement(\"div\"));\n      __runtime.classes(\"color\");\n      __runtime.attribute(\"click\", activate);\n      __runtime.attribute(\"touchstart\", activate);\n      __runtime.attribute(\"style\", \"background-color: \" + color);\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"actions\");\n    __runtime.each(this.actions, function(action) {\n      var perform;\n      perform = function() {\n        return action.perform();\n      };\n      __runtime.push(document.createElement(\"div\"));\n      __runtime.classes(\"action\");\n      __runtime.attribute(\"click\", perform);\n      __runtime.attribute(\"touchstart\", perform);\n      __runtime.attribute(\"style\", \"background-image: url(\" + action.iconUrl + \")\");\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.id(\"modal\");\n    __runtime.pop();\n    return __runtime.pop();\n  }).call(data);\n});\n",
+      "content": "Runtime = require(\"/lib/_hamljr_runtime\");\n\nmodule.exports = (function(data) {\n  return (function() {\n    var Observable, activeIndex, activeTool, editor, __runtime;\n    __runtime = Runtime(this);\n    __runtime.push(document.createDocumentFragment());\n    activeIndex = this.activeIndex;\n    activeTool = this.activeTool;\n    editor = this;\n    Observable = require(\"observable\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"editor\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"toolbar\");\n    __runtime.each(this.tools, function(tool) {\n      var activate, activeClass;\n      activeClass = function() {\n        if (tool === activeTool()) {\n          return \"active\";\n        }\n      };\n      activate = function() {\n        return activeTool(tool);\n      };\n      __runtime.push(document.createElement(\"div\"));\n      __runtime.classes(\"tool\", activeClass);\n      __runtime.attribute(\"style\", \"background-image: url(\" + tool.iconUrl + \")\");\n      __runtime.attribute(\"click\", activate);\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"main\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"viewport\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"overlay\");\n    __runtime.pop();\n    __runtime.pop();\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"notifications\");\n    __runtime.each(this.notifications, function(notification) {\n      __runtime.push(document.createElement(\"p\"));\n      __runtime.text(notification);\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"palette\");\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"color\", \"current\");\n    __runtime.pop();\n    __runtime.each(this.palette, function(color, index) {\n      var activate;\n      activate = function() {\n        return activeIndex(index);\n      };\n      __runtime.push(document.createElement(\"div\"));\n      __runtime.classes(\"color\");\n      __runtime.attribute(\"click\", activate);\n      __runtime.attribute(\"touchstart\", activate);\n      __runtime.attribute(\"style\", \"background-color: \" + color);\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.classes(\"actions\");\n    __runtime.each(this.actions, function(action) {\n      var perform;\n      perform = function() {\n        return action.perform();\n      };\n      __runtime.push(document.createElement(\"div\"));\n      __runtime.classes(\"action\");\n      __runtime.attribute(\"click\", perform);\n      __runtime.attribute(\"touchstart\", perform);\n      __runtime.attribute(\"style\", \"background-image: url(\" + action.iconUrl + \")\");\n      return __runtime.pop();\n    });\n    __runtime.pop();\n    __runtime.pop();\n    __runtime.push(document.createElement(\"div\"));\n    __runtime.id(\"modal\");\n    __runtime.pop();\n    return __runtime.pop();\n  }).call(data);\n});\n",
       "type": "blob"
     },
     "test/editor": {
@@ -422,14 +422,9 @@
       "content": "(function() {\n  var Size, isObject;\n\n  global.Deferred = jQuery.Deferred;\n\n  isObject = function(object) {\n    return Object.prototype.toString.call(object) === \"[object Object]\";\n  };\n\n  Size = function(width, height) {\n    var _ref;\n    if (isObject(width)) {\n      _ref = width, width = _ref.width, height = _ref.height;\n    }\n    return {\n      width: width,\n      height: height,\n      __proto__: Size.prototype\n    };\n  };\n\n  Size.prototype = {\n    scale: function(scalar) {\n      return Size(this.width * scalar, this.height * scalar);\n    },\n    toString: function() {\n      return \"Size(\" + this.width + \", \" + this.height + \")\";\n    },\n    max: function(otherSize) {\n      return Size(Math.max(this.width, otherSize.width), Math.max(this.height, otherSize.height));\n    },\n    each: function(iterator) {\n      var _i, _ref, _results;\n      return (function() {\n        _results = [];\n        for (var _i = 0, _ref = this.height; 0 <= _ref ? _i < _ref : _i > _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).forEach(function(y) {\n        var _i, _ref, _results;\n        return (function() {\n          _results = [];\n          for (var _i = 0, _ref = this.width; 0 <= _ref ? _i < _ref : _i > _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }\n          return _results;\n        }).apply(this).forEach(function(x) {\n          return iterator(x, y);\n        });\n      });\n    }\n  };\n\n  Point.prototype.scale = function(scalar) {\n    if (isObject(scalar)) {\n      return Point(this.x * scalar.width, this.y * scalar.height);\n    } else {\n      return Point(this.x * scalar, this.y * scalar);\n    }\n  };\n\n  module.exports = {\n    Size: Size,\n    Grid: function(width, height, defaultValue) {\n      var generateValue, grid, self, _i, _results;\n      generateValue = function(x, y) {\n        if (typeof defaultValue === \"function\") {\n          return defaultValue(x, y);\n        } else {\n          return defaultValue;\n        }\n      };\n      grid = (function() {\n        _results = [];\n        for (var _i = 0; 0 <= height ? _i < height : _i > height; 0 <= height ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).map(function(y) {\n        var _i, _results;\n        return (function() {\n          _results = [];\n          for (var _i = 0; 0 <= width ? _i < width : _i > width; 0 <= width ? _i++ : _i--){ _results.push(_i); }\n          return _results;\n        }).apply(this).map(function(x) {\n          return generateValue(x, y);\n        });\n      });\n      self = {\n        contract: function(x, y) {\n          height -= y;\n          width -= x;\n          grid.length = height;\n          grid.forEach(function(row) {\n            return row.length = width;\n          });\n          return self;\n        },\n        copy: function() {\n          return Grid(width, height, self.get);\n        },\n        get: function(x, y) {\n          if (x < 0 || x >= width) {\n            return;\n          }\n          if (y < 0 || y >= height) {\n            return;\n          }\n          return grid[y][x];\n        },\n        set: function(x, y, value) {\n          if (x < 0 || x >= width) {\n            return;\n          }\n          if (y < 0 || y >= height) {\n            return;\n          }\n          return grid[y][x] = value;\n        },\n        each: function(iterator) {\n          grid.forEach(function(row, y) {\n            return row.forEach(function(value, x) {\n              return iterator(value, x, y);\n            });\n          });\n          return self;\n        },\n        expand: function(x, y, defaultValue) {\n          var newRows, _j, _results1;\n          newRows = (function() {\n            _results1 = [];\n            for (var _j = 0; 0 <= y ? _j < y : _j > y; 0 <= y ? _j++ : _j--){ _results1.push(_j); }\n            return _results1;\n          }).apply(this).map(function(y) {\n            var _j, _results1;\n            return (function() {\n              _results1 = [];\n              for (var _j = 0; 0 <= width ? _j < width : _j > width; 0 <= width ? _j++ : _j--){ _results1.push(_j); }\n              return _results1;\n            }).apply(this).map(function(x) {\n              if (typeof defaultValue === \"function\") {\n                return defaultValue(x, y + height);\n              } else {\n                return defaultValue;\n              }\n            });\n          });\n          grid = grid.concat(newRows);\n          grid = grid.map(function(row, y) {\n            var _k, _results2;\n            return row.concat((function() {\n              _results2 = [];\n              for (var _k = 0; 0 <= x ? _k < x : _k > x; 0 <= x ? _k++ : _k--){ _results2.push(_k); }\n              return _results2;\n            }).apply(this).map(function(x) {\n              if (typeof defaultValue === \"function\") {\n                return defaultValue(width + x, y);\n              } else {\n                return defaultValue;\n              }\n            }));\n          });\n          height = y + height;\n          width = x + width;\n          return self;\n        },\n        toArray: function() {\n          return grid.reduce(function(a, b) {\n            return a.concat(b);\n          }, []);\n        }\n      };\n      return self;\n    },\n    line: function(p0, p1, iterator) {\n      var dx, dy, e2, err, sx, sy, x0, x1, y0, y1, _results;\n      x0 = p0.x, y0 = p0.y;\n      x1 = p1.x, y1 = p1.y;\n      dx = (x1 - x0).abs();\n      dy = (y1 - y0).abs();\n      sx = (x1 - x0).sign();\n      sy = (y1 - y0).sign();\n      err = dx - dy;\n      _results = [];\n      while (!(x0 === x1 && y0 === y1)) {\n        e2 = 2 * err;\n        if (e2 > -dy) {\n          err -= dy;\n          x0 += sx;\n        }\n        if (e2 < dx) {\n          err += dx;\n          y0 += sy;\n        }\n        _results.push(iterator({\n          x: x0,\n          y: y0\n        }));\n      }\n      return _results;\n    },\n    rect: function(start, end, iterator) {\n      var _i, _ref, _ref1, _results;\n      return (function() {\n        _results = [];\n        for (var _i = _ref = start.y, _ref1 = end.y; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; _ref <= _ref1 ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).forEach(function(y) {\n        var _i, _ref, _ref1, _results;\n        return (function() {\n          _results = [];\n          for (var _i = _ref = start.x, _ref1 = end.x; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; _ref <= _ref1 ? _i++ : _i--){ _results.push(_i); }\n          return _results;\n        }).apply(this).forEach(function(x) {\n          return iterator({\n            x: x,\n            y: y\n          });\n        });\n      });\n    },\n    rectOutline: function(start, end, iterator) {\n      var _i, _ref, _ref1, _results;\n      return (function() {\n        _results = [];\n        for (var _i = _ref = start.y, _ref1 = end.y; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; _ref <= _ref1 ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).forEach(function(y) {\n        var _i, _ref, _ref1, _results;\n        if (y === start.y || y === end.y) {\n          return (function() {\n            _results = [];\n            for (var _i = _ref = start.x, _ref1 = end.x; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; _ref <= _ref1 ? _i++ : _i--){ _results.push(_i); }\n            return _results;\n          }).apply(this).forEach(function(x) {\n            return iterator({\n              x: x,\n              y: y\n            });\n          });\n        } else {\n          iterator({\n            x: start.x,\n            y: y\n          });\n          return iterator({\n            x: end.x,\n            y: y\n          });\n        }\n      });\n    },\n    circle: function(start, endPoint, iterator) {\n      var center, ddFx, ddFy, extent, f, radius, x, x0, x1, y, y0, y1, _results;\n      center = Point.interpolate(start, endPoint, 0.5).floor();\n      x0 = center.x, y0 = center.y;\n      x1 = endPoint.x, y1 = endPoint.y;\n      extent = endPoint.subtract(start).scale(0.5).abs().floor();\n      radius = Math.min(extent.x, extent.y);\n      f = 1 - radius;\n      ddFx = 1;\n      ddFy = -2 * radius;\n      x = 0;\n      y = radius;\n      iterator(Point(x0, y0 + radius));\n      iterator(Point(x0, y0 - radius));\n      iterator(Point(x0 + radius, y0));\n      iterator(Point(x0 - radius, y0));\n      _results = [];\n      while (x < y) {\n        if (f > 0) {\n          y--;\n          ddFy += 2;\n          f += ddFy;\n        }\n        x++;\n        ddFx += 2;\n        f += ddFx;\n        iterator(Point(x0 + x, y0 + y));\n        iterator(Point(x0 - x, y0 + y));\n        iterator(Point(x0 + x, y0 - y));\n        iterator(Point(x0 - x, y0 - y));\n        iterator(Point(x0 + y, y0 + x));\n        iterator(Point(x0 - y, y0 + x));\n        iterator(Point(x0 + y, y0 - x));\n        _results.push(iterator(Point(x0 - y, y0 - x)));\n      }\n      return _results;\n    }\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
-    "lib/_hamljr-runtime": {
-      "path": "lib/_hamljr-runtime",
-      "content": "(function() {\n  var Observable, Runtime, eventNames, isEvent, isFragment, valueBind,\n    __slice = [].slice;\n\n  Observable = require(\"observable\");\n\n  eventNames = \"abort\\nblur\\nchange\\nclick\\ndblclick\\ndrag\\ndragend\\ndragenter\\ndragleave\\ndragover\\ndragstart\\ndrop\\nerror\\nfocus\\ninput\\nkeydown\\nkeypress\\nkeyup\\nload\\nmousedown\\nmousemove\\nmouseout\\nmouseover\\nmouseup\\nreset\\nresize\\nscroll\\nselect\\nsubmit\\nunload\".split(\"\\n\");\n\n  isEvent = function(name) {\n    return eventNames.indexOf(name) !== -1;\n  };\n\n  isFragment = function(node) {\n    return node.nodeType === 11;\n  };\n\n  valueBind = function(element, value) {\n    element.value = value();\n    element.oninput = function() {\n      return value(element.value);\n    };\n    element.onchange = function() {\n      return value(element.value);\n    };\n    if (typeof value.observe === \"function\") {\n      value.observe(function(newValue) {\n        return element.value = newValue;\n      });\n    }\n    switch (element.nodeName) {\n      case \"SELECT\":\n        setTimeout(function() {\n          return element.value = value();\n        }, 0);\n    }\n  };\n\n  Runtime = function(context) {\n    var append, bindObservable, classes, id, lastParent, observeAttribute, observeText, pop, push, render, self, stack, top;\n    stack = [];\n    lastParent = function() {\n      var element, i;\n      i = stack.length - 1;\n      while ((element = stack[i]) && isFragment(element)) {\n        i -= 1;\n      }\n      return element;\n    };\n    top = function() {\n      return stack[stack.length - 1];\n    };\n    append = function(child) {\n      var parent, _ref;\n      parent = top();\n      if (parent && isFragment(child) && child.childNodes.length === 1) {\n        child = child.childNodes[0];\n      }\n      if ((_ref = top()) != null) {\n        _ref.appendChild(child);\n      }\n      return child;\n    };\n    push = function(child) {\n      return stack.push(child);\n    };\n    pop = function() {\n      return append(stack.pop());\n    };\n    render = function(child) {\n      push(child);\n      return pop();\n    };\n    bindObservable = function(element, value, update) {\n      var observable, observe, unobserve;\n      observable = Observable(value);\n      update(observable());\n      observe = function() {\n        observable.observe(update);\n        return update(observable());\n      };\n      unobserve = function() {\n        return observable.stopObserving(update);\n      };\n      element.addEventListener(\"DOMNodeInserted\", observe, true);\n      element.addEventListener(\"DOMNodeRemoved\", unobserve, true);\n      return element;\n    };\n    id = function() {\n      var element, sources, update, value;\n      sources = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      element = top();\n      update = function(newValue) {\n        if (typeof newValue === \"function\") {\n          newValue = newValue();\n        }\n        return element.id = newValue;\n      };\n      value = function() {\n        var possibleValues;\n        possibleValues = sources.map(function(source) {\n          if (typeof source === \"function\") {\n            return source();\n          } else {\n            return source;\n          }\n        }).filter(function(idValue) {\n          return idValue != null;\n        });\n        return possibleValues[possibleValues.length - 1];\n      };\n      return bindObservable(element, value, update);\n    };\n    classes = function() {\n      var element, sources, update, value;\n      sources = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      element = top();\n      update = function(newValue) {\n        if (typeof newValue === \"function\") {\n          newValue = newValue();\n        }\n        return element.className = newValue;\n      };\n      value = function() {\n        var possibleValues;\n        possibleValues = sources.map(function(source) {\n          if (typeof source === \"function\") {\n            return source();\n          } else {\n            return source;\n          }\n        }).filter(function(sourceValue) {\n          return sourceValue != null;\n        });\n        return possibleValues.join(\" \");\n      };\n      return bindObservable(element, value, update);\n    };\n    observeAttribute = function(name, value) {\n      var element, update;\n      element = top();\n      update = function(newValue) {\n        if ((newValue != null) && newValue !== false) {\n          return element.setAttribute(name, newValue);\n        } else {\n          return element.removeAttribute(name);\n        }\n      };\n      if ((name === \"value\") && (typeof value === \"function\")) {\n        valueBind(element, value);\n      } else if ((name === \"checked\") && (typeof value === \"function\")) {\n        element.onchange = function() {\n          return value(element.checked);\n        };\n        bindObservable(element, value, update);\n      } else if (name.match(/^on/) && isEvent(name.substr(2))) {\n        element[name] = value;\n      } else if (isEvent(name)) {\n        element[\"on\" + name] = value;\n      } else {\n        bindObservable(element, value, update);\n      }\n      return element;\n    };\n    observeText = function(value) {\n      var element, update;\n      switch (value != null ? value.nodeType : void 0) {\n        case 1:\n        case 3:\n        case 11:\n          return render(value);\n      }\n      element = document.createTextNode('');\n      update = function(newValue) {\n        return element.nodeValue = newValue;\n      };\n      bindObservable(element, value, update);\n      return render(element);\n    };\n    self = {\n      push: push,\n      pop: pop,\n      id: id,\n      classes: classes,\n      attribute: observeAttribute,\n      text: observeText,\n      filter: function(name, content) {},\n      each: function(items, fn) {\n        var elements, parent, replace;\n        items = Observable(items);\n        elements = null;\n        parent = lastParent();\n        items.observe(function(newItems) {\n          return replace(elements, newItems);\n        });\n        replace = function(oldElements, items) {\n          elements = [];\n          items.forEach(function(item, index, array) {\n            var element;\n            element = fn.call(item, item, index, array);\n            if (isFragment(element)) {\n              elements.push.apply(elements, element.childNodes);\n            } else {\n              elements.push(element);\n            }\n            parent.appendChild(element);\n            return element;\n          });\n          return oldElements != null ? oldElements.forEach(function(element) {\n            return element.remove();\n          }) : void 0;\n        };\n        return replace(null, items);\n      }\n    };\n    return self;\n  };\n\n  module.exports = Runtime;\n\n}).call(this);\n",
-      "type": "blob"
-    },
     "lib/_hamljr_runtime": {
       "path": "lib/_hamljr_runtime",
-      "content": "(function() {\n  var Runtime, document, eventNames, isEvent, isFragment,\n    __slice = [].slice;\n\n  if (typeof window !== \"undefined\" && window !== null) {\n    document = window.document;\n  } else {\n    document = global.document;\n  }\n\n  eventNames = \"abort\\nerror\\nresize\\nscroll\\nselect\\nsubmit\\nchange\\nreset\\nfocus\\nblur\\nclick\\ndblclick\\nkeydown\\nkeypress\\nkeyup\\nload\\nunload\\nmousedown\\nmousemove\\nmouseout\\nmouseover\\nmouseup\\ndrag\\ndragend\\ndragenter\\ndragleave\\ndragover\\ndragstart\\ndrop\".split(\"\\n\");\n\n  isEvent = function(name) {\n    return eventNames.indexOf(name) !== -1;\n  };\n\n  isFragment = function(node) {\n    return node.nodeType === 11;\n  };\n\n  Runtime = function(context) {\n    var append, bindObservable, classes, id, lastParent, observeAttribute, observeText, pop, push, render, self, stack, top;\n    stack = [];\n    lastParent = function() {\n      var element, i;\n      i = stack.length - 1;\n      while ((element = stack[i]) && isFragment(element)) {\n        i -= 1;\n      }\n      return element;\n    };\n    top = function() {\n      return stack[stack.length - 1];\n    };\n    append = function(child) {\n      var parent, _ref;\n      parent = top();\n      if (parent && isFragment(child) && child.childNodes.length === 1) {\n        child = child.childNodes[0];\n      }\n      if ((_ref = top()) != null) {\n        _ref.appendChild(child);\n      }\n      return child;\n    };\n    push = function(child) {\n      return stack.push(child);\n    };\n    pop = function() {\n      return append(stack.pop());\n    };\n    render = function(child) {\n      push(child);\n      return pop();\n    };\n    bindObservable = function(element, value, update) {\n      var observable, observe, unobserve;\n      if (typeof Observable === \"undefined\" || Observable === null) {\n        update(value);\n        return;\n      }\n      observable = Observable(value);\n      observe = function() {\n        observable.observe(update);\n        return update(observable());\n      };\n      unobserve = function() {\n        return observable.stopObserving(update);\n      };\n      element.addEventListener(\"DOMNodeInserted\", observe, true);\n      element.addEventListener(\"DOMNodeRemoved\", unobserve, true);\n      return element;\n    };\n    id = function() {\n      var element, sources, update, value;\n      sources = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      element = top();\n      update = function(newValue) {\n        if (typeof newValue === \"function\") {\n          newValue = newValue();\n        }\n        return element.id = newValue;\n      };\n      value = function() {\n        var possibleValues;\n        possibleValues = sources.map(function(source) {\n          if (typeof source === \"function\") {\n            return source();\n          } else {\n            return source;\n          }\n        }).filter(function(idValue) {\n          return idValue != null;\n        });\n        return possibleValues[possibleValues.length - 1];\n      };\n      return bindObservable(element, value, update);\n    };\n    classes = function() {\n      var element, sources, update, value;\n      sources = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      element = top();\n      update = function(newValue) {\n        if (typeof newValue === \"function\") {\n          newValue = newValue();\n        }\n        return element.className = newValue;\n      };\n      value = function() {\n        var possibleValues;\n        possibleValues = sources.map(function(source) {\n          if (typeof source === \"function\") {\n            return source();\n          } else {\n            return source;\n          }\n        }).filter(function(sourceValue) {\n          return sourceValue != null;\n        });\n        return possibleValues.join(\" \");\n      };\n      return bindObservable(element, value, update);\n    };\n    observeAttribute = function(name, value) {\n      var element, update;\n      element = top();\n      if ((name === \"value\") && (typeof value === \"function\")) {\n        element.value = value();\n        element.onchange = function() {\n          return value(element.value);\n        };\n        if (value.observe) {\n          value.observe(function(newValue) {\n            return element.value = newValue;\n          });\n        }\n      } else if (name.match(/^on/) && isEvent(name.substr(2))) {\n        element[name] = value;\n      } else if (isEvent(name)) {\n        element[\"on\" + name] = value;\n      } else {\n        update = function(newValue) {\n          return element.setAttribute(name, newValue);\n        };\n        bindObservable(element, value, update);\n      }\n      return element;\n    };\n    observeText = function(value) {\n      var element, update;\n      switch (value != null ? value.nodeType : void 0) {\n        case 1:\n        case 3:\n        case 11:\n          return render(value);\n      }\n      element = document.createTextNode('');\n      update = function(newValue) {\n        return element.nodeValue = newValue;\n      };\n      bindObservable(element, value, update);\n      return render(element);\n    };\n    self = {\n      push: push,\n      pop: pop,\n      id: id,\n      classes: classes,\n      attribute: observeAttribute,\n      text: observeText,\n      filter: function(name, content) {},\n      each: function(items, fn) {\n        var elements, parent, replace;\n        items = Observable(items);\n        elements = null;\n        parent = lastParent();\n        items.observe(function(newItems) {\n          return replace(elements, newItems);\n        });\n        replace = function(oldElements, items) {\n          elements = [];\n          items.forEach(function(item, index, array) {\n            var element;\n            element = fn.call(item, item, index, array);\n            if (isFragment(element)) {\n              elements.push.apply(elements, element.childNodes);\n            } else {\n              elements.push(element);\n            }\n            parent.appendChild(element);\n            return element;\n          });\n          return oldElements != null ? oldElements.forEach(function(element) {\n            return element.remove();\n          }) : void 0;\n        };\n        return replace(null, items);\n      }\n    };\n    return self;\n  };\n\n  module.exports = Runtime;\n\n}).call(this);\n",
+      "content": "(function() {\n  var Observable, Runtime, eventNames, isEvent, isFragment, valueBind,\n    __slice = [].slice;\n\n  Observable = require(\"observable\");\n\n  eventNames = \"abort\\nblur\\nchange\\nclick\\ndblclick\\ndrag\\ndragend\\ndragenter\\ndragleave\\ndragover\\ndragstart\\ndrop\\nerror\\nfocus\\ninput\\nkeydown\\nkeypress\\nkeyup\\nload\\nmousedown\\nmousemove\\nmouseout\\nmouseover\\nmouseup\\nreset\\nresize\\nscroll\\nselect\\nsubmit\\ntouchstart\\ntouchend\\ntouchmove\\ntouchenter\\ntouchleave\\ntouchcancel\\nunload\".split(\"\\n\");\n\n  isEvent = function(name) {\n    return eventNames.indexOf(name) !== -1;\n  };\n\n  isFragment = function(node) {\n    return node.nodeType === 11;\n  };\n\n  valueBind = function(element, value) {\n    element.value = value();\n    element.oninput = function() {\n      return value(element.value);\n    };\n    element.onchange = function() {\n      return value(element.value);\n    };\n    if (typeof value.observe === \"function\") {\n      value.observe(function(newValue) {\n        return element.value = newValue;\n      });\n    }\n    switch (element.nodeName) {\n      case \"SELECT\":\n        setTimeout(function() {\n          return element.value = value();\n        }, 0);\n    }\n  };\n\n  Runtime = function(context) {\n    var append, bindObservable, classes, id, lastParent, observeAttribute, observeText, pop, push, render, self, stack, top;\n    stack = [];\n    lastParent = function() {\n      var element, i;\n      i = stack.length - 1;\n      while ((element = stack[i]) && isFragment(element)) {\n        i -= 1;\n      }\n      return element;\n    };\n    top = function() {\n      return stack[stack.length - 1];\n    };\n    append = function(child) {\n      var parent, _ref;\n      parent = top();\n      if (parent && isFragment(child) && child.childNodes.length === 1) {\n        child = child.childNodes[0];\n      }\n      if ((_ref = top()) != null) {\n        _ref.appendChild(child);\n      }\n      return child;\n    };\n    push = function(child) {\n      return stack.push(child);\n    };\n    pop = function() {\n      return append(stack.pop());\n    };\n    render = function(child) {\n      push(child);\n      return pop();\n    };\n    bindObservable = function(element, value, update) {\n      var observable, observe, unobserve;\n      observable = Observable(value);\n      update(observable());\n      observe = function() {\n        observable.observe(update);\n        return update(observable());\n      };\n      unobserve = function() {\n        return observable.stopObserving(update);\n      };\n      element.addEventListener(\"DOMNodeInserted\", observe, true);\n      element.addEventListener(\"DOMNodeRemoved\", unobserve, true);\n      return element;\n    };\n    id = function() {\n      var element, sources, update, value;\n      sources = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      element = top();\n      update = function(newValue) {\n        if (typeof newValue === \"function\") {\n          newValue = newValue();\n        }\n        return element.id = newValue;\n      };\n      value = function() {\n        var possibleValues;\n        possibleValues = sources.map(function(source) {\n          if (typeof source === \"function\") {\n            return source();\n          } else {\n            return source;\n          }\n        }).filter(function(idValue) {\n          return idValue != null;\n        });\n        return possibleValues[possibleValues.length - 1];\n      };\n      return bindObservable(element, value, update);\n    };\n    classes = function() {\n      var element, sources, update, value;\n      sources = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      element = top();\n      update = function(newValue) {\n        if (typeof newValue === \"function\") {\n          newValue = newValue();\n        }\n        return element.className = newValue;\n      };\n      value = function() {\n        var possibleValues;\n        possibleValues = sources.map(function(source) {\n          if (typeof source === \"function\") {\n            return source();\n          } else {\n            return source;\n          }\n        }).filter(function(sourceValue) {\n          return sourceValue != null;\n        });\n        return possibleValues.join(\" \");\n      };\n      return bindObservable(element, value, update);\n    };\n    observeAttribute = function(name, value) {\n      var element, update;\n      element = top();\n      update = function(newValue) {\n        if ((newValue != null) && newValue !== false) {\n          return element.setAttribute(name, newValue);\n        } else {\n          return element.removeAttribute(name);\n        }\n      };\n      if ((name === \"value\") && (typeof value === \"function\")) {\n        valueBind(element, value);\n      } else if ((name === \"checked\") && (typeof value === \"function\")) {\n        element.onchange = function() {\n          return value(element.checked);\n        };\n        bindObservable(element, value, update);\n      } else if (name.match(/^on/) && isEvent(name.substr(2))) {\n        element[name] = value;\n      } else if (isEvent(name)) {\n        element[\"on\" + name] = value;\n      } else {\n        bindObservable(element, value, update);\n      }\n      return element;\n    };\n    observeText = function(value) {\n      var element, update;\n      switch (value != null ? value.nodeType : void 0) {\n        case 1:\n        case 3:\n        case 11:\n          return render(value);\n      }\n      element = document.createTextNode('');\n      update = function(newValue) {\n        return element.nodeValue = newValue;\n      };\n      bindObservable(element, value, update);\n      return render(element);\n    };\n    self = {\n      push: push,\n      pop: pop,\n      id: id,\n      classes: classes,\n      attribute: observeAttribute,\n      text: observeText,\n      filter: function(name, content) {},\n      each: function(items, fn) {\n        var elements, parent, replace;\n        items = Observable(items);\n        elements = null;\n        parent = lastParent();\n        items.observe(function(newItems) {\n          return replace(elements, newItems);\n        });\n        replace = function(oldElements, items) {\n          elements = [];\n          items.forEach(function(item, index, array) {\n            var element;\n            element = fn.call(item, item, index, array);\n            if (isFragment(element)) {\n              elements.push.apply(elements, element.childNodes);\n            } else {\n              elements.push(element);\n            }\n            parent.appendChild(element);\n            return element;\n          });\n          return oldElements != null ? oldElements.forEach(function(element) {\n            return element.remove();\n          }) : void 0;\n        };\n        return replace(null, items);\n      }\n    };\n    return self;\n  };\n\n  module.exports = Runtime;\n\n}).call(this);\n",
       "type": "blob"
     }
   },
@@ -439,9 +434,7 @@
   "version": "0.1.0",
   "entryPoint": "main",
   "remoteDependencies": [
-    "https://code.jquery.com/jquery-1.10.1.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js",
-    "https://pixipaint.net/envweb-v0.4.7.js"
+    "https://code.jquery.com/jquery-1.11.0.min.js"
   ],
   "repository": {
     "branch": "update-haml",
@@ -615,6 +608,345 @@
       },
       "dependencies": {}
     },
+    "bindable": {
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "mode": "100644",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2014 distri\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+          "type": "blob"
+        },
+        "README.coffee.md": {
+          "path": "README.coffee.md",
+          "mode": "100644",
+          "content": "Bindable\n========\n\n    Core = require \"core\"\n\nAdd event binding to objects.\n\n>     bindable = Bindable()\n>     bindable.on \"greet\", ->\n>       console.log \"yo!\"\n>     bindable.trigger \"greet\"\n>     #=> \"yo!\" is printed to log\n\nUse as a mixin.\n\n>    self.include Bindable\n\n    module.exports = (I={}, self=Core(I)) ->\n      eventCallbacks = {}\n\n      self.extend\n\nAdds a function as an event listener.\n\nThis will call `coolEventHandler` after `yourObject.trigger \"someCustomEvent\"`\nis called.\n\n>     yourObject.on \"someCustomEvent\", coolEventHandler\n\nHandlers can be attached to namespaces as well. The namespaces are only used\nfor finer control of targeting event removal. For example if you are making a\ncustom drawing system you could unbind `\".Drawable\"` events and add your own.\n\n>     yourObject.on \"\"\n\n        on: (namespacedEvent, callback) ->\n          [event, namespace] = namespacedEvent.split(\".\")\n\n          # HACK: Here we annotate the callback function with namespace metadata\n          # This will probably lead to some strange edge cases, but should work fine\n          # for simple cases.\n          if namespace\n            callback.__PIXIE ||= {}\n            callback.__PIXIE[namespace] = true\n\n          eventCallbacks[event] ||= []\n          eventCallbacks[event].push(callback)\n\n          return self\n\nRemoves a specific event listener, or all event listeners if\nno specific listener is given.\n\nRemoves the handler coolEventHandler from the event `\"someCustomEvent\"` while\nleaving the other events intact.\n\n>     yourObject.off \"someCustomEvent\", coolEventHandler\n\nRemoves all handlers attached to `\"anotherCustomEvent\"`\n\n>     yourObject.off \"anotherCustomEvent\"\n\nRemove all handlers from the `\".Drawable\" namespace`\n\n>     yourObject.off \".Drawable\"\n\n        off: (namespacedEvent, callback) ->\n          [event, namespace] = namespacedEvent.split(\".\")\n\n          if event\n            eventCallbacks[event] ||= []\n\n            if namespace\n              # Select only the callbacks that do not have this namespace metadata\n              eventCallbacks[event] = eventCallbacks.filter (callback) ->\n                !callback.__PIXIE?[namespace]?\n\n            else\n              if callback\n                remove eventCallbacks[event], callback\n              else\n                eventCallbacks[event] = []\n          else if namespace\n            # No event given\n            # Select only the callbacks that do not have this namespace metadata\n            # for any events bound\n            for key, callbacks of eventCallbacks\n              eventCallbacks[key] = callbacks.filter (callback) ->\n                !callback.__PIXIE?[namespace]?\n\n          return self\n\nCalls all listeners attached to the specified event.\n\n>     # calls each event handler bound to \"someCustomEvent\"\n>     yourObject.trigger \"someCustomEvent\"\n\nAdditional parameters can be passed to the handlers.\n\n>     yourObject.trigger \"someEvent\", \"hello\", \"anotherParameter\"\n\n        trigger: (event, parameters...) ->\n          callbacks = eventCallbacks[event]\n\n          if callbacks\n            callbacks.forEach (callback) ->\n              callback.apply(self, parameters)\n\n          return self\n\nLegacy method aliases.\n\n      self.extend\n        bind: self.on\n        unbind: self.off\n\nHelpers\n-------\n\nRemove a value from an array.\n\n    remove = (array, value) ->\n      index = array.indexOf(value)\n\n      if index >= 0\n        array.splice(index, 1)[0]\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "entryPoint: \"README\"\nversion: \"0.1.0\"\ndependencies:\n  core: \"distri/core:v0.6.0\"\n",
+          "type": "blob"
+        },
+        "test/bindable.coffee": {
+          "path": "test/bindable.coffee",
+          "mode": "100644",
+          "content": "test = it\nok = assert\nequal = assert.equal\n\nBindable = require \"../README\"\n\ndescribe \"Bindable\", ->\n\n  test \"#bind and #trigger\", ->\n    o = Bindable()\n\n    o.bind(\"test\", -> ok true)\n\n    o.trigger(\"test\")\n\n  test \"Multiple bindings\", ->\n    o = Bindable()\n\n    o.bind(\"test\", -> ok true)\n    o.bind(\"test\", -> ok true)\n\n    o.trigger(\"test\")\n\n  test \"#trigger arguments\", ->\n    o = Bindable()\n\n    param1 = \"the message\"\n    param2 = 3\n\n    o.bind \"test\", (p1, p2) ->\n      equal(p1, param1)\n      equal(p2, param2)\n\n    o.trigger \"test\", param1, param2\n\n  test \"#unbind\", ->\n    o = Bindable()\n\n    callback = ->\n      ok false\n\n    o.bind \"test\", callback\n    # Unbind specific event\n    o.unbind \"test\", callback\n    o.trigger \"test\"\n\n    o.bind \"test\", callback\n    # Unbind all events\n    o.unbind \"test\"\n    o.trigger \"test\"\n\n  test \"#trigger namespace\", ->\n    o = Bindable()\n    o.bind \"test.TestNamespace\", ->\n      ok true\n\n    o.trigger \"test\"\n\n    o.unbind \".TestNamespace\"\n    o.trigger \"test\"\n\n  test \"#unbind namespaced\", ->\n    o = Bindable()\n\n    o.bind \"test.TestNamespace\", ->\n      ok true\n\n    o.trigger \"test\"\n\n    o.unbind \".TestNamespace\", ->\n    o.trigger \"test\"\n",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "README": {
+          "path": "README",
+          "content": "(function() {\n  var Core, remove,\n    __slice = [].slice;\n\n  Core = require(\"core\");\n\n  module.exports = function(I, self) {\n    var eventCallbacks;\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    eventCallbacks = {};\n    self.extend({\n      on: function(namespacedEvent, callback) {\n        var event, namespace, _ref;\n        _ref = namespacedEvent.split(\".\"), event = _ref[0], namespace = _ref[1];\n        if (namespace) {\n          callback.__PIXIE || (callback.__PIXIE = {});\n          callback.__PIXIE[namespace] = true;\n        }\n        eventCallbacks[event] || (eventCallbacks[event] = []);\n        eventCallbacks[event].push(callback);\n        return self;\n      },\n      off: function(namespacedEvent, callback) {\n        var callbacks, event, key, namespace, _ref;\n        _ref = namespacedEvent.split(\".\"), event = _ref[0], namespace = _ref[1];\n        if (event) {\n          eventCallbacks[event] || (eventCallbacks[event] = []);\n          if (namespace) {\n            eventCallbacks[event] = eventCallbacks.filter(function(callback) {\n              var _ref1;\n              return ((_ref1 = callback.__PIXIE) != null ? _ref1[namespace] : void 0) == null;\n            });\n          } else {\n            if (callback) {\n              remove(eventCallbacks[event], callback);\n            } else {\n              eventCallbacks[event] = [];\n            }\n          }\n        } else if (namespace) {\n          for (key in eventCallbacks) {\n            callbacks = eventCallbacks[key];\n            eventCallbacks[key] = callbacks.filter(function(callback) {\n              var _ref1;\n              return ((_ref1 = callback.__PIXIE) != null ? _ref1[namespace] : void 0) == null;\n            });\n          }\n        }\n        return self;\n      },\n      trigger: function() {\n        var callbacks, event, parameters;\n        event = arguments[0], parameters = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n        callbacks = eventCallbacks[event];\n        if (callbacks) {\n          callbacks.forEach(function(callback) {\n            return callback.apply(self, parameters);\n          });\n        }\n        return self;\n      }\n    });\n    return self.extend({\n      bind: self.on,\n      unbind: self.off\n    });\n  };\n\n  remove = function(array, value) {\n    var index;\n    index = array.indexOf(value);\n    if (index >= 0) {\n      return array.splice(index, 1)[0];\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=README.coffee",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"entryPoint\":\"README\",\"version\":\"0.1.0\",\"dependencies\":{\"core\":\"distri/core:v0.6.0\"}};",
+          "type": "blob"
+        },
+        "test/bindable": {
+          "path": "test/bindable",
+          "content": "(function() {\n  var Bindable, equal, ok, test;\n\n  test = it;\n\n  ok = assert;\n\n  equal = assert.equal;\n\n  Bindable = require(\"../README\");\n\n  describe(\"Bindable\", function() {\n    test(\"#bind and #trigger\", function() {\n      var o;\n      o = Bindable();\n      o.bind(\"test\", function() {\n        return ok(true);\n      });\n      return o.trigger(\"test\");\n    });\n    test(\"Multiple bindings\", function() {\n      var o;\n      o = Bindable();\n      o.bind(\"test\", function() {\n        return ok(true);\n      });\n      o.bind(\"test\", function() {\n        return ok(true);\n      });\n      return o.trigger(\"test\");\n    });\n    test(\"#trigger arguments\", function() {\n      var o, param1, param2;\n      o = Bindable();\n      param1 = \"the message\";\n      param2 = 3;\n      o.bind(\"test\", function(p1, p2) {\n        equal(p1, param1);\n        return equal(p2, param2);\n      });\n      return o.trigger(\"test\", param1, param2);\n    });\n    test(\"#unbind\", function() {\n      var callback, o;\n      o = Bindable();\n      callback = function() {\n        return ok(false);\n      };\n      o.bind(\"test\", callback);\n      o.unbind(\"test\", callback);\n      o.trigger(\"test\");\n      o.bind(\"test\", callback);\n      o.unbind(\"test\");\n      return o.trigger(\"test\");\n    });\n    test(\"#trigger namespace\", function() {\n      var o;\n      o = Bindable();\n      o.bind(\"test.TestNamespace\", function() {\n        return ok(true);\n      });\n      o.trigger(\"test\");\n      o.unbind(\".TestNamespace\");\n      return o.trigger(\"test\");\n    });\n    return test(\"#unbind namespaced\", function() {\n      var o;\n      o = Bindable();\n      o.bind(\"test.TestNamespace\", function() {\n        return ok(true);\n      });\n      o.trigger(\"test\");\n      o.unbind(\".TestNamespace\", function() {});\n      return o.trigger(\"test\");\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/bindable.coffee",
+          "type": "blob"
+        }
+      },
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "version": "0.1.0",
+      "entryPoint": "README",
+      "repository": {
+        "id": 17189431,
+        "name": "bindable",
+        "full_name": "distri/bindable",
+        "owner": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+          "gravatar_id": null,
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/distri/bindable",
+        "description": "Event binding",
+        "fork": false,
+        "url": "https://api.github.com/repos/distri/bindable",
+        "forks_url": "https://api.github.com/repos/distri/bindable/forks",
+        "keys_url": "https://api.github.com/repos/distri/bindable/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/distri/bindable/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/distri/bindable/teams",
+        "hooks_url": "https://api.github.com/repos/distri/bindable/hooks",
+        "issue_events_url": "https://api.github.com/repos/distri/bindable/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/distri/bindable/events",
+        "assignees_url": "https://api.github.com/repos/distri/bindable/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/distri/bindable/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/distri/bindable/tags",
+        "blobs_url": "https://api.github.com/repos/distri/bindable/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/distri/bindable/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/distri/bindable/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/distri/bindable/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/distri/bindable/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/distri/bindable/languages",
+        "stargazers_url": "https://api.github.com/repos/distri/bindable/stargazers",
+        "contributors_url": "https://api.github.com/repos/distri/bindable/contributors",
+        "subscribers_url": "https://api.github.com/repos/distri/bindable/subscribers",
+        "subscription_url": "https://api.github.com/repos/distri/bindable/subscription",
+        "commits_url": "https://api.github.com/repos/distri/bindable/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/distri/bindable/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/distri/bindable/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/distri/bindable/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/distri/bindable/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/distri/bindable/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/distri/bindable/merges",
+        "archive_url": "https://api.github.com/repos/distri/bindable/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/distri/bindable/downloads",
+        "issues_url": "https://api.github.com/repos/distri/bindable/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/distri/bindable/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/distri/bindable/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/distri/bindable/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/distri/bindable/labels{/name}",
+        "releases_url": "https://api.github.com/repos/distri/bindable/releases{/id}",
+        "created_at": "2014-02-25T21:50:35Z",
+        "updated_at": "2014-02-25T21:50:35Z",
+        "pushed_at": "2014-02-25T21:50:35Z",
+        "git_url": "git://github.com/distri/bindable.git",
+        "ssh_url": "git@github.com:distri/bindable.git",
+        "clone_url": "https://github.com/distri/bindable.git",
+        "svn_url": "https://github.com/distri/bindable",
+        "homepage": null,
+        "size": 0,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": null,
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "master",
+        "master_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "organization": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+          "gravatar_id": null,
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "network_count": 0,
+        "subscribers_count": 2,
+        "branch": "v0.1.0",
+        "defaultBranch": "master"
+      },
+      "dependencies": {
+        "core": {
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "core\n====\n\nAn object extension system.\n",
+              "type": "blob"
+            },
+            "core.coffee.md": {
+              "path": "core.coffee.md",
+              "mode": "100644",
+              "content": "Core\n====\n\nThe Core module is used to add extended functionality to objects without\nextending `Object.prototype` directly.\n\n    Core = (I={}, self={}) ->\n      extend self,\n\nExternal access to instance variables. Use of this property should be avoided\nin general, but can come in handy from time to time.\n\n>     #! example\n>     I =\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject = Core(I)\n>\n>     [myObject.I.r, myObject.I.g, myObject.I.b]\n\n        I: I\n\nGenerates a public jQuery style getter / setter method for each `String` argument.\n\n>     #! example\n>     myObject = Core\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject.attrAccessor \"r\", \"g\", \"b\"\n>\n>     myObject.r(254)\n\n        attrAccessor: (attrNames...) ->\n          attrNames.forEach (attrName) ->\n            self[attrName] = (newValue) ->\n              if arguments.length > 0\n                I[attrName] = newValue\n\n                return self\n              else\n                I[attrName]\n\n          return self\n\nGenerates a public jQuery style getter method for each String argument.\n\n>     #! example\n>     myObject = Core\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject.attrReader \"r\", \"g\", \"b\"\n>\n>     [myObject.r(), myObject.g(), myObject.b()]\n\n        attrReader: (attrNames...) ->\n          attrNames.forEach (attrName) ->\n            self[attrName] = ->\n              I[attrName]\n\n          return self\n\nExtends this object with methods from the passed in object. A shortcut for Object.extend(self, methods)\n\n>     I =\n>       x: 30\n>       y: 40\n>       maxSpeed: 5\n>\n>     # we are using extend to give player\n>     # additional methods that Core doesn't have\n>     player = Core(I).extend\n>       increaseSpeed: ->\n>         I.maxSpeed += 1\n>\n>     player.increaseSpeed()\n\n        extend: (objects...) ->\n          extend self, objects...\n\nIncludes a module in this object. A module is a constructor that takes two parameters, `I` and `self`\n\n>     myObject = Core()\n>     myObject.include(Bindable)\n\n>     # now you can bind handlers to functions\n>     myObject.bind \"someEvent\", ->\n>       alert(\"wow. that was easy.\")\n\n        include: (modules...) ->\n          for Module in modules\n            Module(I, self)\n\n          return self\n\n      return self\n\nHelpers\n-------\n\nExtend an object with the properties of other objects.\n\n    extend = (target, sources...) ->\n      for source in sources\n        for name of source\n          target[name] = source[name]\n\n      return target\n\nExport\n\n    module.exports = Core\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "entryPoint: \"core\"\nversion: \"0.6.0\"\n",
+              "type": "blob"
+            },
+            "test/core.coffee": {
+              "path": "test/core.coffee",
+              "mode": "100644",
+              "content": "Core = require \"../core\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Core\", ->\n\n  test \"#extend\", ->\n    o = Core()\n  \n    o.extend\n      test: \"jawsome\"\n  \n    equals o.test, \"jawsome\"\n  \n  test \"#attrAccessor\", ->\n    o = Core\n      test: \"my_val\"\n  \n    o.attrAccessor(\"test\")\n  \n    equals o.test(), \"my_val\"\n    equals o.test(\"new_val\"), o\n    equals o.test(), \"new_val\"\n  \n  test \"#attrReader\", ->\n    o = Core\n      test: \"my_val\"\n  \n    o.attrReader(\"test\")\n  \n    equals o.test(), \"my_val\"\n    equals o.test(\"new_val\"), \"my_val\"\n    equals o.test(), \"my_val\"\n  \n  test \"#include\", ->\n    o = Core\n      test: \"my_val\"\n  \n    M = (I, self) ->\n      self.attrReader \"test\"\n  \n      self.extend\n        test2: \"cool\"\n  \n    ret = o.include M\n  \n    equals ret, o, \"Should return self\"\n  \n    equals o.test(), \"my_val\"\n    equals o.test2, \"cool\"\n  \n  test \"#include multiple\", ->\n    o = Core\n      test: \"my_val\"\n  \n    M = (I, self) ->\n      self.attrReader \"test\"\n  \n      self.extend\n        test2: \"cool\"\n  \n    M2 = (I, self) ->\n      self.extend\n        test2: \"coolio\"\n  \n    o.include M, M2\n  \n    equals o.test2, \"coolio\"\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "core": {
+              "path": "core",
+              "content": "(function() {\n  var Core, extend,\n    __slice = [].slice;\n\n  Core = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = {};\n    }\n    extend(self, {\n      I: I,\n      attrAccessor: function() {\n        var attrNames;\n        attrNames = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        attrNames.forEach(function(attrName) {\n          return self[attrName] = function(newValue) {\n            if (arguments.length > 0) {\n              I[attrName] = newValue;\n              return self;\n            } else {\n              return I[attrName];\n            }\n          };\n        });\n        return self;\n      },\n      attrReader: function() {\n        var attrNames;\n        attrNames = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        attrNames.forEach(function(attrName) {\n          return self[attrName] = function() {\n            return I[attrName];\n          };\n        });\n        return self;\n      },\n      extend: function() {\n        var objects;\n        objects = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        return extend.apply(null, [self].concat(__slice.call(objects)));\n      },\n      include: function() {\n        var Module, modules, _i, _len;\n        modules = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        for (_i = 0, _len = modules.length; _i < _len; _i++) {\n          Module = modules[_i];\n          Module(I, self);\n        }\n        return self;\n      }\n    });\n    return self;\n  };\n\n  extend = function() {\n    var name, source, sources, target, _i, _len;\n    target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n    for (_i = 0, _len = sources.length; _i < _len; _i++) {\n      source = sources[_i];\n      for (name in source) {\n        target[name] = source[name];\n      }\n    }\n    return target;\n  };\n\n  module.exports = Core;\n\n}).call(this);\n\n//# sourceURL=core.coffee",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"entryPoint\":\"core\",\"version\":\"0.6.0\"};",
+              "type": "blob"
+            },
+            "test/core": {
+              "path": "test/core",
+              "content": "(function() {\n  var Core, equals, ok, test;\n\n  Core = require(\"../core\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Core\", function() {\n    test(\"#extend\", function() {\n      var o;\n      o = Core();\n      o.extend({\n        test: \"jawsome\"\n      });\n      return equals(o.test, \"jawsome\");\n    });\n    test(\"#attrAccessor\", function() {\n      var o;\n      o = Core({\n        test: \"my_val\"\n      });\n      o.attrAccessor(\"test\");\n      equals(o.test(), \"my_val\");\n      equals(o.test(\"new_val\"), o);\n      return equals(o.test(), \"new_val\");\n    });\n    test(\"#attrReader\", function() {\n      var o;\n      o = Core({\n        test: \"my_val\"\n      });\n      o.attrReader(\"test\");\n      equals(o.test(), \"my_val\");\n      equals(o.test(\"new_val\"), \"my_val\");\n      return equals(o.test(), \"my_val\");\n    });\n    test(\"#include\", function() {\n      var M, o, ret;\n      o = Core({\n        test: \"my_val\"\n      });\n      M = function(I, self) {\n        self.attrReader(\"test\");\n        return self.extend({\n          test2: \"cool\"\n        });\n      };\n      ret = o.include(M);\n      equals(ret, o, \"Should return self\");\n      equals(o.test(), \"my_val\");\n      return equals(o.test2, \"cool\");\n    });\n    return test(\"#include multiple\", function() {\n      var M, M2, o;\n      o = Core({\n        test: \"my_val\"\n      });\n      M = function(I, self) {\n        self.attrReader(\"test\");\n        return self.extend({\n          test2: \"cool\"\n        });\n      };\n      M2 = function(I, self) {\n        return self.extend({\n          test2: \"coolio\"\n        });\n      };\n      o.include(M, M2);\n      return equals(o.test2, \"coolio\");\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/core.coffee",
+              "type": "blob"
+            }
+          },
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "version": "0.6.0",
+          "entryPoint": "core",
+          "repository": {
+            "id": 13567517,
+            "name": "core",
+            "full_name": "distri/core",
+            "owner": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/distri/core",
+            "description": "An object extension system.",
+            "fork": false,
+            "url": "https://api.github.com/repos/distri/core",
+            "forks_url": "https://api.github.com/repos/distri/core/forks",
+            "keys_url": "https://api.github.com/repos/distri/core/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/distri/core/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/distri/core/teams",
+            "hooks_url": "https://api.github.com/repos/distri/core/hooks",
+            "issue_events_url": "https://api.github.com/repos/distri/core/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/distri/core/events",
+            "assignees_url": "https://api.github.com/repos/distri/core/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/distri/core/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/distri/core/tags",
+            "blobs_url": "https://api.github.com/repos/distri/core/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/distri/core/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/distri/core/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/distri/core/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/distri/core/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/distri/core/languages",
+            "stargazers_url": "https://api.github.com/repos/distri/core/stargazers",
+            "contributors_url": "https://api.github.com/repos/distri/core/contributors",
+            "subscribers_url": "https://api.github.com/repos/distri/core/subscribers",
+            "subscription_url": "https://api.github.com/repos/distri/core/subscription",
+            "commits_url": "https://api.github.com/repos/distri/core/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/distri/core/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/distri/core/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/distri/core/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/distri/core/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/distri/core/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/distri/core/merges",
+            "archive_url": "https://api.github.com/repos/distri/core/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/distri/core/downloads",
+            "issues_url": "https://api.github.com/repos/distri/core/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/distri/core/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/distri/core/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/distri/core/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/distri/core/labels{/name}",
+            "releases_url": "https://api.github.com/repos/distri/core/releases{/id}",
+            "created_at": "2013-10-14T17:04:33Z",
+            "updated_at": "2013-12-24T00:49:21Z",
+            "pushed_at": "2013-10-14T23:49:11Z",
+            "git_url": "git://github.com/distri/core.git",
+            "ssh_url": "git@github.com:distri/core.git",
+            "clone_url": "https://github.com/distri/core.git",
+            "svn_url": "https://github.com/distri/core",
+            "homepage": null,
+            "size": 592,
+            "stargazers_count": 0,
+            "watchers_count": 0,
+            "language": "CoffeeScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 0,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 0,
+            "open_issues": 0,
+            "watchers": 0,
+            "default_branch": "master",
+            "master_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "organization": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "network_count": 0,
+            "subscribers_count": 1,
+            "branch": "v0.6.0",
+            "defaultBranch": "master"
+          },
+          "dependencies": {}
+        }
+      }
+    },
     "byte_array": {
       "source": {
         "LICENSE": {
@@ -786,6 +1118,1738 @@
         "defaultBranch": "master"
       },
       "dependencies": {}
+    },
+    "cornerstone": {
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "README.md": {
+          "path": "README.md",
+          "content": "cornerstone\n===========\n\nCore JavaScript Extensions.\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "cornerstone.coffee.md": {
+          "path": "cornerstone.coffee.md",
+          "content": "Cornerstone\n===========\n\nRequire and pollute.\n\n    require \"extensions\"\n\n    global.Core = require(\"core\")\n\n    require(\"math\").pollute()\n\n    require \"./point\"\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "content": "version: \"0.2.2-pre.0\"\nentryPoint: \"cornerstone\"\ndependencies:\n  math: \"distri/math:v0.2.0\"\n  extensions: \"distri/extensions:v0.2.0\"\n  core: \"distri/core:v0.6.0\"\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "test/cornerstone.coffee": {
+          "path": "test/cornerstone.coffee",
+          "content": "require \"../cornerstone\"\n\ndescribe \"Cornerstone\", ->\n  it \"should provide Core\", ->\n    assert Core\n\n  it \"should provide Matrix\", ->\n    assert Matrix\n\n  describe \"Point\", ->\n    \n    it \"should provide Point\", ->\n      assert Point\n\n    [\n      \"abs\"\n      \"ceil\"\n      \"floor\"\n    ].forEach (method) ->\n      it \"should have Point::#{method}\", ->\n        assert Point()[method]\n\n  it \"should provide Random\", ->\n    assert Random\n\n  it \"should provide rand\", ->\n    assert rand\n\n  it \"should provide Function#debounce\", ->\n    assert (->).debounce\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "point.coffee.md": {
+          "path": "point.coffee.md",
+          "content": "Extend Point With Math Magic\n============================\n\n    [\n      \"abs\"\n      \"ceil\"\n      \"floor\"\n    ].forEach (method) ->\n      Point.prototype[method] = ->\n        Point(@x[method](), @y[method]())\n",
+          "mode": "100644"
+        }
+      },
+      "distribution": {
+        "cornerstone": {
+          "path": "cornerstone",
+          "content": "(function() {\n  require(\"extensions\");\n\n  global.Core = require(\"core\");\n\n  require(\"math\").pollute();\n\n  require(\"./point\");\n\n}).call(this);\n",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.2.2-pre.0\",\"entryPoint\":\"cornerstone\",\"dependencies\":{\"math\":\"distri/math:v0.2.0\",\"extensions\":\"distri/extensions:v0.2.0\",\"core\":\"distri/core:v0.6.0\"}};",
+          "type": "blob"
+        },
+        "test/cornerstone": {
+          "path": "test/cornerstone",
+          "content": "(function() {\n  require(\"../cornerstone\");\n\n  describe(\"Cornerstone\", function() {\n    it(\"should provide Core\", function() {\n      return assert(Core);\n    });\n    it(\"should provide Matrix\", function() {\n      return assert(Matrix);\n    });\n    describe(\"Point\", function() {\n      it(\"should provide Point\", function() {\n        return assert(Point);\n      });\n      return [\"abs\", \"ceil\", \"floor\"].forEach(function(method) {\n        return it(\"should have Point::\" + method, function() {\n          return assert(Point()[method]);\n        });\n      });\n    });\n    it(\"should provide Random\", function() {\n      return assert(Random);\n    });\n    it(\"should provide rand\", function() {\n      return assert(rand);\n    });\n    return it(\"should provide Function#debounce\", function() {\n      return assert((function() {}).debounce);\n    });\n  });\n\n}).call(this);\n",
+          "type": "blob"
+        },
+        "point": {
+          "path": "point",
+          "content": "(function() {\n  [\"abs\", \"ceil\", \"floor\"].forEach(function(method) {\n    return Point.prototype[method] = function() {\n      return Point(this.x[method](), this.y[method]());\n    };\n  });\n\n}).call(this);\n",
+          "type": "blob"
+        }
+      },
+      "progenitor": {
+        "url": "http://www.danielx.net/editor/"
+      },
+      "version": "0.2.2-pre.0",
+      "entryPoint": "cornerstone",
+      "repository": {
+        "branch": "v0.2.2-pre.0",
+        "default_branch": "master",
+        "full_name": "distri/cornerstone",
+        "homepage": null,
+        "description": "Core JavaScript Extensions.",
+        "html_url": "https://github.com/distri/cornerstone",
+        "url": "https://api.github.com/repos/distri/cornerstone",
+        "publishBranch": "gh-pages"
+      },
+      "dependencies": {
+        "math": {
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "math\n====\n\nMath is for cool guys.\n",
+              "type": "blob"
+            },
+            "math.coffee.md": {
+              "path": "math.coffee.md",
+              "mode": "100644",
+              "content": "Math\n====\n\nRequire and export many math libraries.\n\n    Point = require \"point\"\n\n    Matrix = require \"matrix\"\n    Matrix.Point = Point\n\n    Random = require \"random\"\n\n    module.exports = self =\n      Point: Point\n      Matrix: Matrix\n      Random: Random\n      rand: Random.rand\n\nPollute all libraries to the global namespace.\n\n      pollute: ->\n        Object.keys(self).forEach (key) ->\n          return if key is \"version\"\n          return if key is \"pollute\"\n\n          global[key] = self[key]\n\n        return self\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "entryPoint: \"math\"\nversion: \"0.2.0\"\ndependencies:\n  point: \"distri/point:v0.2.0\"\n  matrix: \"distri/matrix:v0.3.1\"\n  random: \"distri/random:v0.2.0\"\n",
+              "type": "blob"
+            },
+            "test/math.coffee": {
+              "path": "test/math.coffee",
+              "mode": "100644",
+              "content": "require(\"../math\").pollute()\n\nconsole.log global\n\ndescribe \"Point\", ->\n  it \"should exist\", ->\n    assert Point\n\n  it \"should construct points\", ->\n    assert Point()\n\ndescribe \"Matrix\", ->\n  it \"should exist and return matrices when invoked\", ->\n    assert Matrix\n\n    assert Matrix()\n\n  it \"should use the same `Point` class\", ->\n    assert Matrix.Point is Point\n\n    assert Matrix().transformPoint(Point()) instanceof Point\n\ndescribe \"Random\", ->\n  it \"should exist\", ->\n    assert Random\n\ndescribe \"rand\", ->\n  it \"should exist\", ->\n    assert rand\n\n    assert rand()?\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "math": {
+              "path": "math",
+              "content": "(function() {\n  var Matrix, Point, Random, self;\n\n  Point = require(\"point\");\n\n  Matrix = require(\"matrix\");\n\n  Matrix.Point = Point;\n\n  Random = require(\"random\");\n\n  module.exports = self = {\n    Point: Point,\n    Matrix: Matrix,\n    Random: Random,\n    rand: Random.rand,\n    pollute: function() {\n      Object.keys(self).forEach(function(key) {\n        if (key === \"version\") {\n          return;\n        }\n        if (key === \"pollute\") {\n          return;\n        }\n        return global[key] = self[key];\n      });\n      return self;\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=math.coffee",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"entryPoint\":\"math\",\"version\":\"0.2.0\",\"dependencies\":{\"point\":\"distri/point:v0.2.0\",\"matrix\":\"distri/matrix:v0.3.1\",\"random\":\"distri/random:v0.2.0\"}};",
+              "type": "blob"
+            },
+            "test/math": {
+              "path": "test/math",
+              "content": "(function() {\n  require(\"../math\").pollute();\n\n  console.log(global);\n\n  describe(\"Point\", function() {\n    it(\"should exist\", function() {\n      return assert(Point);\n    });\n    return it(\"should construct points\", function() {\n      return assert(Point());\n    });\n  });\n\n  describe(\"Matrix\", function() {\n    it(\"should exist and return matrices when invoked\", function() {\n      assert(Matrix);\n      return assert(Matrix());\n    });\n    return it(\"should use the same `Point` class\", function() {\n      assert(Matrix.Point === Point);\n      return assert(Matrix().transformPoint(Point()) instanceof Point);\n    });\n  });\n\n  describe(\"Random\", function() {\n    return it(\"should exist\", function() {\n      return assert(Random);\n    });\n  });\n\n  describe(\"rand\", function() {\n    return it(\"should exist\", function() {\n      assert(rand);\n      return assert(rand() != null);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/math.coffee",
+              "type": "blob"
+            }
+          },
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "version": "0.2.0",
+          "entryPoint": "math",
+          "repository": {
+            "id": 13576636,
+            "name": "math",
+            "full_name": "distri/math",
+            "owner": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/distri/math",
+            "description": "Math is for cool guys.",
+            "fork": false,
+            "url": "https://api.github.com/repos/distri/math",
+            "forks_url": "https://api.github.com/repos/distri/math/forks",
+            "keys_url": "https://api.github.com/repos/distri/math/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/distri/math/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/distri/math/teams",
+            "hooks_url": "https://api.github.com/repos/distri/math/hooks",
+            "issue_events_url": "https://api.github.com/repos/distri/math/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/distri/math/events",
+            "assignees_url": "https://api.github.com/repos/distri/math/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/distri/math/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/distri/math/tags",
+            "blobs_url": "https://api.github.com/repos/distri/math/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/distri/math/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/distri/math/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/distri/math/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/distri/math/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/distri/math/languages",
+            "stargazers_url": "https://api.github.com/repos/distri/math/stargazers",
+            "contributors_url": "https://api.github.com/repos/distri/math/contributors",
+            "subscribers_url": "https://api.github.com/repos/distri/math/subscribers",
+            "subscription_url": "https://api.github.com/repos/distri/math/subscription",
+            "commits_url": "https://api.github.com/repos/distri/math/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/distri/math/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/distri/math/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/distri/math/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/distri/math/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/distri/math/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/distri/math/merges",
+            "archive_url": "https://api.github.com/repos/distri/math/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/distri/math/downloads",
+            "issues_url": "https://api.github.com/repos/distri/math/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/distri/math/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/distri/math/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/distri/math/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/distri/math/labels{/name}",
+            "releases_url": "https://api.github.com/repos/distri/math/releases{/id}",
+            "created_at": "2013-10-15T00:13:24Z",
+            "updated_at": "2013-12-23T23:29:58Z",
+            "pushed_at": "2013-10-15T18:45:48Z",
+            "git_url": "git://github.com/distri/math.git",
+            "ssh_url": "git@github.com:distri/math.git",
+            "clone_url": "https://github.com/distri/math.git",
+            "svn_url": "https://github.com/distri/math",
+            "homepage": null,
+            "size": 364,
+            "stargazers_count": 0,
+            "watchers_count": 0,
+            "language": "CoffeeScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 0,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 0,
+            "open_issues": 0,
+            "watchers": 0,
+            "default_branch": "master",
+            "master_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "organization": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "network_count": 0,
+            "subscribers_count": 1,
+            "branch": "v0.2.0",
+            "defaultBranch": "master"
+          },
+          "dependencies": {
+            "point": {
+              "source": {
+                "LICENSE": {
+                  "path": "LICENSE",
+                  "mode": "100644",
+                  "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+                  "type": "blob"
+                },
+                "README.md": {
+                  "path": "README.md",
+                  "mode": "100644",
+                  "content": "point\n=====\n\nJavaScript Point implementation\n",
+                  "type": "blob"
+                },
+                "interactive_runtime.coffee.md": {
+                  "path": "interactive_runtime.coffee.md",
+                  "mode": "100644",
+                  "content": "Interactive Runtime\n-------------------\n\n    window.Point = require(\"./point\")\n\nRegister our example runner.\n\n    Interactive.register \"example\", ({source, runtimeElement}) ->\n      program = CoffeeScript.compile(source, bare: true)\n\n      outputElement = document.createElement \"pre\"\n      runtimeElement.empty().append outputElement\n\n      result = eval(program)\n\n      if typeof result is \"number\"\n        if result != (0 | result)\n          result = result.toFixed(4)\n    \n\n      outputElement.textContent = result\n",
+                  "type": "blob"
+                },
+                "pixie.cson": {
+                  "path": "pixie.cson",
+                  "mode": "100644",
+                  "content": "version: \"0.2.0\"\nentryPoint: \"point\"\n",
+                  "type": "blob"
+                },
+                "point.coffee.md": {
+                  "path": "point.coffee.md",
+                  "mode": "100644",
+                  "content": "\nCreate a new point with given x and y coordinates. If no arguments are given\ndefaults to (0, 0).\n\n>     #! example\n>     Point()\n\n----\n\n>     #! example\n>     Point(-2, 5)\n\n----\n\n    Point = (x, y) ->\n      if isObject(x)\n        {x, y} = x\n\n      __proto__: Point.prototype\n      x: x ? 0\n      y: y ? 0\n\nPoint protoype methods.\n\n    Point:: =\n\nConstrain the magnitude of a vector.\n\n      clamp: (n) ->\n        if @magnitude() > n\n          @norm(n)\n        else\n          @copy()\n\nCreates a copy of this point.\n\n      copy: ->\n        Point(@x, @y)\n\n>     #! example\n>     Point(1, 1).copy()\n\n----\n\nAdds a point to this one and returns the new point. You may\nalso use a two argument call like `point.add(x, y)`\nto add x and y values without a second point object.\n\n      add: (first, second) ->\n        if second?\n          Point(\n            @x + first\n            @y + second\n          )\n        else\n          Point(\n            @x + first.x,\n            @y + first.y\n          )\n\n>     #! example\n>     Point(2, 3).add(Point(3, 4))\n\n----\n\nSubtracts a point to this one and returns the new point.\n\n      subtract: (first, second) ->\n        if second?\n          Point(\n            @x - first,\n            @y - second\n          )\n        else\n          @add(first.scale(-1))\n\n>     #! example\n>     Point(1, 2).subtract(Point(2, 0))\n\n----\n\nScale this Point (Vector) by a constant amount.\n\n      scale: (scalar) ->\n        Point(\n          @x * scalar,\n          @y * scalar\n        )\n\n>     #! example\n>     point = Point(5, 6).scale(2)\n\n----\n\nThe `norm` of a vector is the unit vector pointing in the same direction. This method\ntreats the point as though it is a vector from the origin to (x, y).\n\n      norm: (length=1.0) ->\n        if m = @length()\n          @scale(length/m)\n        else\n          @copy()\n\n>     #! example\n>     point = Point(2, 3).norm()\n\n----\n\nDetermine whether this `Point` is equal to another `Point`. Returns `true` if\nthey are equal and `false` otherwise.\n\n      equal: (other) ->\n        @x == other.x && @y == other.y\n\n>     #! example\n>     point = Point(2, 3)\n>\n>     point.equal(Point(2, 3))\n\n----\n\nComputed the length of this point as though it were a vector from (0,0) to (x,y).\n\n      length: ->\n        Math.sqrt(@dot(this))\n\n>     #! example\n>     Point(5, 7).length()\n\n----\n\nCalculate the magnitude of this Point (Vector).\n\n      magnitude: ->\n        @length()\n\n>     #! example\n>     Point(5, 7).magnitude()\n\n----\n\nReturns the direction in radians of this point from the origin.\n\n      direction: ->\n        Math.atan2(@y, @x)\n\n>     #! example\n>     point = Point(0, 1)\n>\n>     point.direction()\n\n----\n\nCalculate the dot product of this point and another point (Vector).\n\n      dot: (other) ->\n        @x * other.x + @y * other.y\n\n\n`cross` calculates the cross product of this point and another point (Vector).\nUsually cross products are thought of as only applying to three dimensional vectors,\nbut z can be treated as zero. The result of this method is interpreted as the magnitude\nof the vector result of the cross product between [x1, y1, 0] x [x2, y2, 0]\nperpendicular to the xy plane.\n\n      cross: (other) ->\n        @x * other.y - other.x * @y\n\n\n`distance` computes the Euclidean distance between this point and another point.\n\n      distance: (other) ->\n        Point.distance(this, other)\n\n>     #! example\n>     pointA = Point(2, 3)\n>     pointB = Point(9, 2)\n>\n>     pointA.distance(pointB)\n\n----\n\n`toFixed` returns a string representation of this point with fixed decimal places.\n\n      toFixed: (n) ->\n        \"Point(#{@x.toFixed(n)}, #{@y.toFixed(n)})\"\n\n`toString` returns a string representation of this point. The representation is\nsuch that if `eval`d it will return a `Point`\n\n      toString: ->\n        \"Point(#{@x}, #{@y})\"\n\n`distance` Compute the Euclidean distance between two points.\n\n    Point.distance = (p1, p2) ->\n      Math.sqrt(Point.distanceSquared(p1, p2))\n\n>     #! example\n>     pointA = Point(2, 3)\n>     pointB = Point(9, 2)\n>\n>     Point.distance(pointA, pointB)\n\n----\n\n`distanceSquared` The square of the Euclidean distance between two points.\n\n    Point.distanceSquared = (p1, p2) ->\n      Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)\n\n>     #! example\n>     pointA = Point(2, 3)\n>     pointB = Point(9, 2)\n>\n>     Point.distanceSquared(pointA, pointB)\n\n----\n\n`interpolate` returns a point along the path from p1 to p2\n\n    Point.interpolate = (p1, p2, t) ->\n      p2.subtract(p1).scale(t).add(p1)\n\nConstruct a point on the unit circle for the given angle.\n\n    Point.fromAngle = (angle) ->\n      Point(Math.cos(angle), Math.sin(angle))\n\n>     #! example\n>     Point.fromAngle(Math.PI / 2)\n\n----\n\nIf you have two dudes, one standing at point p1, and the other\nstanding at point p2, then this method will return the direction\nthat the dude standing at p1 will need to face to look at p2.\n\n>     #! example\n>     p1 = Point(0, 0)\n>     p2 = Point(7, 3)\n>\n>     Point.direction(p1, p2)\n\n    Point.direction = (p1, p2) ->\n      Math.atan2(\n        p2.y - p1.y,\n        p2.x - p1.x\n      )\n\nThe centroid of a set of points is their arithmetic mean.\n\n    Point.centroid = (points...) ->\n      points.reduce((sumPoint, point) ->\n        sumPoint.add(point)\n      , Point(0, 0))\n      .scale(1/points.length)\n\nGenerate a random point on the unit circle.\n\n    Point.random = ->\n      Point.fromAngle(Math.random() * 2 * Math.PI)\n\nExport\n\n    module.exports = Point\n\nHelpers\n-------\n\n    isObject = (object) ->\n      Object.prototype.toString.call(object) is \"[object Object]\"\n\nLive Examples\n-------------\n\n>     #! setup\n>     require(\"/interactive_runtime\")\n",
+                  "type": "blob"
+                },
+                "test/test.coffee": {
+                  "path": "test/test.coffee",
+                  "mode": "100644",
+                  "content": "Point = require \"../point\"\n\nok = assert\nequals = assert.equal\n\nTAU = 2 * Math.PI\n\ndescribe \"Point\", ->\n\n  TOLERANCE = 0.00001\n\n  equalEnough = (expected, actual, tolerance, message) ->\n    message ||= \"\" + expected + \" within \" + tolerance + \" of \" + actual\n    ok(expected + tolerance >= actual && expected - tolerance <= actual, message)\n\n  it \"copy constructor\", ->\n    p = Point(3, 7)\n\n    p2 = Point(p)\n\n    equals p2.x, p.x\n    equals p2.y, p.y\n\n  it \"#add\", ->\n    p1 = Point(5, 6)\n    p2 = Point(7, 5)\n\n    result = p1.add(p2)\n\n    equals result.x, p1.x + p2.x\n    equals result.y, p1.y + p2.y\n\n    equals p1.x, 5\n    equals p1.y, 6\n    equals p2.x, 7\n    equals p2.y, 5\n\n  it \"#add with two arguments\", ->\n    point = Point(3, 7)\n    x = 2\n    y = 1\n\n    result = point.add(x, y)\n\n    equals result.x, point.x + x\n    equals result.y, point.y + y\n\n    x = 2\n    y = 0\n\n    result = point.add(x, y)\n\n    equals result.x, point.x + x\n    equals result.y, point.y + y\n\n  it \"#add existing\", ->\n    p = Point(0, 0)\n\n    p.add(Point(3, 5))\n\n    equals p.x, 0\n    equals p.y, 0\n\n  it \"#subtract\", ->\n    p1 = Point(5, 6)\n    p2 = Point(7, 5)\n\n    result = p1.subtract(p2)\n\n    equals result.x, p1.x - p2.x\n    equals result.y, p1.y - p2.y\n\n  it \"#subtract existing\", ->\n    p = Point(8, 6)\n\n    p.subtract(3, 4)\n\n    equals p.x, 8\n    equals p.y, 6\n\n  it \"#norm\", ->\n    p = Point(2, 0)\n\n    normal = p.norm()\n    equals normal.x, 1\n\n    normal = p.norm(5)\n    equals normal.x, 5\n\n    p = Point(0, 0)\n\n    normal = p.norm()\n    equals normal.x, 0, \"x value of norm of point(0,0) is 0\"\n    equals normal.y, 0, \"y value of norm of point(0,0) is 0\"\n\n  it \"#norm existing\", ->\n    p = Point(6, 8)\n\n    p.norm(5)\n\n    equals p.x, 6\n    equals p.y, 8\n\n  it \"#scale\", ->\n    p = Point(5, 6)\n    scalar = 2\n\n    result = p.scale(scalar)\n\n    equals result.x, p.x * scalar\n    equals result.y, p.y * scalar\n\n    equals p.x, 5\n    equals p.y, 6\n\n  it \"#scale existing\", ->\n    p = Point(0, 1)\n    scalar = 3\n\n    p.scale(scalar)\n\n    equals p.x, 0\n    equals p.y, 1\n\n  it \"#equal\", ->\n    ok Point(7, 8).equal(Point(7, 8))\n\n  it \"#magnitude\", ->\n    equals Point(3, 4).magnitude(), 5\n\n  it \"#length\", ->\n    equals Point(0, 0).length(), 0\n    equals Point(-1, 0).length(), 1\n\n  it \"#toString\", ->\n    p = Point(7, 5)\n    ok eval(p.toString()).equal(p)\n\n  it \"#clamp\", ->\n    p = Point(10, 10)\n    p2 = p.clamp(5)\n\n    equals p2.length(), 5\n\n  it \".centroid\", ->\n    centroid = Point.centroid(\n      Point(0, 0),\n      Point(10, 10),\n      Point(10, 0),\n      Point(0, 10)\n    )\n\n    equals centroid.x, 5\n    equals centroid.y, 5\n\n  it \".fromAngle\", ->\n    p = Point.fromAngle(TAU / 4)\n\n    equalEnough p.x, 0, TOLERANCE\n    equals p.y, 1\n\n  it \".random\", ->\n    p = Point.random()\n\n    ok p\n\n  it \".interpolate\", ->\n    p1 = Point(10, 7)\n    p2 = Point(-6, 29)\n\n    ok p1.equal(Point.interpolate(p1, p2, 0))\n    ok p2.equal(Point.interpolate(p1, p2, 1))\n",
+                  "type": "blob"
+                }
+              },
+              "distribution": {
+                "interactive_runtime": {
+                  "path": "interactive_runtime",
+                  "content": "(function() {\n  window.Point = require(\"./point\");\n\n  Interactive.register(\"example\", function(_arg) {\n    var outputElement, program, result, runtimeElement, source;\n    source = _arg.source, runtimeElement = _arg.runtimeElement;\n    program = CoffeeScript.compile(source, {\n      bare: true\n    });\n    outputElement = document.createElement(\"pre\");\n    runtimeElement.empty().append(outputElement);\n    result = eval(program);\n    if (typeof result === \"number\") {\n      if (result !== (0 | result)) {\n        result = result.toFixed(4);\n      }\n    }\n    return outputElement.textContent = result;\n  });\n\n}).call(this);\n\n//# sourceURL=interactive_runtime.coffee",
+                  "type": "blob"
+                },
+                "pixie": {
+                  "path": "pixie",
+                  "content": "module.exports = {\"version\":\"0.2.0\",\"entryPoint\":\"point\"};",
+                  "type": "blob"
+                },
+                "point": {
+                  "path": "point",
+                  "content": "(function() {\n  var Point, isObject,\n    __slice = [].slice;\n\n  Point = function(x, y) {\n    var _ref;\n    if (isObject(x)) {\n      _ref = x, x = _ref.x, y = _ref.y;\n    }\n    return {\n      __proto__: Point.prototype,\n      x: x != null ? x : 0,\n      y: y != null ? y : 0\n    };\n  };\n\n  Point.prototype = {\n    clamp: function(n) {\n      if (this.magnitude() > n) {\n        return this.norm(n);\n      } else {\n        return this.copy();\n      }\n    },\n    copy: function() {\n      return Point(this.x, this.y);\n    },\n    add: function(first, second) {\n      if (second != null) {\n        return Point(this.x + first, this.y + second);\n      } else {\n        return Point(this.x + first.x, this.y + first.y);\n      }\n    },\n    subtract: function(first, second) {\n      if (second != null) {\n        return Point(this.x - first, this.y - second);\n      } else {\n        return this.add(first.scale(-1));\n      }\n    },\n    scale: function(scalar) {\n      return Point(this.x * scalar, this.y * scalar);\n    },\n    norm: function(length) {\n      var m;\n      if (length == null) {\n        length = 1.0;\n      }\n      if (m = this.length()) {\n        return this.scale(length / m);\n      } else {\n        return this.copy();\n      }\n    },\n    equal: function(other) {\n      return this.x === other.x && this.y === other.y;\n    },\n    length: function() {\n      return Math.sqrt(this.dot(this));\n    },\n    magnitude: function() {\n      return this.length();\n    },\n    direction: function() {\n      return Math.atan2(this.y, this.x);\n    },\n    dot: function(other) {\n      return this.x * other.x + this.y * other.y;\n    },\n    cross: function(other) {\n      return this.x * other.y - other.x * this.y;\n    },\n    distance: function(other) {\n      return Point.distance(this, other);\n    },\n    toFixed: function(n) {\n      return \"Point(\" + (this.x.toFixed(n)) + \", \" + (this.y.toFixed(n)) + \")\";\n    },\n    toString: function() {\n      return \"Point(\" + this.x + \", \" + this.y + \")\";\n    }\n  };\n\n  Point.distance = function(p1, p2) {\n    return Math.sqrt(Point.distanceSquared(p1, p2));\n  };\n\n  Point.distanceSquared = function(p1, p2) {\n    return Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2);\n  };\n\n  Point.interpolate = function(p1, p2, t) {\n    return p2.subtract(p1).scale(t).add(p1);\n  };\n\n  Point.fromAngle = function(angle) {\n    return Point(Math.cos(angle), Math.sin(angle));\n  };\n\n  Point.direction = function(p1, p2) {\n    return Math.atan2(p2.y - p1.y, p2.x - p1.x);\n  };\n\n  Point.centroid = function() {\n    var points;\n    points = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n    return points.reduce(function(sumPoint, point) {\n      return sumPoint.add(point);\n    }, Point(0, 0)).scale(1 / points.length);\n  };\n\n  Point.random = function() {\n    return Point.fromAngle(Math.random() * 2 * Math.PI);\n  };\n\n  module.exports = Point;\n\n  isObject = function(object) {\n    return Object.prototype.toString.call(object) === \"[object Object]\";\n  };\n\n}).call(this);\n\n//# sourceURL=point.coffee",
+                  "type": "blob"
+                },
+                "test/test": {
+                  "path": "test/test",
+                  "content": "(function() {\n  var Point, TAU, equals, ok;\n\n  Point = require(\"../point\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  TAU = 2 * Math.PI;\n\n  describe(\"Point\", function() {\n    var TOLERANCE, equalEnough;\n    TOLERANCE = 0.00001;\n    equalEnough = function(expected, actual, tolerance, message) {\n      message || (message = \"\" + expected + \" within \" + tolerance + \" of \" + actual);\n      return ok(expected + tolerance >= actual && expected - tolerance <= actual, message);\n    };\n    it(\"copy constructor\", function() {\n      var p, p2;\n      p = Point(3, 7);\n      p2 = Point(p);\n      equals(p2.x, p.x);\n      return equals(p2.y, p.y);\n    });\n    it(\"#add\", function() {\n      var p1, p2, result;\n      p1 = Point(5, 6);\n      p2 = Point(7, 5);\n      result = p1.add(p2);\n      equals(result.x, p1.x + p2.x);\n      equals(result.y, p1.y + p2.y);\n      equals(p1.x, 5);\n      equals(p1.y, 6);\n      equals(p2.x, 7);\n      return equals(p2.y, 5);\n    });\n    it(\"#add with two arguments\", function() {\n      var point, result, x, y;\n      point = Point(3, 7);\n      x = 2;\n      y = 1;\n      result = point.add(x, y);\n      equals(result.x, point.x + x);\n      equals(result.y, point.y + y);\n      x = 2;\n      y = 0;\n      result = point.add(x, y);\n      equals(result.x, point.x + x);\n      return equals(result.y, point.y + y);\n    });\n    it(\"#add existing\", function() {\n      var p;\n      p = Point(0, 0);\n      p.add(Point(3, 5));\n      equals(p.x, 0);\n      return equals(p.y, 0);\n    });\n    it(\"#subtract\", function() {\n      var p1, p2, result;\n      p1 = Point(5, 6);\n      p2 = Point(7, 5);\n      result = p1.subtract(p2);\n      equals(result.x, p1.x - p2.x);\n      return equals(result.y, p1.y - p2.y);\n    });\n    it(\"#subtract existing\", function() {\n      var p;\n      p = Point(8, 6);\n      p.subtract(3, 4);\n      equals(p.x, 8);\n      return equals(p.y, 6);\n    });\n    it(\"#norm\", function() {\n      var normal, p;\n      p = Point(2, 0);\n      normal = p.norm();\n      equals(normal.x, 1);\n      normal = p.norm(5);\n      equals(normal.x, 5);\n      p = Point(0, 0);\n      normal = p.norm();\n      equals(normal.x, 0, \"x value of norm of point(0,0) is 0\");\n      return equals(normal.y, 0, \"y value of norm of point(0,0) is 0\");\n    });\n    it(\"#norm existing\", function() {\n      var p;\n      p = Point(6, 8);\n      p.norm(5);\n      equals(p.x, 6);\n      return equals(p.y, 8);\n    });\n    it(\"#scale\", function() {\n      var p, result, scalar;\n      p = Point(5, 6);\n      scalar = 2;\n      result = p.scale(scalar);\n      equals(result.x, p.x * scalar);\n      equals(result.y, p.y * scalar);\n      equals(p.x, 5);\n      return equals(p.y, 6);\n    });\n    it(\"#scale existing\", function() {\n      var p, scalar;\n      p = Point(0, 1);\n      scalar = 3;\n      p.scale(scalar);\n      equals(p.x, 0);\n      return equals(p.y, 1);\n    });\n    it(\"#equal\", function() {\n      return ok(Point(7, 8).equal(Point(7, 8)));\n    });\n    it(\"#magnitude\", function() {\n      return equals(Point(3, 4).magnitude(), 5);\n    });\n    it(\"#length\", function() {\n      equals(Point(0, 0).length(), 0);\n      return equals(Point(-1, 0).length(), 1);\n    });\n    it(\"#toString\", function() {\n      var p;\n      p = Point(7, 5);\n      return ok(eval(p.toString()).equal(p));\n    });\n    it(\"#clamp\", function() {\n      var p, p2;\n      p = Point(10, 10);\n      p2 = p.clamp(5);\n      return equals(p2.length(), 5);\n    });\n    it(\".centroid\", function() {\n      var centroid;\n      centroid = Point.centroid(Point(0, 0), Point(10, 10), Point(10, 0), Point(0, 10));\n      equals(centroid.x, 5);\n      return equals(centroid.y, 5);\n    });\n    it(\".fromAngle\", function() {\n      var p;\n      p = Point.fromAngle(TAU / 4);\n      equalEnough(p.x, 0, TOLERANCE);\n      return equals(p.y, 1);\n    });\n    it(\".random\", function() {\n      var p;\n      p = Point.random();\n      return ok(p);\n    });\n    return it(\".interpolate\", function() {\n      var p1, p2;\n      p1 = Point(10, 7);\n      p2 = Point(-6, 29);\n      ok(p1.equal(Point.interpolate(p1, p2, 0)));\n      return ok(p2.equal(Point.interpolate(p1, p2, 1)));\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/test.coffee",
+                  "type": "blob"
+                }
+              },
+              "progenitor": {
+                "url": "http://strd6.github.io/editor/"
+              },
+              "version": "0.2.0",
+              "entryPoint": "point",
+              "repository": {
+                "id": 13484982,
+                "name": "point",
+                "full_name": "distri/point",
+                "owner": {
+                  "login": "distri",
+                  "id": 6005125,
+                  "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+                  "gravatar_id": null,
+                  "url": "https://api.github.com/users/distri",
+                  "html_url": "https://github.com/distri",
+                  "followers_url": "https://api.github.com/users/distri/followers",
+                  "following_url": "https://api.github.com/users/distri/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+                  "organizations_url": "https://api.github.com/users/distri/orgs",
+                  "repos_url": "https://api.github.com/users/distri/repos",
+                  "events_url": "https://api.github.com/users/distri/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/distri/received_events",
+                  "type": "Organization",
+                  "site_admin": false
+                },
+                "private": false,
+                "html_url": "https://github.com/distri/point",
+                "description": "JavaScript Point implementation",
+                "fork": false,
+                "url": "https://api.github.com/repos/distri/point",
+                "forks_url": "https://api.github.com/repos/distri/point/forks",
+                "keys_url": "https://api.github.com/repos/distri/point/keys{/key_id}",
+                "collaborators_url": "https://api.github.com/repos/distri/point/collaborators{/collaborator}",
+                "teams_url": "https://api.github.com/repos/distri/point/teams",
+                "hooks_url": "https://api.github.com/repos/distri/point/hooks",
+                "issue_events_url": "https://api.github.com/repos/distri/point/issues/events{/number}",
+                "events_url": "https://api.github.com/repos/distri/point/events",
+                "assignees_url": "https://api.github.com/repos/distri/point/assignees{/user}",
+                "branches_url": "https://api.github.com/repos/distri/point/branches{/branch}",
+                "tags_url": "https://api.github.com/repos/distri/point/tags",
+                "blobs_url": "https://api.github.com/repos/distri/point/git/blobs{/sha}",
+                "git_tags_url": "https://api.github.com/repos/distri/point/git/tags{/sha}",
+                "git_refs_url": "https://api.github.com/repos/distri/point/git/refs{/sha}",
+                "trees_url": "https://api.github.com/repos/distri/point/git/trees{/sha}",
+                "statuses_url": "https://api.github.com/repos/distri/point/statuses/{sha}",
+                "languages_url": "https://api.github.com/repos/distri/point/languages",
+                "stargazers_url": "https://api.github.com/repos/distri/point/stargazers",
+                "contributors_url": "https://api.github.com/repos/distri/point/contributors",
+                "subscribers_url": "https://api.github.com/repos/distri/point/subscribers",
+                "subscription_url": "https://api.github.com/repos/distri/point/subscription",
+                "commits_url": "https://api.github.com/repos/distri/point/commits{/sha}",
+                "git_commits_url": "https://api.github.com/repos/distri/point/git/commits{/sha}",
+                "comments_url": "https://api.github.com/repos/distri/point/comments{/number}",
+                "issue_comment_url": "https://api.github.com/repos/distri/point/issues/comments/{number}",
+                "contents_url": "https://api.github.com/repos/distri/point/contents/{+path}",
+                "compare_url": "https://api.github.com/repos/distri/point/compare/{base}...{head}",
+                "merges_url": "https://api.github.com/repos/distri/point/merges",
+                "archive_url": "https://api.github.com/repos/distri/point/{archive_format}{/ref}",
+                "downloads_url": "https://api.github.com/repos/distri/point/downloads",
+                "issues_url": "https://api.github.com/repos/distri/point/issues{/number}",
+                "pulls_url": "https://api.github.com/repos/distri/point/pulls{/number}",
+                "milestones_url": "https://api.github.com/repos/distri/point/milestones{/number}",
+                "notifications_url": "https://api.github.com/repos/distri/point/notifications{?since,all,participating}",
+                "labels_url": "https://api.github.com/repos/distri/point/labels{/name}",
+                "releases_url": "https://api.github.com/repos/distri/point/releases{/id}",
+                "created_at": "2013-10-10T22:59:27Z",
+                "updated_at": "2013-12-23T23:33:20Z",
+                "pushed_at": "2013-10-15T00:22:04Z",
+                "git_url": "git://github.com/distri/point.git",
+                "ssh_url": "git@github.com:distri/point.git",
+                "clone_url": "https://github.com/distri/point.git",
+                "svn_url": "https://github.com/distri/point",
+                "homepage": null,
+                "size": 836,
+                "stargazers_count": 0,
+                "watchers_count": 0,
+                "language": "CoffeeScript",
+                "has_issues": true,
+                "has_downloads": true,
+                "has_wiki": true,
+                "forks_count": 0,
+                "mirror_url": null,
+                "open_issues_count": 0,
+                "forks": 0,
+                "open_issues": 0,
+                "watchers": 0,
+                "default_branch": "master",
+                "master_branch": "master",
+                "permissions": {
+                  "admin": true,
+                  "push": true,
+                  "pull": true
+                },
+                "organization": {
+                  "login": "distri",
+                  "id": 6005125,
+                  "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+                  "gravatar_id": null,
+                  "url": "https://api.github.com/users/distri",
+                  "html_url": "https://github.com/distri",
+                  "followers_url": "https://api.github.com/users/distri/followers",
+                  "following_url": "https://api.github.com/users/distri/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+                  "organizations_url": "https://api.github.com/users/distri/orgs",
+                  "repos_url": "https://api.github.com/users/distri/repos",
+                  "events_url": "https://api.github.com/users/distri/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/distri/received_events",
+                  "type": "Organization",
+                  "site_admin": false
+                },
+                "network_count": 0,
+                "subscribers_count": 1,
+                "branch": "v0.2.0",
+                "defaultBranch": "master"
+              },
+              "dependencies": {}
+            },
+            "matrix": {
+              "source": {
+                "LICENSE": {
+                  "path": "LICENSE",
+                  "mode": "100644",
+                  "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+                  "type": "blob"
+                },
+                "README.md": {
+                  "path": "README.md",
+                  "mode": "100644",
+                  "content": "matrix\n======\n\nWhere matrices become heroes, together.\n",
+                  "type": "blob"
+                },
+                "matrix.coffee.md": {
+                  "path": "matrix.coffee.md",
+                  "mode": "100644",
+                  "content": "Matrix\n======\n\n```\n   _        _\n  | a  c tx  |\n  | b  d ty  |\n  |_0  0  1 _|\n```\n\nCreates a matrix for 2d affine transformations.\n\n`concat`, `inverse`, `rotate`, `scale` and `translate` return new matrices with\nthe transformations applied. The matrix is not modified in place.\n\nReturns the identity matrix when called with no arguments.\n\n    Matrix = (a, b, c, d, tx, ty) ->\n      if isObject(a)\n        {a, b, c, d, tx, ty} = a\n\n      __proto__: Matrix.prototype\n      a: a ? 1\n      b: b ? 0\n      c: c ? 0\n      d: d ? 1\n      tx: tx ? 0\n      ty: ty ? 0\n\nA `Point` constructor for the methods that return points. This can be overridden\nwith a compatible constructor if you want fancier points.\n\n    Matrix.Point = require \"./point\"\n\n    Matrix.prototype =\n\n`concat` returns the result of this matrix multiplied by another matrix\ncombining the geometric effects of the two. In mathematical terms,\nconcatenating two matrixes is the same as combining them using matrix multiplication.\nIf this matrix is A and the matrix passed in is B, the resulting matrix is A x B\nhttp://mathworld.wolfram.com/MatrixMultiplication.html\n\n      concat: (matrix) ->\n        Matrix(\n          @a * matrix.a + @c * matrix.b,\n          @b * matrix.a + @d * matrix.b,\n          @a * matrix.c + @c * matrix.d,\n          @b * matrix.c + @d * matrix.d,\n          @a * matrix.tx + @c * matrix.ty + @tx,\n          @b * matrix.tx + @d * matrix.ty + @ty\n        )\n\n\nReturn a new matrix that is a `copy` of this matrix.\n\n      copy: ->\n        Matrix(@a, @b, @c, @d, @tx, @ty)\n\nGiven a point in the pretransform coordinate space, returns the coordinates of\nthat point after the transformation occurs. Unlike the standard transformation\napplied using the transformPoint() method, the deltaTransformPoint() method\ndoes not consider the translation parameters tx and ty.\n\nReturns a new `Point` transformed by this matrix ignoring tx and ty.\n\n      deltaTransformPoint: (point) ->\n        Matrix.Point(\n          @a * point.x + @c * point.y,\n          @b * point.x + @d * point.y\n        )\n\nReturns a new matrix that is the inverse of this matrix.\nhttp://mathworld.wolfram.com/MatrixInverse.html\n\n      inverse: ->\n        determinant = @a * @d - @b * @c\n\n        Matrix(\n          @d / determinant,\n          -@b / determinant,\n          -@c / determinant,\n          @a / determinant,\n          (@c * @ty - @d * @tx) / determinant,\n          (@b * @tx - @a * @ty) / determinant\n        )\n\nReturns a new matrix that corresponds this matrix multiplied by a\na rotation matrix.\n\nThe first parameter `theta` is the amount to rotate in radians.\n\nThe second optional parameter, `aboutPoint` is the point about which the\nrotation occurs. Defaults to (0,0).\n\n      rotate: (theta, aboutPoint) ->\n        @concat(Matrix.rotation(theta, aboutPoint))\n\nReturns a new matrix that corresponds this matrix multiplied by a\na scaling matrix.\n\n      scale: (sx, sy, aboutPoint) ->\n        @concat(Matrix.scale(sx, sy, aboutPoint))\n\nReturns a new matrix that corresponds this matrix multiplied by a\na skewing matrix.\n\n      skew: (skewX, skewY) ->\n        @concat(Matrix.skew(skewX, skewY))\n\nReturns a string representation of this matrix.\n\n      toString: ->\n        \"Matrix(#{@a}, #{@b}, #{@c}, #{@d}, #{@tx}, #{@ty})\"\n\nReturns the result of applying the geometric transformation represented by the\nMatrix object to the specified point.\n\n      transformPoint: (point) ->\n        Matrix.Point(\n          @a * point.x + @c * point.y + @tx,\n          @b * point.x + @d * point.y + @ty\n        )\n\nTranslates the matrix along the x and y axes, as specified by the tx and ty parameters.\n\n      translate: (tx, ty) ->\n        @concat(Matrix.translation(tx, ty))\n\nCreates a matrix transformation that corresponds to the given rotation,\naround (0,0) or the specified point.\n\n    Matrix.rotate = Matrix.rotation = (theta, aboutPoint) ->\n      rotationMatrix = Matrix(\n        Math.cos(theta),\n        Math.sin(theta),\n        -Math.sin(theta),\n        Math.cos(theta)\n      )\n\n      if aboutPoint?\n        rotationMatrix =\n          Matrix.translation(aboutPoint.x, aboutPoint.y).concat(\n            rotationMatrix\n          ).concat(\n            Matrix.translation(-aboutPoint.x, -aboutPoint.y)\n          )\n\n      return rotationMatrix\n\nReturns a matrix that corresponds to scaling by factors of sx, sy along\nthe x and y axis respectively.\n\nIf only one parameter is given the matrix is scaled uniformly along both axis.\n\nIf the optional aboutPoint parameter is given the scaling takes place\nabout the given point.\n\n    Matrix.scale = (sx, sy, aboutPoint) ->\n      sy = sy || sx\n\n      scaleMatrix = Matrix(sx, 0, 0, sy)\n\n      if aboutPoint\n        scaleMatrix =\n          Matrix.translation(aboutPoint.x, aboutPoint.y).concat(\n            scaleMatrix\n          ).concat(\n            Matrix.translation(-aboutPoint.x, -aboutPoint.y)\n          )\n\n      return scaleMatrix\n\n\nReturns a matrix that corresponds to a skew of skewX, skewY.\n\n    Matrix.skew = (skewX, skewY) ->\n      Matrix(0, Math.tan(skewY), Math.tan(skewX), 0)\n\nReturns a matrix that corresponds to a translation of tx, ty.\n\n    Matrix.translate = Matrix.translation = (tx, ty) ->\n      Matrix(1, 0, 0, 1, tx, ty)\n\nHelpers\n-------\n\n    isObject = (object) ->\n      Object.prototype.toString.call(object) is \"[object Object]\"\n\n    frozen = (object) ->\n      Object.freeze?(object)\n\n      return object\n\nConstants\n---------\n\nA constant representing the identity matrix.\n\n    Matrix.IDENTITY = frozen Matrix()\n\nA constant representing the horizontal flip transformation matrix.\n\n    Matrix.HORIZONTAL_FLIP = frozen Matrix(-1, 0, 0, 1)\n\nA constant representing the vertical flip transformation matrix.\n\n    Matrix.VERTICAL_FLIP = frozen Matrix(1, 0, 0, -1)\n\nExports\n-------\n\n    module.exports = Matrix\n",
+                  "type": "blob"
+                },
+                "pixie.cson": {
+                  "path": "pixie.cson",
+                  "mode": "100644",
+                  "content": "version: \"0.3.1\"\nentryPoint: \"matrix\"\n",
+                  "type": "blob"
+                },
+                "test/matrix.coffee": {
+                  "path": "test/matrix.coffee",
+                  "mode": "100644",
+                  "content": "Matrix = require \"../matrix\"\nPoint = require \"../point\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Matrix\", ->\n\n  TOLERANCE = 0.00001\n  \n  equalEnough = (expected, actual, tolerance, message) ->\n    message ||= \"\" + expected + \" within \" + tolerance + \" of \" + actual\n    ok(expected + tolerance >= actual && expected - tolerance <= actual, message)\n  \n  matrixEqual = (m1, m2) ->\n    equalEnough(m1.a, m2.a, TOLERANCE)\n    equalEnough(m1.b, m2.b, TOLERANCE)\n    equalEnough(m1.c, m2.c, TOLERANCE)\n    equalEnough(m1.d, m2.d, TOLERANCE)\n    equalEnough(m1.tx, m2.tx, TOLERANCE)\n    equalEnough(m1.ty, m2.ty, TOLERANCE)\n  \n  test \"copy constructor\", ->\n   matrix = Matrix(1, 0, 0, 1, 10, 12)\n  \n   matrix2 = Matrix(matrix)\n  \n   ok matrix != matrix2\n   matrixEqual(matrix2, matrix)\n  \n  test \"Matrix() (Identity)\", ->\n    matrix = Matrix()\n  \n    equals(matrix.a, 1, \"a\")\n    equals(matrix.b, 0, \"b\")\n    equals(matrix.c, 0, \"c\")\n    equals(matrix.d, 1, \"d\")\n    equals(matrix.tx, 0, \"tx\")\n    equals(matrix.ty, 0, \"ty\")\n  \n    matrixEqual(matrix, Matrix.IDENTITY)\n  \n  test \"Empty\", ->\n    matrix = Matrix(0, 0, 0, 0, 0, 0)\n  \n    equals(matrix.a, 0, \"a\")\n    equals(matrix.b, 0, \"b\")\n    equals(matrix.c, 0, \"c\")\n    equals(matrix.d, 0, \"d\")\n    equals(matrix.tx, 0, \"tx\")\n    equals(matrix.ty, 0, \"ty\")\n  \n  test \"#copy\", ->\n    matrix = Matrix(2, 0, 0, 2)\n  \n    copyMatrix = matrix.copy()\n  \n    matrixEqual copyMatrix, matrix\n  \n    copyMatrix.a = 4\n  \n    equals copyMatrix.a, 4\n    equals matrix.a, 2, \"Old 'a' value is unchanged\"\n  \n  test \".scale\", ->\n    matrix = Matrix.scale(2, 2)\n  \n    equals(matrix.a, 2, \"a\")\n    equals(matrix.b, 0, \"b\")\n    equals(matrix.c, 0, \"c\")\n    equals(matrix.d, 2, \"d\")\n  \n    matrix = Matrix.scale(3)\n  \n    equals(matrix.a, 3, \"a\")\n    equals(matrix.b, 0, \"b\")\n    equals(matrix.c, 0, \"c\")\n    equals(matrix.d, 3, \"d\")\n  \n  test \".scale (about a point)\", ->\n    p = Point(5, 17)\n  \n    transformedPoint = Matrix.scale(3, 7, p).transformPoint(p)\n  \n    equals(transformedPoint.x, p.x, \"Point should remain the same\")\n    equals(transformedPoint.y, p.y, \"Point should remain the same\")\n  \n  test \"#scale (about a point)\", ->\n    p = Point(3, 11)\n  \n    transformedPoint = Matrix.IDENTITY.scale(3, 7, p).transformPoint(p)\n  \n    equals(transformedPoint.x, p.x, \"Point should remain the same\")\n    equals(transformedPoint.y, p.y, \"Point should remain the same\")\n  \n  test \"#skew\", ->\n    matrix = Matrix()\n\n    angle = 0.25 * Math.PI\n  \n    matrix = matrix.skew(angle, 0)\n  \n    equals matrix.c, Math.tan(angle)\n  \n  test \".rotation\", ->\n    matrix = Matrix.rotation(Math.PI / 2)\n  \n    equalEnough(matrix.a, 0, TOLERANCE)\n    equalEnough(matrix.b, 1, TOLERANCE)\n    equalEnough(matrix.c,-1, TOLERANCE)\n    equalEnough(matrix.d, 0, TOLERANCE)\n  \n  test \".rotation (about a point)\", ->\n    p = Point(11, 7)\n  \n    transformedPoint = Matrix.rotation(Math.PI / 2, p).transformPoint(p)\n  \n    equals transformedPoint.x, p.x, \"Point should remain the same\"\n    equals transformedPoint.y, p.y, \"Point should remain the same\"\n  \n  test \"#rotate (about a point)\", ->\n    p = Point(8, 5);\n  \n    transformedPoint = Matrix.IDENTITY.rotate(Math.PI / 2, p).transformPoint(p)\n  \n    equals transformedPoint.x, p.x, \"Point should remain the same\"\n    equals transformedPoint.y, p.y, \"Point should remain the same\"\n  \n  test \"#inverse (Identity)\", ->\n    matrix = Matrix().inverse()\n  \n    equals(matrix.a, 1, \"a\")\n    equals(matrix.b, 0, \"b\")\n    equals(matrix.c, 0, \"c\")\n    equals(matrix.d, 1, \"d\")\n    equals(matrix.tx, 0, \"tx\")\n    equals(matrix.ty, 0, \"ty\")\n  \n  test \"#concat\", ->\n    matrix = Matrix.rotation(Math.PI / 2).concat(Matrix.rotation(-Math.PI / 2))\n  \n    matrixEqual(matrix, Matrix.IDENTITY)\n  \n  test \"#toString\", ->\n    matrix = Matrix(0.5, 2, 0.5, -2, 3, 4.5)\n    matrixEqual eval(matrix.toString()), matrix\n  \n  test \"Maths\", ->\n    a = Matrix(12, 3, 3, 1, 7, 9)\n    b = Matrix(3, 8, 3, 2, 1, 5)\n  \n    c = a.concat(b)\n  \n    equals(c.a, 60)\n    equals(c.b, 17)\n    equals(c.c, 42)\n    equals(c.d, 11)\n    equals(c.tx, 34)\n    equals(c.ty, 17)\n  \n  test \"Order of transformations should match manual concat\", ->\n    tx = 10\n    ty = 5\n    theta = Math.PI/3\n    s = 2\n  \n    m1 = Matrix().translate(tx, ty).scale(s).rotate(theta)\n    m2 = Matrix().concat(Matrix.translation(tx, ty)).concat(Matrix.scale(s)).concat(Matrix.rotation(theta))\n  \n    matrixEqual(m1, m2)\n  \n  test \"IDENTITY is immutable\", ->\n    identity = Matrix.IDENTITY\n  \n    identity.a = 5\n  \n    equals identity.a, 1\n",
+                  "type": "blob"
+                },
+                "point.coffee.md": {
+                  "path": "point.coffee.md",
+                  "mode": "100644",
+                  "content": "Point\n=====\n\nA very simple Point object constructor.\n\n    module.exports = (x, y) ->\n      x: x\n      y: y\n",
+                  "type": "blob"
+                }
+              },
+              "distribution": {
+                "matrix": {
+                  "path": "matrix",
+                  "content": "(function() {\n  var Matrix, frozen, isObject;\n\n  Matrix = function(a, b, c, d, tx, ty) {\n    var _ref;\n    if (isObject(a)) {\n      _ref = a, a = _ref.a, b = _ref.b, c = _ref.c, d = _ref.d, tx = _ref.tx, ty = _ref.ty;\n    }\n    return {\n      __proto__: Matrix.prototype,\n      a: a != null ? a : 1,\n      b: b != null ? b : 0,\n      c: c != null ? c : 0,\n      d: d != null ? d : 1,\n      tx: tx != null ? tx : 0,\n      ty: ty != null ? ty : 0\n    };\n  };\n\n  Matrix.Point = require(\"./point\");\n\n  Matrix.prototype = {\n    concat: function(matrix) {\n      return Matrix(this.a * matrix.a + this.c * matrix.b, this.b * matrix.a + this.d * matrix.b, this.a * matrix.c + this.c * matrix.d, this.b * matrix.c + this.d * matrix.d, this.a * matrix.tx + this.c * matrix.ty + this.tx, this.b * matrix.tx + this.d * matrix.ty + this.ty);\n    },\n    copy: function() {\n      return Matrix(this.a, this.b, this.c, this.d, this.tx, this.ty);\n    },\n    deltaTransformPoint: function(point) {\n      return Matrix.Point(this.a * point.x + this.c * point.y, this.b * point.x + this.d * point.y);\n    },\n    inverse: function() {\n      var determinant;\n      determinant = this.a * this.d - this.b * this.c;\n      return Matrix(this.d / determinant, -this.b / determinant, -this.c / determinant, this.a / determinant, (this.c * this.ty - this.d * this.tx) / determinant, (this.b * this.tx - this.a * this.ty) / determinant);\n    },\n    rotate: function(theta, aboutPoint) {\n      return this.concat(Matrix.rotation(theta, aboutPoint));\n    },\n    scale: function(sx, sy, aboutPoint) {\n      return this.concat(Matrix.scale(sx, sy, aboutPoint));\n    },\n    skew: function(skewX, skewY) {\n      return this.concat(Matrix.skew(skewX, skewY));\n    },\n    toString: function() {\n      return \"Matrix(\" + this.a + \", \" + this.b + \", \" + this.c + \", \" + this.d + \", \" + this.tx + \", \" + this.ty + \")\";\n    },\n    transformPoint: function(point) {\n      return Matrix.Point(this.a * point.x + this.c * point.y + this.tx, this.b * point.x + this.d * point.y + this.ty);\n    },\n    translate: function(tx, ty) {\n      return this.concat(Matrix.translation(tx, ty));\n    }\n  };\n\n  Matrix.rotate = Matrix.rotation = function(theta, aboutPoint) {\n    var rotationMatrix;\n    rotationMatrix = Matrix(Math.cos(theta), Math.sin(theta), -Math.sin(theta), Math.cos(theta));\n    if (aboutPoint != null) {\n      rotationMatrix = Matrix.translation(aboutPoint.x, aboutPoint.y).concat(rotationMatrix).concat(Matrix.translation(-aboutPoint.x, -aboutPoint.y));\n    }\n    return rotationMatrix;\n  };\n\n  Matrix.scale = function(sx, sy, aboutPoint) {\n    var scaleMatrix;\n    sy = sy || sx;\n    scaleMatrix = Matrix(sx, 0, 0, sy);\n    if (aboutPoint) {\n      scaleMatrix = Matrix.translation(aboutPoint.x, aboutPoint.y).concat(scaleMatrix).concat(Matrix.translation(-aboutPoint.x, -aboutPoint.y));\n    }\n    return scaleMatrix;\n  };\n\n  Matrix.skew = function(skewX, skewY) {\n    return Matrix(0, Math.tan(skewY), Math.tan(skewX), 0);\n  };\n\n  Matrix.translate = Matrix.translation = function(tx, ty) {\n    return Matrix(1, 0, 0, 1, tx, ty);\n  };\n\n  isObject = function(object) {\n    return Object.prototype.toString.call(object) === \"[object Object]\";\n  };\n\n  frozen = function(object) {\n    if (typeof Object.freeze === \"function\") {\n      Object.freeze(object);\n    }\n    return object;\n  };\n\n  Matrix.IDENTITY = frozen(Matrix());\n\n  Matrix.HORIZONTAL_FLIP = frozen(Matrix(-1, 0, 0, 1));\n\n  Matrix.VERTICAL_FLIP = frozen(Matrix(1, 0, 0, -1));\n\n  module.exports = Matrix;\n\n}).call(this);\n\n//# sourceURL=matrix.coffee",
+                  "type": "blob"
+                },
+                "pixie": {
+                  "path": "pixie",
+                  "content": "module.exports = {\"version\":\"0.3.1\",\"entryPoint\":\"matrix\"};",
+                  "type": "blob"
+                },
+                "test/matrix": {
+                  "path": "test/matrix",
+                  "content": "(function() {\n  var Matrix, Point, equals, ok, test;\n\n  Matrix = require(\"../matrix\");\n\n  Point = require(\"../point\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Matrix\", function() {\n    var TOLERANCE, equalEnough, matrixEqual;\n    TOLERANCE = 0.00001;\n    equalEnough = function(expected, actual, tolerance, message) {\n      message || (message = \"\" + expected + \" within \" + tolerance + \" of \" + actual);\n      return ok(expected + tolerance >= actual && expected - tolerance <= actual, message);\n    };\n    matrixEqual = function(m1, m2) {\n      equalEnough(m1.a, m2.a, TOLERANCE);\n      equalEnough(m1.b, m2.b, TOLERANCE);\n      equalEnough(m1.c, m2.c, TOLERANCE);\n      equalEnough(m1.d, m2.d, TOLERANCE);\n      equalEnough(m1.tx, m2.tx, TOLERANCE);\n      return equalEnough(m1.ty, m2.ty, TOLERANCE);\n    };\n    test(\"copy constructor\", function() {\n      var matrix, matrix2;\n      matrix = Matrix(1, 0, 0, 1, 10, 12);\n      matrix2 = Matrix(matrix);\n      ok(matrix !== matrix2);\n      return matrixEqual(matrix2, matrix);\n    });\n    test(\"Matrix() (Identity)\", function() {\n      var matrix;\n      matrix = Matrix();\n      equals(matrix.a, 1, \"a\");\n      equals(matrix.b, 0, \"b\");\n      equals(matrix.c, 0, \"c\");\n      equals(matrix.d, 1, \"d\");\n      equals(matrix.tx, 0, \"tx\");\n      equals(matrix.ty, 0, \"ty\");\n      return matrixEqual(matrix, Matrix.IDENTITY);\n    });\n    test(\"Empty\", function() {\n      var matrix;\n      matrix = Matrix(0, 0, 0, 0, 0, 0);\n      equals(matrix.a, 0, \"a\");\n      equals(matrix.b, 0, \"b\");\n      equals(matrix.c, 0, \"c\");\n      equals(matrix.d, 0, \"d\");\n      equals(matrix.tx, 0, \"tx\");\n      return equals(matrix.ty, 0, \"ty\");\n    });\n    test(\"#copy\", function() {\n      var copyMatrix, matrix;\n      matrix = Matrix(2, 0, 0, 2);\n      copyMatrix = matrix.copy();\n      matrixEqual(copyMatrix, matrix);\n      copyMatrix.a = 4;\n      equals(copyMatrix.a, 4);\n      return equals(matrix.a, 2, \"Old 'a' value is unchanged\");\n    });\n    test(\".scale\", function() {\n      var matrix;\n      matrix = Matrix.scale(2, 2);\n      equals(matrix.a, 2, \"a\");\n      equals(matrix.b, 0, \"b\");\n      equals(matrix.c, 0, \"c\");\n      equals(matrix.d, 2, \"d\");\n      matrix = Matrix.scale(3);\n      equals(matrix.a, 3, \"a\");\n      equals(matrix.b, 0, \"b\");\n      equals(matrix.c, 0, \"c\");\n      return equals(matrix.d, 3, \"d\");\n    });\n    test(\".scale (about a point)\", function() {\n      var p, transformedPoint;\n      p = Point(5, 17);\n      transformedPoint = Matrix.scale(3, 7, p).transformPoint(p);\n      equals(transformedPoint.x, p.x, \"Point should remain the same\");\n      return equals(transformedPoint.y, p.y, \"Point should remain the same\");\n    });\n    test(\"#scale (about a point)\", function() {\n      var p, transformedPoint;\n      p = Point(3, 11);\n      transformedPoint = Matrix.IDENTITY.scale(3, 7, p).transformPoint(p);\n      equals(transformedPoint.x, p.x, \"Point should remain the same\");\n      return equals(transformedPoint.y, p.y, \"Point should remain the same\");\n    });\n    test(\"#skew\", function() {\n      var angle, matrix;\n      matrix = Matrix();\n      angle = 0.25 * Math.PI;\n      matrix = matrix.skew(angle, 0);\n      return equals(matrix.c, Math.tan(angle));\n    });\n    test(\".rotation\", function() {\n      var matrix;\n      matrix = Matrix.rotation(Math.PI / 2);\n      equalEnough(matrix.a, 0, TOLERANCE);\n      equalEnough(matrix.b, 1, TOLERANCE);\n      equalEnough(matrix.c, -1, TOLERANCE);\n      return equalEnough(matrix.d, 0, TOLERANCE);\n    });\n    test(\".rotation (about a point)\", function() {\n      var p, transformedPoint;\n      p = Point(11, 7);\n      transformedPoint = Matrix.rotation(Math.PI / 2, p).transformPoint(p);\n      equals(transformedPoint.x, p.x, \"Point should remain the same\");\n      return equals(transformedPoint.y, p.y, \"Point should remain the same\");\n    });\n    test(\"#rotate (about a point)\", function() {\n      var p, transformedPoint;\n      p = Point(8, 5);\n      transformedPoint = Matrix.IDENTITY.rotate(Math.PI / 2, p).transformPoint(p);\n      equals(transformedPoint.x, p.x, \"Point should remain the same\");\n      return equals(transformedPoint.y, p.y, \"Point should remain the same\");\n    });\n    test(\"#inverse (Identity)\", function() {\n      var matrix;\n      matrix = Matrix().inverse();\n      equals(matrix.a, 1, \"a\");\n      equals(matrix.b, 0, \"b\");\n      equals(matrix.c, 0, \"c\");\n      equals(matrix.d, 1, \"d\");\n      equals(matrix.tx, 0, \"tx\");\n      return equals(matrix.ty, 0, \"ty\");\n    });\n    test(\"#concat\", function() {\n      var matrix;\n      matrix = Matrix.rotation(Math.PI / 2).concat(Matrix.rotation(-Math.PI / 2));\n      return matrixEqual(matrix, Matrix.IDENTITY);\n    });\n    test(\"#toString\", function() {\n      var matrix;\n      matrix = Matrix(0.5, 2, 0.5, -2, 3, 4.5);\n      return matrixEqual(eval(matrix.toString()), matrix);\n    });\n    test(\"Maths\", function() {\n      var a, b, c;\n      a = Matrix(12, 3, 3, 1, 7, 9);\n      b = Matrix(3, 8, 3, 2, 1, 5);\n      c = a.concat(b);\n      equals(c.a, 60);\n      equals(c.b, 17);\n      equals(c.c, 42);\n      equals(c.d, 11);\n      equals(c.tx, 34);\n      return equals(c.ty, 17);\n    });\n    test(\"Order of transformations should match manual concat\", function() {\n      var m1, m2, s, theta, tx, ty;\n      tx = 10;\n      ty = 5;\n      theta = Math.PI / 3;\n      s = 2;\n      m1 = Matrix().translate(tx, ty).scale(s).rotate(theta);\n      m2 = Matrix().concat(Matrix.translation(tx, ty)).concat(Matrix.scale(s)).concat(Matrix.rotation(theta));\n      return matrixEqual(m1, m2);\n    });\n    return test(\"IDENTITY is immutable\", function() {\n      var identity;\n      identity = Matrix.IDENTITY;\n      identity.a = 5;\n      return equals(identity.a, 1);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/matrix.coffee",
+                  "type": "blob"
+                },
+                "point": {
+                  "path": "point",
+                  "content": "(function() {\n  module.exports = function(x, y) {\n    return {\n      x: x,\n      y: y\n    };\n  };\n\n}).call(this);\n\n//# sourceURL=point.coffee",
+                  "type": "blob"
+                }
+              },
+              "progenitor": {
+                "url": "http://strd6.github.io/editor/"
+              },
+              "version": "0.3.1",
+              "entryPoint": "matrix",
+              "repository": {
+                "id": 13551996,
+                "name": "matrix",
+                "full_name": "distri/matrix",
+                "owner": {
+                  "login": "distri",
+                  "id": 6005125,
+                  "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+                  "gravatar_id": null,
+                  "url": "https://api.github.com/users/distri",
+                  "html_url": "https://github.com/distri",
+                  "followers_url": "https://api.github.com/users/distri/followers",
+                  "following_url": "https://api.github.com/users/distri/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+                  "organizations_url": "https://api.github.com/users/distri/orgs",
+                  "repos_url": "https://api.github.com/users/distri/repos",
+                  "events_url": "https://api.github.com/users/distri/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/distri/received_events",
+                  "type": "Organization",
+                  "site_admin": false
+                },
+                "private": false,
+                "html_url": "https://github.com/distri/matrix",
+                "description": "Where matrices become heroes, together.",
+                "fork": false,
+                "url": "https://api.github.com/repos/distri/matrix",
+                "forks_url": "https://api.github.com/repos/distri/matrix/forks",
+                "keys_url": "https://api.github.com/repos/distri/matrix/keys{/key_id}",
+                "collaborators_url": "https://api.github.com/repos/distri/matrix/collaborators{/collaborator}",
+                "teams_url": "https://api.github.com/repos/distri/matrix/teams",
+                "hooks_url": "https://api.github.com/repos/distri/matrix/hooks",
+                "issue_events_url": "https://api.github.com/repos/distri/matrix/issues/events{/number}",
+                "events_url": "https://api.github.com/repos/distri/matrix/events",
+                "assignees_url": "https://api.github.com/repos/distri/matrix/assignees{/user}",
+                "branches_url": "https://api.github.com/repos/distri/matrix/branches{/branch}",
+                "tags_url": "https://api.github.com/repos/distri/matrix/tags",
+                "blobs_url": "https://api.github.com/repos/distri/matrix/git/blobs{/sha}",
+                "git_tags_url": "https://api.github.com/repos/distri/matrix/git/tags{/sha}",
+                "git_refs_url": "https://api.github.com/repos/distri/matrix/git/refs{/sha}",
+                "trees_url": "https://api.github.com/repos/distri/matrix/git/trees{/sha}",
+                "statuses_url": "https://api.github.com/repos/distri/matrix/statuses/{sha}",
+                "languages_url": "https://api.github.com/repos/distri/matrix/languages",
+                "stargazers_url": "https://api.github.com/repos/distri/matrix/stargazers",
+                "contributors_url": "https://api.github.com/repos/distri/matrix/contributors",
+                "subscribers_url": "https://api.github.com/repos/distri/matrix/subscribers",
+                "subscription_url": "https://api.github.com/repos/distri/matrix/subscription",
+                "commits_url": "https://api.github.com/repos/distri/matrix/commits{/sha}",
+                "git_commits_url": "https://api.github.com/repos/distri/matrix/git/commits{/sha}",
+                "comments_url": "https://api.github.com/repos/distri/matrix/comments{/number}",
+                "issue_comment_url": "https://api.github.com/repos/distri/matrix/issues/comments/{number}",
+                "contents_url": "https://api.github.com/repos/distri/matrix/contents/{+path}",
+                "compare_url": "https://api.github.com/repos/distri/matrix/compare/{base}...{head}",
+                "merges_url": "https://api.github.com/repos/distri/matrix/merges",
+                "archive_url": "https://api.github.com/repos/distri/matrix/{archive_format}{/ref}",
+                "downloads_url": "https://api.github.com/repos/distri/matrix/downloads",
+                "issues_url": "https://api.github.com/repos/distri/matrix/issues{/number}",
+                "pulls_url": "https://api.github.com/repos/distri/matrix/pulls{/number}",
+                "milestones_url": "https://api.github.com/repos/distri/matrix/milestones{/number}",
+                "notifications_url": "https://api.github.com/repos/distri/matrix/notifications{?since,all,participating}",
+                "labels_url": "https://api.github.com/repos/distri/matrix/labels{/name}",
+                "releases_url": "https://api.github.com/repos/distri/matrix/releases{/id}",
+                "created_at": "2013-10-14T03:46:16Z",
+                "updated_at": "2013-12-23T23:45:28Z",
+                "pushed_at": "2013-10-15T00:22:51Z",
+                "git_url": "git://github.com/distri/matrix.git",
+                "ssh_url": "git@github.com:distri/matrix.git",
+                "clone_url": "https://github.com/distri/matrix.git",
+                "svn_url": "https://github.com/distri/matrix",
+                "homepage": null,
+                "size": 580,
+                "stargazers_count": 0,
+                "watchers_count": 0,
+                "language": "CoffeeScript",
+                "has_issues": true,
+                "has_downloads": true,
+                "has_wiki": true,
+                "forks_count": 0,
+                "mirror_url": null,
+                "open_issues_count": 0,
+                "forks": 0,
+                "open_issues": 0,
+                "watchers": 0,
+                "default_branch": "master",
+                "master_branch": "master",
+                "permissions": {
+                  "admin": true,
+                  "push": true,
+                  "pull": true
+                },
+                "organization": {
+                  "login": "distri",
+                  "id": 6005125,
+                  "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+                  "gravatar_id": null,
+                  "url": "https://api.github.com/users/distri",
+                  "html_url": "https://github.com/distri",
+                  "followers_url": "https://api.github.com/users/distri/followers",
+                  "following_url": "https://api.github.com/users/distri/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+                  "organizations_url": "https://api.github.com/users/distri/orgs",
+                  "repos_url": "https://api.github.com/users/distri/repos",
+                  "events_url": "https://api.github.com/users/distri/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/distri/received_events",
+                  "type": "Organization",
+                  "site_admin": false
+                },
+                "network_count": 0,
+                "subscribers_count": 1,
+                "branch": "v0.3.1",
+                "defaultBranch": "master"
+              },
+              "dependencies": {}
+            },
+            "random": {
+              "source": {
+                "LICENSE": {
+                  "path": "LICENSE",
+                  "mode": "100644",
+                  "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+                  "type": "blob"
+                },
+                "README.md": {
+                  "path": "README.md",
+                  "mode": "100644",
+                  "content": "random\n======\n\nRandom generation.\n",
+                  "type": "blob"
+                },
+                "pixie.cson": {
+                  "path": "pixie.cson",
+                  "mode": "100644",
+                  "content": "version: \"0.2.0\"\nentryPoint: \"random\"\n",
+                  "type": "blob"
+                },
+                "random.coffee.md": {
+                  "path": "random.coffee.md",
+                  "mode": "100644",
+                  "content": "Random\n======\n\nSome useful methods for generating random things.\n\nHelpers\n-------\n\n`τ` is the circle constant.\n\n    τ = 2 * Math.PI\n\n`U` returns a continuous uniform distribution between `min` and `max`.\n\n    U = (min, max) ->\n      ->\n        Math.random() * (max - min) + min\n\n`standardUniformDistribution` is the uniform distribution between [0, 1]\n\n    standardUniformDistribution = U(0, 1)\n\n`rand` is a helpful shortcut for generating random numbers from a standard\nuniform distribution or from a discreet set of integers.\n\n    rand = (n) ->\n      if n\n        Math.floor(n * standardUniformDistribution())\n      else\n        standardUniformDistribution()\n\nMethods\n-------\n\n    module.exports = Random =\n\nReturns a random angle, uniformly distributed, between 0 and τ.\n\n      angle: ->\n        rand() * τ\n\nA binomial distribution.\n\n      binomial: (n=1, p=0.5) ->\n        [0...n].map ->\n          if rand() < p\n            1\n          else\n            0\n        .reduce (a, b) ->\n          a + b\n        , 0\n\nReturns a random float between two numbers.\n\n      between: (min, max) ->\n        rand() * (max - min) + min\n\nReturns random integers from [0, n) if n is given.\nOtherwise returns random float between 0 and 1.\n\n      rand: rand\n\nReturns random float from [-n / 2, n / 2] if n is given.\nOtherwise returns random float between -0.5 and 0.5.\n\n      signed: (n=1) ->\n        (n * rand()) - (n / 2)\n",
+                  "type": "blob"
+                },
+                "test/random.coffee": {
+                  "path": "test/random.coffee",
+                  "mode": "100644",
+                  "content": "Random = require \"../random\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Random\", ->\n  \n  test \"methods\", ->\n    [\n      \"angle\"\n      \"binomial\"\n      \"between\"\n      \"rand\"\n      \"signed\"\n    ].forEach (name) ->\n      ok(Random[name], name)\n\n  it \"should have binomial\", ->\n    result = Random.binomial()\n\n    assert result is 1 or result is 0\n",
+                  "type": "blob"
+                }
+              },
+              "distribution": {
+                "pixie": {
+                  "path": "pixie",
+                  "content": "module.exports = {\"version\":\"0.2.0\",\"entryPoint\":\"random\"};",
+                  "type": "blob"
+                },
+                "random": {
+                  "path": "random",
+                  "content": "(function() {\n  var Random, U, rand, standardUniformDistribution, τ;\n\n  τ = 2 * Math.PI;\n\n  U = function(min, max) {\n    return function() {\n      return Math.random() * (max - min) + min;\n    };\n  };\n\n  standardUniformDistribution = U(0, 1);\n\n  rand = function(n) {\n    if (n) {\n      return Math.floor(n * standardUniformDistribution());\n    } else {\n      return standardUniformDistribution();\n    }\n  };\n\n  module.exports = Random = {\n    angle: function() {\n      return rand() * τ;\n    },\n    binomial: function(n, p) {\n      var _i, _results;\n      if (n == null) {\n        n = 1;\n      }\n      if (p == null) {\n        p = 0.5;\n      }\n      return (function() {\n        _results = [];\n        for (var _i = 0; 0 <= n ? _i < n : _i > n; 0 <= n ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).map(function() {\n        if (rand() < p) {\n          return 1;\n        } else {\n          return 0;\n        }\n      }).reduce(function(a, b) {\n        return a + b;\n      }, 0);\n    },\n    between: function(min, max) {\n      return rand() * (max - min) + min;\n    },\n    rand: rand,\n    signed: function(n) {\n      if (n == null) {\n        n = 1;\n      }\n      return (n * rand()) - (n / 2);\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=random.coffee",
+                  "type": "blob"
+                },
+                "test/random": {
+                  "path": "test/random",
+                  "content": "(function() {\n  var Random, equals, ok, test;\n\n  Random = require(\"../random\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Random\", function() {\n    test(\"methods\", function() {\n      return [\"angle\", \"binomial\", \"between\", \"rand\", \"signed\"].forEach(function(name) {\n        return ok(Random[name], name);\n      });\n    });\n    return it(\"should have binomial\", function() {\n      var result;\n      result = Random.binomial();\n      return assert(result === 1 || result === 0);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/random.coffee",
+                  "type": "blob"
+                }
+              },
+              "progenitor": {
+                "url": "http://strd6.github.io/editor/"
+              },
+              "version": "0.2.0",
+              "entryPoint": "random",
+              "repository": {
+                "id": 13576812,
+                "name": "random",
+                "full_name": "distri/random",
+                "owner": {
+                  "login": "distri",
+                  "id": 6005125,
+                  "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+                  "gravatar_id": null,
+                  "url": "https://api.github.com/users/distri",
+                  "html_url": "https://github.com/distri",
+                  "followers_url": "https://api.github.com/users/distri/followers",
+                  "following_url": "https://api.github.com/users/distri/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+                  "organizations_url": "https://api.github.com/users/distri/orgs",
+                  "repos_url": "https://api.github.com/users/distri/repos",
+                  "events_url": "https://api.github.com/users/distri/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/distri/received_events",
+                  "type": "Organization",
+                  "site_admin": false
+                },
+                "private": false,
+                "html_url": "https://github.com/distri/random",
+                "description": "Random generation.",
+                "fork": false,
+                "url": "https://api.github.com/repos/distri/random",
+                "forks_url": "https://api.github.com/repos/distri/random/forks",
+                "keys_url": "https://api.github.com/repos/distri/random/keys{/key_id}",
+                "collaborators_url": "https://api.github.com/repos/distri/random/collaborators{/collaborator}",
+                "teams_url": "https://api.github.com/repos/distri/random/teams",
+                "hooks_url": "https://api.github.com/repos/distri/random/hooks",
+                "issue_events_url": "https://api.github.com/repos/distri/random/issues/events{/number}",
+                "events_url": "https://api.github.com/repos/distri/random/events",
+                "assignees_url": "https://api.github.com/repos/distri/random/assignees{/user}",
+                "branches_url": "https://api.github.com/repos/distri/random/branches{/branch}",
+                "tags_url": "https://api.github.com/repos/distri/random/tags",
+                "blobs_url": "https://api.github.com/repos/distri/random/git/blobs{/sha}",
+                "git_tags_url": "https://api.github.com/repos/distri/random/git/tags{/sha}",
+                "git_refs_url": "https://api.github.com/repos/distri/random/git/refs{/sha}",
+                "trees_url": "https://api.github.com/repos/distri/random/git/trees{/sha}",
+                "statuses_url": "https://api.github.com/repos/distri/random/statuses/{sha}",
+                "languages_url": "https://api.github.com/repos/distri/random/languages",
+                "stargazers_url": "https://api.github.com/repos/distri/random/stargazers",
+                "contributors_url": "https://api.github.com/repos/distri/random/contributors",
+                "subscribers_url": "https://api.github.com/repos/distri/random/subscribers",
+                "subscription_url": "https://api.github.com/repos/distri/random/subscription",
+                "commits_url": "https://api.github.com/repos/distri/random/commits{/sha}",
+                "git_commits_url": "https://api.github.com/repos/distri/random/git/commits{/sha}",
+                "comments_url": "https://api.github.com/repos/distri/random/comments{/number}",
+                "issue_comment_url": "https://api.github.com/repos/distri/random/issues/comments/{number}",
+                "contents_url": "https://api.github.com/repos/distri/random/contents/{+path}",
+                "compare_url": "https://api.github.com/repos/distri/random/compare/{base}...{head}",
+                "merges_url": "https://api.github.com/repos/distri/random/merges",
+                "archive_url": "https://api.github.com/repos/distri/random/{archive_format}{/ref}",
+                "downloads_url": "https://api.github.com/repos/distri/random/downloads",
+                "issues_url": "https://api.github.com/repos/distri/random/issues{/number}",
+                "pulls_url": "https://api.github.com/repos/distri/random/pulls{/number}",
+                "milestones_url": "https://api.github.com/repos/distri/random/milestones{/number}",
+                "notifications_url": "https://api.github.com/repos/distri/random/notifications{?since,all,participating}",
+                "labels_url": "https://api.github.com/repos/distri/random/labels{/name}",
+                "releases_url": "https://api.github.com/repos/distri/random/releases{/id}",
+                "created_at": "2013-10-15T00:28:31Z",
+                "updated_at": "2013-12-06T23:31:24Z",
+                "pushed_at": "2013-10-15T01:01:00Z",
+                "git_url": "git://github.com/distri/random.git",
+                "ssh_url": "git@github.com:distri/random.git",
+                "clone_url": "https://github.com/distri/random.git",
+                "svn_url": "https://github.com/distri/random",
+                "homepage": null,
+                "size": 292,
+                "stargazers_count": 0,
+                "watchers_count": 0,
+                "language": "CoffeeScript",
+                "has_issues": true,
+                "has_downloads": true,
+                "has_wiki": true,
+                "forks_count": 0,
+                "mirror_url": null,
+                "open_issues_count": 0,
+                "forks": 0,
+                "open_issues": 0,
+                "watchers": 0,
+                "default_branch": "master",
+                "master_branch": "master",
+                "permissions": {
+                  "admin": true,
+                  "push": true,
+                  "pull": true
+                },
+                "organization": {
+                  "login": "distri",
+                  "id": 6005125,
+                  "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+                  "gravatar_id": null,
+                  "url": "https://api.github.com/users/distri",
+                  "html_url": "https://github.com/distri",
+                  "followers_url": "https://api.github.com/users/distri/followers",
+                  "following_url": "https://api.github.com/users/distri/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+                  "organizations_url": "https://api.github.com/users/distri/orgs",
+                  "repos_url": "https://api.github.com/users/distri/repos",
+                  "events_url": "https://api.github.com/users/distri/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/distri/received_events",
+                  "type": "Organization",
+                  "site_admin": false
+                },
+                "network_count": 0,
+                "subscribers_count": 1,
+                "branch": "v0.2.0",
+                "defaultBranch": "master"
+              },
+              "dependencies": {}
+            }
+          }
+        },
+        "extensions": {
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "Extensions\n==========\n\nExtend built-in prototypes with helpful methods.\n",
+              "type": "blob"
+            },
+            "array.coffee.md": {
+              "path": "array.coffee.md",
+              "mode": "100644",
+              "content": "Array\n=====\n\n    {extend} = require \"./util\"\n\n    extend Array.prototype,\n\nCalculate the average value of an array. Returns undefined if some elements\nare not numbers.\n\n      average: ->\n        @sum()/@length\n\n>     #! example\n>     [1, 3, 5, 7].average()\n\n----\n\nReturns a copy of the array without null and undefined values.\n\n      compact: ->\n        @select (element) ->\n          element?\n\n>     #! example\n>     [null, undefined, 3, 3, undefined, 5].compact()\n\n----\n\nCreates and returns a copy of the array. The copy contains\nthe same objects.\n\n      copy: ->\n        @concat()\n\n>     #! example\n>     a = [\"a\", \"b\", \"c\"]\n>     b = a.copy()\n>\n>     # their elements are equal\n>     a[0] == b[0] && a[1] == b[1] && a[2] == b[2]\n>     # => true\n>\n>     # but they aren't the same object in memory\n>     a is b\n>     # => false\n\n----\n\nEmpties the array of its contents. It is modified in place.\n\n      clear: ->\n        @length = 0\n\n        return this\n\n>     #! example\n>     fullArray = [1, 2, 3]\n>     fullArray.clear()\n>     fullArray\n\n----\n\nFlatten out an array of arrays into a single array of elements.\n\n      flatten: ->\n        @inject [], (a, b) ->\n          a.concat b\n\n>     #! example\n>     [[1, 2], [3, 4], 5].flatten()\n>     # => [1, 2, 3, 4, 5]\n>\n>     # won't flatten twice nested arrays. call\n>     # flatten twice if that is what you want\n>     [[1, 2], [3, [4, 5]], 6].flatten()\n>     # => [1, 2, 3, [4, 5], 6]\n\n----\n\nInvoke the named method on each element in the array\nand return a new array containing the results of the invocation.\n\n      invoke: (method, args...) ->\n        @map (element) ->\n          element[method].apply(element, args)\n\n>     #! example\n>     [1.1, 2.2, 3.3, 4.4].invoke(\"floor\")\n\n----\n\n>     #! example\n>     ['hello', 'world', 'cool!'].invoke('substring', 0, 3)\n\n----\n\nRandomly select an element from the array.\n\n      rand: ->\n        @[rand(@length)]\n\n>     #! example\n>     [1, 2, 3].rand()\n\n----\n\nRemove the first occurrence of the given object from the array if it is\npresent. The array is modified in place.\n\n      remove: (object) ->\n        index = @indexOf(object)\n\n        if index >= 0\n          @splice(index, 1)[0]\n        else\n          undefined\n\n>     #! example\n>     a = [1, 1, \"a\", \"b\"]\n>     a.remove(1)\n>     a\n\n----\n\nReturns true if the element is present in the array.\n\n      include: (element) ->\n        @indexOf(element) != -1\n\n>     #! example\n>     [\"a\", \"b\", \"c\"].include(\"c\")\n\n----\n\nCall the given iterator once for each element in the array,\npassing in the element as the first argument, the index of\nthe element as the second argument, and this array as the\nthird argument.\n\n      each: (iterator, context) ->\n        if @forEach\n          @forEach iterator, context\n        else\n          for element, i in this\n            iterator.call context, element, i, this\n\n        return this\n\n>     #! example\n>     word = \"\"\n>     indices = []\n>     [\"r\", \"a\", \"d\"].each (letter, index) ->\n>       word += letter\n>       indices.push(index)\n>\n>     # => [\"r\", \"a\", \"d\"]\n>\n>     word\n>     # => \"rad\"\n>\n>     indices\n\n----\n\nCall the given iterator once for each pair of objects in the array.\n\n      eachPair: (iterator, context) ->\n        length = @length\n        i = 0\n        while i < length\n          a = @[i]\n          j = i + 1\n          i += 1\n\n          while j < length\n            b = @[j]\n            j += 1\n\n            iterator.call context, a, b\n\n>     #! example\n>     results = []\n>     [1, 2, 3, 4].eachPair (a, b) ->\n>       results.push [a, b]\n>\n>     results\n\n----\n\nCall the given iterator once for each element in the array,\npassing in the element as the first argument and the given object\nas the second argument. Additional arguments are passed similar to\n`each`.\n\n      eachWithObject: (object, iterator, context) ->\n        @each (element, i, self) ->\n          iterator.call context, element, object, i, self\n\n        return object\n\nCall the given iterator once for each group of elements in the array,\npassing in the elements in groups of n. Additional arguments are\npassed as in `each`.\n\n      eachSlice: (n, iterator, context) ->\n        len = @length / n\n        i = -1\n\n        while ++i < len\n          iterator.call(context, @slice(i*n, (i+1)*n), i*n, this)\n\n        return this\n\n>     #! example\n>     results = []\n>     [1, 2, 3, 4].eachSlice 2, (slice) ->\n>       results.push(slice)\n>\n>     results\n\n----\n\nPipe the input through each function in the array in turn. For example, if you have a\nlist of objects you can perform a series of selection, sorting, and other processing\nmethods and then receive the processed list. This array must contain functions that\naccept a single input and return the processed input. The output of the first function\nis fed to the input of the second and so on until the final processed output is returned.\n\n      pipeline: (input) ->\n        @inject input, (input, fn) ->\n          fn(input)\n\nReturns a new array with the elements all shuffled up.\n\n      shuffle: ->\n        shuffledArray = []\n\n        @each (element) ->\n          shuffledArray.splice(rand(shuffledArray.length + 1), 0, element)\n\n        return shuffledArray\n\n>     #! example\n>     [0..9].shuffle()\n\n----\n\nReturns the first element of the array, undefined if the array is empty.\n\n      first: ->\n        @[0]\n\n>     #! example\n>     [\"first\", \"second\", \"third\"].first()\n\n----\n\nReturns the last element of the array, undefined if the array is empty.\n\n      last: ->\n        @[@length - 1]\n\n>     #! example\n>     [\"first\", \"second\", \"third\"].last()\n\n----\n\nReturns an object containing the extremes of this array.\n\n      extremes: (fn=identity) ->\n        min = max = undefined\n        minResult = maxResult = undefined\n\n        @each (object) ->\n          result = fn(object)\n\n          if min?\n            if result < minResult\n              min = object\n              minResult = result\n          else\n            min = object\n            minResult = result\n\n          if max?\n            if result > maxResult\n              max = object\n              maxResult = result\n          else\n            max = object\n            maxResult = result\n\n        min: min\n        max: max\n\n>     #! example\n>     [-1, 3, 0].extremes()\n\n----\n\n      maxima: (valueFunction=identity) ->\n        @inject([-Infinity, []], (memo, item) ->\n          value = valueFunction(item)\n          [maxValue, maxItems] = memo\n\n          if value > maxValue\n            [value, [item]]\n          else if value is maxValue\n            [value, maxItems.concat(item)]\n          else\n            memo\n        ).last()\n\n      maximum: (valueFunction) ->\n        @maxima(valueFunction).first()\n\n      minima: (valueFunction=identity) ->\n        inverseFn = (x) ->\n          -valueFunction(x)\n\n        @maxima(inverseFn)\n\n      minimum: (valueFunction) ->\n        @minima(valueFunction).first()\n\nPretend the array is a circle and grab a new array containing length elements.\nIf length is not given return the element at start, again assuming the array\nis a circle.\n\n      wrap: (start, length) ->\n        if length?\n          end = start + length\n          i = start\n          result = []\n\n          while i < end\n            result.push(@[mod(i, @length)])\n            i += 1\n\n          return result\n        else\n          return @[mod(start, @length)]\n\n>     #! example\n>     [1, 2, 3].wrap(-1)\n\n----\n\n>     #! example\n>     [1, 2, 3].wrap(6)\n\n----\n\n>     #! example\n>     [\"l\", \"o\", \"o\", \"p\"].wrap(0, 12)\n\n----\n\nPartitions the elements into two groups: those for which the iterator returns\ntrue, and those for which it returns false.\n\n      partition: (iterator, context) ->\n        trueCollection = []\n        falseCollection = []\n\n        @each (element) ->\n          if iterator.call(context, element)\n            trueCollection.push element\n          else\n            falseCollection.push element\n\n        return [trueCollection, falseCollection]\n\n>     #! example\n>     [0..9].partition (n) ->\n>       n % 2 is 0\n\n----\n\nReturn the group of elements for which the return value of the iterator is true.\n\n      select: (iterator, context) ->\n        return @partition(iterator, context)[0]\n\nReturn the group of elements that are not in the passed in set.\n\n      without: (values) ->\n        @reject (element) ->\n          values.include(element)\n\n>     #! example\n>     [1, 2, 3, 4].without [2, 3]\n\n----\n\nReturn the group of elements for which the return value of the iterator is false.\n\n      reject: (iterator, context) ->\n        @partition(iterator, context)[1]\n\nCombines all elements of the array by applying a binary operation.\nfor each element in the arra the iterator is passed an accumulator\nvalue (memo) and the element.\n\n      inject: (initial, iterator) ->\n        @each (element) ->\n          initial = iterator(initial, element)\n\n        return initial\n\nAdd all the elements in the array.\n\n      sum: ->\n        @inject 0, (sum, n) ->\n          sum + n\n\n>     #! example\n>     [1, 2, 3, 4].sum()\n\n----\n\nMultiply all the elements in the array.\n\n      product: ->\n        @inject 1, (product, n) ->\n          product * n\n\n>     #! example\n>     [1, 2, 3, 4].product()\n\n----\n\nProduce a duplicate-free version of the array.\n\n      unique: ->\n        @inject [], (results, element) ->\n          results.push element if results.indexOf(element) is -1\n\n          results\n\nMerges together the values of each of the arrays with the values at the corresponding position.\n\n      zip: (args...) ->\n        @map (element, index) ->\n          output = args.map (arr) ->\n            arr[index]\n\n          output.unshift(element)\n\n          return output\n\n>     #! example\n>     ['a', 'b', 'c'].zip([1, 2, 3])\n\n----\n\nHelpers\n-------\n\n    identity = (x) ->\n      x\n\n    rand = (n) ->\n      Math.floor n * Math.random()\n\n    mod = (n, base) ->\n      result = n % base\n\n      if result < 0 and base > 0\n        result += base\n\n      return result\n",
+              "type": "blob"
+            },
+            "extensions.coffee.md": {
+              "path": "extensions.coffee.md",
+              "mode": "100644",
+              "content": "Extensions\n==========\n\nExtend built in prototypes with additional behavior.\n\n    require \"./array\"\n    require \"./function\"\n    require \"./number\"\n    require \"./string\"\n",
+              "type": "blob"
+            },
+            "function.coffee.md": {
+              "path": "function.coffee.md",
+              "mode": "100644",
+              "content": "Function\n========\n\n    {extend} = require \"./util\"\n\nAdd our `Function` extensions.\n\n    extend Function.prototype,\n      once: ->\n        func = this\n\n        ran = false\n        memo = undefined\n\n        return ->\n          return memo if ran\n          ran = true\n\n          return memo = func.apply(this, arguments)\n\nCalling a debounced function will postpone its execution until after\nwait milliseconds have elapsed since the last time the function was\ninvoked. Useful for implementing behavior that should only happen after\nthe input has stopped arriving. For example: rendering a preview of a\nMarkdown comment, recalculating a layout after the window has stopped\nbeing resized...\n\n      debounce: (wait) ->\n        timeout = null\n        func = this\n\n        return ->\n          context = this\n          args = arguments\n\n          later = ->\n            timeout = null\n            func.apply(context, args)\n\n          clearTimeout(timeout)\n          timeout = setTimeout(later, wait)\n\n>     lazyLayout = calculateLayout.debounce(300)\n>     $(window).resize(lazyLayout)\n\n----\n\n      delay: (wait, args...) ->\n        func = this\n\n        setTimeout ->\n          func.apply(null, args)\n        , wait\n\n      defer: (args...) ->\n        this.delay.apply this, [1].concat(args)\n\n    extend Function,\n      identity: (x) ->\n        x\n\n      noop: ->\n",
+              "type": "blob"
+            },
+            "number.coffee.md": {
+              "path": "number.coffee.md",
+              "mode": "100644",
+              "content": "Number\n======\n\nReturns the absolute value of this number.\n\n>     #! example\n>     (-4).abs()\n\nReturns the mathematical ceiling of this number. The number truncated to the\nnearest integer of greater than or equal value.\n\n>     #! example\n>     4.2.ceil()\n\n---\n\n>     #! example\n>     (-1.2).ceil()\n\n---\n\nReturns the mathematical floor of this number. The number truncated to the\nnearest integer of less than or equal value.\n\n>     #! example\n>     4.9.floor()\n\n---\n\n>     #! example\n>     (-1.2).floor()\n\n---\n\nReturns this number rounded to the nearest integer.\n\n>     #! example\n>     4.5.round()\n\n---\n\n>     #! example\n>     4.4.round()\n\n---\n\n    [\n      \"abs\"\n      \"ceil\"\n      \"floor\"\n      \"round\"\n    ].forEach (method) ->\n      Number::[method] = ->\n        Math[method](this)\n\n    {extend} = require \"./util\"\n\n    extend Number.prototype,\n\nGet a bunch of points equally spaced around the unit circle.\n\n      circularPoints: ->\n        n = this\n\n        [0..n].map (i) ->\n          Point.fromAngle (i/n).turns\n\n>     #! example\n>     4.circularPoints()\n\n---\n\nReturns a number whose value is limited to the given range.\n\n      clamp: (min, max) ->\n        if min? and max?\n          Math.min(Math.max(this, min), max)\n        else if min?\n          Math.max(this, min)\n        else if max?\n          Math.min(this, max)\n        else\n          this\n\n>     #! example\n>     512.clamp(0, 255)\n\n---\n\nA mod method useful for array wrapping. The range of the function is\nconstrained to remain in bounds of array indices.\n\n      mod: (base) ->\n        result = this % base;\n\n        if result < 0 && base > 0\n          result += base\n\n        return result\n\n>     #! example\n>     (-1).mod(5)\n\n---\n\nGet the sign of this number as an integer (1, -1, or 0).\n\n      sign: ->\n        if this > 0\n          1\n        else if this < 0\n          -1\n        else\n          0\n\n>     #! example\n>     5.sign()\n\n---\n\nReturns true if this number is even (evenly divisible by 2).\n\n      even: ->\n        @mod(2) is 0\n\n>     #! example\n>     2.even()\n\n---\n\nReturns true if this number is odd (has remainder of 1 when divided by 2).\n\n      odd: ->\n        @mod(2) is 1\n\n>     #! example\n>     3.odd()\n\n---\n\nCalls iterator the specified number of times, passing in the number of the\ncurrent iteration as a parameter: 0 on first call, 1 on the second call, etc.\n\n      times: (iterator, context) ->\n        i = -1\n\n        while ++i < this\n          iterator.call context, i\n\n        return i\n\n>     #! example\n>     output = []\n>\n>     5.times (n) ->\n>       output.push(n)\n>\n>     output\n\n---\n\nReturns the the nearest grid resolution less than or equal to the number.\n\n      snap: (resolution) ->\n        (n / resolution).floor() * resolution\n\n>     #! example\n>     7.snap(8)\n\n---\n\n      truncate: ->\n        if this > 0\n          @floor()\n        else if this < 0\n          @ceil()\n        else\n          this\n\nConvert a number to an amount of rotations.\n\n    unless 5.rotations\n      Object.defineProperty Number::, 'rotations',\n        get: ->\n          this * Math.TAU\n\n    unless 1.rotation\n      Object.defineProperty Number::, 'rotation',\n        get: ->\n          this * Math.TAU\n\n>     #! example\n>     0.5.rotations\n\n---\n\nConvert a number to an amount of rotations.\n\n    unless 5.turns\n      Object.defineProperty Number.prototype, 'turns',\n        get: ->\n          this * Math.TAU\n\n    unless 1.turn\n      Object.defineProperty Number.prototype, 'turn',\n        get: ->\n          this * Math.TAU\n\n>     #! example\n>     0.5.turns\n\n---\n\nConvert a number to an amount of degrees.\n\n    unless 2.degrees\n      Object.defineProperty Number::, 'degrees',\n        get: ->\n          this * Math.TAU / 360\n\n    unless 1.degree\n      Object.defineProperty Number::, 'degree',\n        get: ->\n          this * Math.TAU / 360\n\n>     #! example\n>     180.degrees\n\n---\n\nExtra\n-----\n\nThe mathematical circle constant of 1 turn.\n\n    Math.TAU = 2 * Math.PI\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "version: \"0.2.0\"\nentryPoint: \"extensions\"\n",
+              "type": "blob"
+            },
+            "string.coffee.md": {
+              "path": "string.coffee.md",
+              "mode": "100644",
+              "content": "String\n======\n\nExtend strings with utility methods.\n\n    {extend} = require \"./util\"\n\n    extend String.prototype,\n\nReturns true if this string only contains whitespace characters.\n\n      blank: ->\n        /^\\s*$/.test(this)\n\n>     #! example\n>     \"   \".blank()\n\n---\n\nParse this string as though it is JSON and return the object it represents. If it\nis not valid JSON returns the string itself.\n\n      parse: () ->\n        try\n          JSON.parse(this.toString())\n        catch e\n          this.toString()\n\n>     #! example\n>     # this is valid json, so an object is returned\n>     '{\"a\": 3}'.parse()\n\n---\n\nReturns true if this string starts with the given string.\n\n      startsWith: (str) ->\n        @lastIndexOf(str, 0) is 0\n\nReturns true if this string ends with the given string.\n\n      endsWith: (str) ->\n        @indexOf(str, @length - str.length) != -1\n\nGet the file extension of a string.\n\n      extension: ->\n        if extension = this.match(/\\.([^\\.]*)$/, '')?.last()\n          extension\n        else\n          ''\n\n>     #! example\n>     \"README.md\".extension()\n\n---\n\nAssumes the string is something like a file name and returns the\ncontents of the string without the extension.\n\n      withoutExtension: ->\n        this.replace(/\\.[^\\.]*$/, '')\n\n      toInt: (base=10) ->\n        parseInt(this, base)\n\n>     #! example\n>     \"neat.png\".witouthExtension()\n\n---\n",
+              "type": "blob"
+            },
+            "test/array.coffee": {
+              "path": "test/array.coffee",
+              "mode": "100644",
+              "content": "require \"../array\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Array\", ->\n\n  test \"#average\", ->\n    equals [1, 3, 5, 7].average(), 4\n  \n  test \"#compact\", ->\n    a = [0, 1, undefined, 2, null, 3, '', 4]\n  \n    compacted = a.compact()\n  \n    equals(compacted[0], 0)\n    equals(compacted[1], 1)\n    equals(compacted[2], 2)\n    equals(compacted[3], 3)\n    equals(compacted[4], '')\n    equals(compacted[5], 4)\n  \n  test \"#copy\", ->\n    a = [1,2,3]\n    b = a.copy()\n  \n    ok a != b, \"Original array is not the same array as the copied one\"\n    ok a.length == b.length, \"Both arrays are the same size\"\n    ok a[0] == b[0] && a[1] == b[1] && a[2] == b[2], \"The elements of the two arrays are equal\"\n  \n  test \"#flatten\", ->\n    array = [[0,1], [2,3], [4,5]]\n  \n    flattenedArray = array.flatten()\n  \n    equals flattenedArray.length, 6, \"Flattened array length should equal number of elements in sub-arrays\"\n    equals flattenedArray.first(), 0, \"First element should be first element in first sub-array\"\n    equals flattenedArray.last(), 5, \"Last element should be last element in last sub-array\"\n  \n  test \"#rand\", ->\n    array = [1,2,3]\n  \n    ok array.indexOf(array.rand()) != -1, \"Array includes randomly selected element\"\n    ok [5].rand() == 5, \"[5].rand() === 5\"\n    ok [].rand() == undefined, \"[].rand() === undefined\"\n  \n  test \"#remove\", ->\n    equals [1,2,3].remove(2), 2, \"[1,2,3].remove(2) === 2\"\n    equals [1,3].remove(2), undefined, \"[1,3].remove(2) === undefined\"\n    equals [1,3].remove(3), 3, \"[1,3].remove(3) === 3\"\n  \n    array = [1,2,3]\n    array.remove(2)\n    ok array.length == 2, \"array = [1,2,3]; array.remove(2); array.length === 2\"\n    array.remove(3)\n    ok array.length == 1, \"array = [1,3]; array.remove(3); array.length === 1\"\n  \n  test \"#map\", ->\n    equals [1].map((x) -> return x + 1 )[0], 2\n  \n  test \"#invoke\", ->\n    results = ['hello', 'world', 'cool!'].invoke('substring', 0, 3)\n  \n    equals results[0], \"hel\"\n    equals results[1], \"wor\"\n    equals results[2], \"coo\"\n  \n  test \"#each\", ->\n    array = [1, 2, 3]\n    count = 0\n  \n    equals array, array.each -> count++\n    equals array.length, count\n  \n  test \"#eachPair\", ->\n    array = [1, 2, 3]\n    sum = 0\n  \n    array.eachPair (a, b) ->\n      sum += a + b\n  \n    equals(sum, 12)\n  \n  test \"#eachWithObject\", ->\n    array = [1, 2, 3]\n  \n    result = array.eachWithObject {}, (element, hash) ->\n      hash[element] = (element + 1).toString()\n  \n    equals result[1], \"2\"\n    equals result[2], \"3\"\n    equals result[3], \"4\"\n  \n  test \"#shuffle\", ->\n    array = [0, 1, 2, 3, 4, 5]\n  \n    shuffledArray = array.shuffle()\n  \n    shuffledArray.each (element) ->\n      ok array.indexOf(element) >= 0, \"Every element in shuffled array is in orig array\"\n  \n    array.each (element) ->\n      ok shuffledArray.indexOf(element) >= 0, \"Every element in orig array is in shuffled array\"\n  \n  test \"#first\", ->\n    equals [2].first(), 2\n    equals [1, 2, 3].first(), 1\n    equals [].first(), undefined\n  \n  test \"#last\", ->\n    equals [2].last(), 2\n    equals [1, 2, 3].last(), 3\n    equals [].first(), undefined\n  \n  test \"#maxima\", ->\n    maxima = [-52, 0, 78].maxima()\n  \n    maxima.each (n) ->\n      equals n, 78\n  \n    maxima = [0, 0, 1, 0, 1, 0, 1, 0].maxima()\n  \n    equals 3, maxima.length\n  \n    maxima.each (n) ->\n      equals n, 1\n  \n  test \"#maximum\", ->\n    equals [-345, 38, 8347].maximum(), 8347\n  \n  test \"#maximum with function\", ->\n    equals [3, 4, 5].maximum((n) ->\n      n % 4\n    ), 3\n  \n  test \"#minima\", ->\n    minima = [-52, 0, 78].minima()\n  \n    minima.each (n) ->\n      equals n, -52\n  \n    minima = [0, 0, 1, 0, 1, 0, 1, 0].minima()\n  \n    equals 5, minima.length\n  \n    minima.each (n) ->\n      equals n, 0\n  \n  test \"#minimum\", ->\n    equals [-345, 38, 8347].minimum(), -345\n  \n  test \"#pipeline\", ->\n    pipe = [\n      (x) -> x * x\n      (x) -> x - 10\n    ]\n  \n    equals pipe.pipeline(5), 15\n  \n  test \"#extremes\", ->\n    array = [-7, 1, 11, 94]\n  \n    extremes = array.extremes()\n  \n    equals extremes.min, -7, \"Min is -7\"\n    equals extremes.max, 94, \"Max is 94\"\n  \n  test \"#extremes with fn\", ->\n    array = [1, 11, 94]\n\n    extremes = array.extremes (value) ->\n      value % 11\n\n    equals extremes.min, 11, extremes.min\n    equals extremes.max, 94, extremes.max\n\n  test \"#sum\", ->\n    equals [].sum(), 0, \"Empty array sums to zero\"\n    equals [2].sum(), 2, \"[2] sums to 2\"\n    equals [1, 2, 3, 4, 5].sum(), 15, \"[1, 2, 3, 4, 5] sums to 15\"\n  \n  test \"#eachSlice\", ->\n    [1, 2, 3, 4, 5, 6].eachSlice 2, (array) ->\n      equals array[0] % 2, 1\n      equals array[1] % 2, 0\n  \n  test \"#without\", ->\n    array = [1, 2, 3, 4]\n  \n    excluded = array.without([2, 4])\n  \n    equals excluded[0], 1\n    equals excluded[1], 3\n  \n  test \"#clear\", ->\n    array = [1, 2, 3, 4]\n  \n    equals array.length, 4\n    equals array[0], 1\n  \n    array.clear()\n  \n    equals array.length, 0\n    equals array[0], undefined\n  \n  test \"#unique\", ->\n    array = [0, 0, 0, 1, 1, 1, 2, 3]\n  \n    equals array.unique().first(), 0\n    equals array.unique().last(), 3\n    equals array.unique().length, 4\n  \n  test \"#wrap\", ->\n    array = [0, 1, 2, 3, 4]\n  \n    equals array.wrap(0), 0\n    equals array.wrap(-1), 4\n    equals array.wrap(2), 2\n  \n  test \"#zip\", ->\n    a = [1, 2, 3]\n    b = [4, 5, 6]\n    c = [7, 8]\n  \n    output = a.zip(b, c)\n  \n    equals output[0][0], 1\n    equals output[0][1], 4\n    equals output[0][2], 7\n  \n    equals output[2][2], undefined\n",
+              "type": "blob"
+            },
+            "test/function.coffee": {
+              "path": "test/function.coffee",
+              "mode": "100644",
+              "content": "require \"../function\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Function\", ->\n\n  test \"#once\", ->\n    score = 0\n  \n    addScore = ->\n      score += 100\n  \n    onceScore = addScore.once()\n  \n    [0..9].map ->\n      onceScore()\n  \n    equals score, 100\n  \n  test \".identity\", ->\n    I = Function.identity\n  \n    [0, 1, true, false, null, undefined].each (x) ->\n      equals I(x), x\n  \n  test \"#debounce\", (done) ->\n    fn = (-> ok true; done()).debounce(1)\n  \n    # Though called multiple times the function is only triggered once\n    fn()\n    fn()\n    fn()\n  \n  test \"#delay\", (done) ->\n    fn = (x, y) ->\n      equals x, 3\n      equals y, \"testy\"\n      done()\n  \n    fn.delay 25, 3, \"testy\"\n  \n  test \"#defer\", (done) ->\n    fn = (x) ->\n      equals x, 3\n      done()\n  \n    fn.defer 3\n",
+              "type": "blob"
+            },
+            "test/number.coffee": {
+              "path": "test/number.coffee",
+              "mode": "100644",
+              "content": "require \"../number\"\n\nok = assert\nequals = assert.equal\ntest = it\n\nequalEnough = (expected, actual, tolerance, message) ->\n  message ||= \"#{expected} within #{tolerance} of #{actual}\"\n\n  ok(expected + tolerance >= actual && expected - tolerance <= actual, message)\n  \ndescribe \"Number\", ->\n  \n  test \"#abs\", ->\n    equals 5.abs(), 5, \"(5).abs() equals 5\"\n    equals 4.2.abs(), 4.2, \"(4.2).abs() equals 4.2\"\n    equals (-1.2).abs(), 1.2, \"(-1.2).abs() equals 1.2\"\n    equals 0.abs(), 0, \"(0).abs() equals 0\"\n  \n  test \"#ceil\", ->\n    equals 4.9.ceil(), 5, \"(4.9).floor() equals 5\"\n    equals 4.2.ceil(), 5, \"(4.2).ceil() equals 5\"\n    equals (-1.2).ceil(), -1, \"(-1.2).ceil() equals -1\"\n    equals 3.ceil(), 3, \"(3).ceil() equals 3\"\n  \n  test \"#clamp\", ->\n    equals 5.clamp(0, 3), 3\n    equals 5.clamp(-1, 0), 0\n    equals (-5).clamp(0, 1), 0\n    equals 1.clamp(0, null), 1\n    equals (-1).clamp(0, null), 0\n    equals (-10).clamp(-5, 0), -5\n    equals (-10).clamp(null, 0), -10\n    equals 50.clamp(null, 10), 10\n  \n  test \"#floor\", ->\n    equals 4.9.floor(), 4, \"(4.9).floor() equals 4\"\n    equals 4.2.floor(), 4, \"(4.2).floor() equals 4\"\n    equals (-1.2).floor(), -2, \"(-1.2).floor() equals -2\"\n    equals 3.floor(), 3, \"(3).floor() equals 3\"\n  \n  test \"#round\", ->\n    equals 4.5.round(), 5, \"(4.5).round() equals 5\"\n    equals 4.4.round(), 4, \"(4.4).round() equals 4\"\n  \n  test \"#sign\", ->\n    equals 5.sign(), 1, \"Positive number's sign is 1\"\n    equals (-3).sign(), -1, \"Negative number's sign is -1\"\n    equals 0.sign(), 0, \"Zero's sign is 0\"\n  \n  test \"#even\", ->\n    [0, 2, -32].each (n) ->\n      ok n.even(), \"#{n} is even\"\n  \n    [1, -1, 2.2, -3.784].each (n) ->\n      equals n.even(), false, \"#{n} is not even\"\n  \n  test \"#odd\", ->\n    [1, 9, -37].each (n) ->\n      ok n.odd(), \"#{n} is odd\"\n  \n    [0, 32, 2.2, -1.1].each (n) ->\n      equals n.odd(), false, \"#{n} is not odd\"\n  \n  test \"#times\", ->\n    n = 5\n    equals n.times(->), n, \"returns n\"\n  \n  test \"#times called correct amount\", ->\n    n = 5\n    count = 0\n  \n    n.times -> count++\n  \n    equals n, count, \"returns n\"\n  \n  test \"#mod should have a positive result when used with a positive base and a negative number\", ->\n    n = -3\n  \n    equals n.mod(8), 5, \"Should 'wrap' and be positive.\"\n  \n  test \"#degrees\", ->\n    equals 180.degrees, Math.PI\n    equals 1.degree, Math.TAU / 360\n  \n  test \"#rotations\", ->\n    equals 1.rotation, Math.TAU\n    equals 0.5.rotations, Math.TAU / 2\n  \n  test \"#turns\", ->\n    equals 1.turn, Math.TAU\n    equals 0.5.turns, Math.TAU / 2\n",
+              "type": "blob"
+            },
+            "test/string.coffee": {
+              "path": "test/string.coffee",
+              "mode": "100644",
+              "content": "require \"../string\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"String\", ->\n  \n  test \"#blank\", ->\n    equals \"  \".blank(), true, \"A string containing only whitespace should be blank\"\n    equals \"a\".blank(), false, \"A string that contains a letter should not be blank\"\n    equals \"  a \".blank(), false\n    equals \"  \\n\\t \".blank(), true\n  \n  test \"#extension\", ->\n    equals \"README\".extension(), \"\"\n    equals \"README.md\".extension(), \"md\"\n    equals \"jquery.min.js\".extension(), \"js\"\n    equals \"src/bouse.js.coffee\".extension(), \"coffee\"\n  \n  test \"#parse\", ->\n    equals \"true\".parse(), true, \"parsing 'true' should equal boolean true\"\n    equals \"false\".parse(), false, \"parsing 'true' should equal boolean true\"\n    equals \"7.2\".parse(), 7.2, \"numbers should be cool too\"\n  \n    equals '{\"val\": \"a string\"}'.parse().val, \"a string\", \"even parsing objects works\"\n  \n    ok ''.parse() == '', \"Empty string parses to exactly the empty string\"\n  \n  test \"#startsWith\", ->\n    ok \"cool\".startsWith(\"coo\")\n    equals \"cool\".startsWith(\"oo\"), false\n  \n  test \"#toInt\", ->\n    equals \"31.3\".toInt(), 31\n    equals \"31.\".toInt(), 31\n    equals \"-1.02\".toInt(), -1\n  \n    equals \"009\".toInt(), 9\n    equals \"0109\".toInt(), 109\n  \n    equals \"F\".toInt(16), 15\n  \n  test \"#withoutExtension\", ->\n    equals \"neat.png\".withoutExtension(), \"neat\"\n    equals \"not a file\".withoutExtension(), \"not a file\"\n",
+              "type": "blob"
+            },
+            "util.coffee.md": {
+              "path": "util.coffee.md",
+              "mode": "100644",
+              "content": "Util\n====\n\nUtility methods shared in our extensions.\n\n    module.exports =\n\nExtend an object with the properties of other objects.\n\n      extend: (target, sources...) ->\n        for source in sources\n          for name of source\n            target[name] = source[name]\n\n        return target\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "array": {
+              "path": "array",
+              "content": "(function() {\n  var extend, identity, mod, rand,\n    __slice = [].slice;\n\n  extend = require(\"./util\").extend;\n\n  extend(Array.prototype, {\n    average: function() {\n      return this.sum() / this.length;\n    },\n    compact: function() {\n      return this.select(function(element) {\n        return element != null;\n      });\n    },\n    copy: function() {\n      return this.concat();\n    },\n    clear: function() {\n      this.length = 0;\n      return this;\n    },\n    flatten: function() {\n      return this.inject([], function(a, b) {\n        return a.concat(b);\n      });\n    },\n    invoke: function() {\n      var args, method;\n      method = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n      return this.map(function(element) {\n        return element[method].apply(element, args);\n      });\n    },\n    rand: function() {\n      return this[rand(this.length)];\n    },\n    remove: function(object) {\n      var index;\n      index = this.indexOf(object);\n      if (index >= 0) {\n        return this.splice(index, 1)[0];\n      } else {\n        return void 0;\n      }\n    },\n    include: function(element) {\n      return this.indexOf(element) !== -1;\n    },\n    each: function(iterator, context) {\n      var element, i, _i, _len;\n      if (this.forEach) {\n        this.forEach(iterator, context);\n      } else {\n        for (i = _i = 0, _len = this.length; _i < _len; i = ++_i) {\n          element = this[i];\n          iterator.call(context, element, i, this);\n        }\n      }\n      return this;\n    },\n    eachPair: function(iterator, context) {\n      var a, b, i, j, length, _results;\n      length = this.length;\n      i = 0;\n      _results = [];\n      while (i < length) {\n        a = this[i];\n        j = i + 1;\n        i += 1;\n        _results.push((function() {\n          var _results1;\n          _results1 = [];\n          while (j < length) {\n            b = this[j];\n            j += 1;\n            _results1.push(iterator.call(context, a, b));\n          }\n          return _results1;\n        }).call(this));\n      }\n      return _results;\n    },\n    eachWithObject: function(object, iterator, context) {\n      this.each(function(element, i, self) {\n        return iterator.call(context, element, object, i, self);\n      });\n      return object;\n    },\n    eachSlice: function(n, iterator, context) {\n      var i, len;\n      len = this.length / n;\n      i = -1;\n      while (++i < len) {\n        iterator.call(context, this.slice(i * n, (i + 1) * n), i * n, this);\n      }\n      return this;\n    },\n    pipeline: function(input) {\n      return this.inject(input, function(input, fn) {\n        return fn(input);\n      });\n    },\n    shuffle: function() {\n      var shuffledArray;\n      shuffledArray = [];\n      this.each(function(element) {\n        return shuffledArray.splice(rand(shuffledArray.length + 1), 0, element);\n      });\n      return shuffledArray;\n    },\n    first: function() {\n      return this[0];\n    },\n    last: function() {\n      return this[this.length - 1];\n    },\n    extremes: function(fn) {\n      var max, maxResult, min, minResult;\n      if (fn == null) {\n        fn = identity;\n      }\n      min = max = void 0;\n      minResult = maxResult = void 0;\n      this.each(function(object) {\n        var result;\n        result = fn(object);\n        if (min != null) {\n          if (result < minResult) {\n            min = object;\n            minResult = result;\n          }\n        } else {\n          min = object;\n          minResult = result;\n        }\n        if (max != null) {\n          if (result > maxResult) {\n            max = object;\n            return maxResult = result;\n          }\n        } else {\n          max = object;\n          return maxResult = result;\n        }\n      });\n      return {\n        min: min,\n        max: max\n      };\n    },\n    maxima: function(valueFunction) {\n      if (valueFunction == null) {\n        valueFunction = identity;\n      }\n      return this.inject([-Infinity, []], function(memo, item) {\n        var maxItems, maxValue, value;\n        value = valueFunction(item);\n        maxValue = memo[0], maxItems = memo[1];\n        if (value > maxValue) {\n          return [value, [item]];\n        } else if (value === maxValue) {\n          return [value, maxItems.concat(item)];\n        } else {\n          return memo;\n        }\n      }).last();\n    },\n    maximum: function(valueFunction) {\n      return this.maxima(valueFunction).first();\n    },\n    minima: function(valueFunction) {\n      var inverseFn;\n      if (valueFunction == null) {\n        valueFunction = identity;\n      }\n      inverseFn = function(x) {\n        return -valueFunction(x);\n      };\n      return this.maxima(inverseFn);\n    },\n    minimum: function(valueFunction) {\n      return this.minima(valueFunction).first();\n    },\n    wrap: function(start, length) {\n      var end, i, result;\n      if (length != null) {\n        end = start + length;\n        i = start;\n        result = [];\n        while (i < end) {\n          result.push(this[mod(i, this.length)]);\n          i += 1;\n        }\n        return result;\n      } else {\n        return this[mod(start, this.length)];\n      }\n    },\n    partition: function(iterator, context) {\n      var falseCollection, trueCollection;\n      trueCollection = [];\n      falseCollection = [];\n      this.each(function(element) {\n        if (iterator.call(context, element)) {\n          return trueCollection.push(element);\n        } else {\n          return falseCollection.push(element);\n        }\n      });\n      return [trueCollection, falseCollection];\n    },\n    select: function(iterator, context) {\n      return this.partition(iterator, context)[0];\n    },\n    without: function(values) {\n      return this.reject(function(element) {\n        return values.include(element);\n      });\n    },\n    reject: function(iterator, context) {\n      return this.partition(iterator, context)[1];\n    },\n    inject: function(initial, iterator) {\n      this.each(function(element) {\n        return initial = iterator(initial, element);\n      });\n      return initial;\n    },\n    sum: function() {\n      return this.inject(0, function(sum, n) {\n        return sum + n;\n      });\n    },\n    product: function() {\n      return this.inject(1, function(product, n) {\n        return product * n;\n      });\n    },\n    unique: function() {\n      return this.inject([], function(results, element) {\n        if (results.indexOf(element) === -1) {\n          results.push(element);\n        }\n        return results;\n      });\n    },\n    zip: function() {\n      var args;\n      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      return this.map(function(element, index) {\n        var output;\n        output = args.map(function(arr) {\n          return arr[index];\n        });\n        output.unshift(element);\n        return output;\n      });\n    }\n  });\n\n  identity = function(x) {\n    return x;\n  };\n\n  rand = function(n) {\n    return Math.floor(n * Math.random());\n  };\n\n  mod = function(n, base) {\n    var result;\n    result = n % base;\n    if (result < 0 && base > 0) {\n      result += base;\n    }\n    return result;\n  };\n\n}).call(this);\n\n//# sourceURL=array.coffee",
+              "type": "blob"
+            },
+            "extensions": {
+              "path": "extensions",
+              "content": "(function() {\n  require(\"./array\");\n\n  require(\"./function\");\n\n  require(\"./number\");\n\n  require(\"./string\");\n\n}).call(this);\n\n//# sourceURL=extensions.coffee",
+              "type": "blob"
+            },
+            "function": {
+              "path": "function",
+              "content": "(function() {\n  var extend,\n    __slice = [].slice;\n\n  extend = require(\"./util\").extend;\n\n  extend(Function.prototype, {\n    once: function() {\n      var func, memo, ran;\n      func = this;\n      ran = false;\n      memo = void 0;\n      return function() {\n        if (ran) {\n          return memo;\n        }\n        ran = true;\n        return memo = func.apply(this, arguments);\n      };\n    },\n    debounce: function(wait) {\n      var func, timeout;\n      timeout = null;\n      func = this;\n      return function() {\n        var args, context, later;\n        context = this;\n        args = arguments;\n        later = function() {\n          timeout = null;\n          return func.apply(context, args);\n        };\n        clearTimeout(timeout);\n        return timeout = setTimeout(later, wait);\n      };\n    },\n    delay: function() {\n      var args, func, wait;\n      wait = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n      func = this;\n      return setTimeout(function() {\n        return func.apply(null, args);\n      }, wait);\n    },\n    defer: function() {\n      var args;\n      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      return this.delay.apply(this, [1].concat(args));\n    }\n  });\n\n  extend(Function, {\n    identity: function(x) {\n      return x;\n    },\n    noop: function() {}\n  });\n\n}).call(this);\n\n//# sourceURL=function.coffee",
+              "type": "blob"
+            },
+            "number": {
+              "path": "number",
+              "content": "(function() {\n  var extend;\n\n  [\"abs\", \"ceil\", \"floor\", \"round\"].forEach(function(method) {\n    return Number.prototype[method] = function() {\n      return Math[method](this);\n    };\n  });\n\n  extend = require(\"./util\").extend;\n\n  extend(Number.prototype, {\n    circularPoints: function() {\n      var n, _i, _results;\n      n = this;\n      return (function() {\n        _results = [];\n        for (var _i = 0; 0 <= n ? _i <= n : _i >= n; 0 <= n ? _i++ : _i--){ _results.push(_i); }\n        return _results;\n      }).apply(this).map(function(i) {\n        return Point.fromAngle((i / n).turns);\n      });\n    },\n    clamp: function(min, max) {\n      if ((min != null) && (max != null)) {\n        return Math.min(Math.max(this, min), max);\n      } else if (min != null) {\n        return Math.max(this, min);\n      } else if (max != null) {\n        return Math.min(this, max);\n      } else {\n        return this;\n      }\n    },\n    mod: function(base) {\n      var result;\n      result = this % base;\n      if (result < 0 && base > 0) {\n        result += base;\n      }\n      return result;\n    },\n    sign: function() {\n      if (this > 0) {\n        return 1;\n      } else if (this < 0) {\n        return -1;\n      } else {\n        return 0;\n      }\n    },\n    even: function() {\n      return this.mod(2) === 0;\n    },\n    odd: function() {\n      return this.mod(2) === 1;\n    },\n    times: function(iterator, context) {\n      var i;\n      i = -1;\n      while (++i < this) {\n        iterator.call(context, i);\n      }\n      return i;\n    },\n    snap: function(resolution) {\n      return (n / resolution).floor() * resolution;\n    },\n    truncate: function() {\n      if (this > 0) {\n        return this.floor();\n      } else if (this < 0) {\n        return this.ceil();\n      } else {\n        return this;\n      }\n    }\n  });\n\n  if (!5..rotations) {\n    Object.defineProperty(Number.prototype, 'rotations', {\n      get: function() {\n        return this * Math.TAU;\n      }\n    });\n  }\n\n  if (!1..rotation) {\n    Object.defineProperty(Number.prototype, 'rotation', {\n      get: function() {\n        return this * Math.TAU;\n      }\n    });\n  }\n\n  if (!5..turns) {\n    Object.defineProperty(Number.prototype, 'turns', {\n      get: function() {\n        return this * Math.TAU;\n      }\n    });\n  }\n\n  if (!1..turn) {\n    Object.defineProperty(Number.prototype, 'turn', {\n      get: function() {\n        return this * Math.TAU;\n      }\n    });\n  }\n\n  if (!2..degrees) {\n    Object.defineProperty(Number.prototype, 'degrees', {\n      get: function() {\n        return this * Math.TAU / 360;\n      }\n    });\n  }\n\n  if (!1..degree) {\n    Object.defineProperty(Number.prototype, 'degree', {\n      get: function() {\n        return this * Math.TAU / 360;\n      }\n    });\n  }\n\n  Math.TAU = 2 * Math.PI;\n\n}).call(this);\n\n//# sourceURL=number.coffee",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"version\":\"0.2.0\",\"entryPoint\":\"extensions\"};",
+              "type": "blob"
+            },
+            "string": {
+              "path": "string",
+              "content": "(function() {\n  var extend;\n\n  extend = require(\"./util\").extend;\n\n  extend(String.prototype, {\n    blank: function() {\n      return /^\\s*$/.test(this);\n    },\n    parse: function() {\n      var e;\n      try {\n        return JSON.parse(this.toString());\n      } catch (_error) {\n        e = _error;\n        return this.toString();\n      }\n    },\n    startsWith: function(str) {\n      return this.lastIndexOf(str, 0) === 0;\n    },\n    endsWith: function(str) {\n      return this.indexOf(str, this.length - str.length) !== -1;\n    },\n    extension: function() {\n      var extension, _ref;\n      if (extension = (_ref = this.match(/\\.([^\\.]*)$/, '')) != null ? _ref.last() : void 0) {\n        return extension;\n      } else {\n        return '';\n      }\n    },\n    withoutExtension: function() {\n      return this.replace(/\\.[^\\.]*$/, '');\n    },\n    toInt: function(base) {\n      if (base == null) {\n        base = 10;\n      }\n      return parseInt(this, base);\n    }\n  });\n\n}).call(this);\n\n//# sourceURL=string.coffee",
+              "type": "blob"
+            },
+            "test/array": {
+              "path": "test/array",
+              "content": "(function() {\n  var equals, ok, test;\n\n  require(\"../array\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Array\", function() {\n    test(\"#average\", function() {\n      return equals([1, 3, 5, 7].average(), 4);\n    });\n    test(\"#compact\", function() {\n      var a, compacted;\n      a = [0, 1, void 0, 2, null, 3, '', 4];\n      compacted = a.compact();\n      equals(compacted[0], 0);\n      equals(compacted[1], 1);\n      equals(compacted[2], 2);\n      equals(compacted[3], 3);\n      equals(compacted[4], '');\n      return equals(compacted[5], 4);\n    });\n    test(\"#copy\", function() {\n      var a, b;\n      a = [1, 2, 3];\n      b = a.copy();\n      ok(a !== b, \"Original array is not the same array as the copied one\");\n      ok(a.length === b.length, \"Both arrays are the same size\");\n      return ok(a[0] === b[0] && a[1] === b[1] && a[2] === b[2], \"The elements of the two arrays are equal\");\n    });\n    test(\"#flatten\", function() {\n      var array, flattenedArray;\n      array = [[0, 1], [2, 3], [4, 5]];\n      flattenedArray = array.flatten();\n      equals(flattenedArray.length, 6, \"Flattened array length should equal number of elements in sub-arrays\");\n      equals(flattenedArray.first(), 0, \"First element should be first element in first sub-array\");\n      return equals(flattenedArray.last(), 5, \"Last element should be last element in last sub-array\");\n    });\n    test(\"#rand\", function() {\n      var array;\n      array = [1, 2, 3];\n      ok(array.indexOf(array.rand()) !== -1, \"Array includes randomly selected element\");\n      ok([5].rand() === 5, \"[5].rand() === 5\");\n      return ok([].rand() === void 0, \"[].rand() === undefined\");\n    });\n    test(\"#remove\", function() {\n      var array;\n      equals([1, 2, 3].remove(2), 2, \"[1,2,3].remove(2) === 2\");\n      equals([1, 3].remove(2), void 0, \"[1,3].remove(2) === undefined\");\n      equals([1, 3].remove(3), 3, \"[1,3].remove(3) === 3\");\n      array = [1, 2, 3];\n      array.remove(2);\n      ok(array.length === 2, \"array = [1,2,3]; array.remove(2); array.length === 2\");\n      array.remove(3);\n      return ok(array.length === 1, \"array = [1,3]; array.remove(3); array.length === 1\");\n    });\n    test(\"#map\", function() {\n      return equals([1].map(function(x) {\n        return x + 1;\n      })[0], 2);\n    });\n    test(\"#invoke\", function() {\n      var results;\n      results = ['hello', 'world', 'cool!'].invoke('substring', 0, 3);\n      equals(results[0], \"hel\");\n      equals(results[1], \"wor\");\n      return equals(results[2], \"coo\");\n    });\n    test(\"#each\", function() {\n      var array, count;\n      array = [1, 2, 3];\n      count = 0;\n      equals(array, array.each(function() {\n        return count++;\n      }));\n      return equals(array.length, count);\n    });\n    test(\"#eachPair\", function() {\n      var array, sum;\n      array = [1, 2, 3];\n      sum = 0;\n      array.eachPair(function(a, b) {\n        return sum += a + b;\n      });\n      return equals(sum, 12);\n    });\n    test(\"#eachWithObject\", function() {\n      var array, result;\n      array = [1, 2, 3];\n      result = array.eachWithObject({}, function(element, hash) {\n        return hash[element] = (element + 1).toString();\n      });\n      equals(result[1], \"2\");\n      equals(result[2], \"3\");\n      return equals(result[3], \"4\");\n    });\n    test(\"#shuffle\", function() {\n      var array, shuffledArray;\n      array = [0, 1, 2, 3, 4, 5];\n      shuffledArray = array.shuffle();\n      shuffledArray.each(function(element) {\n        return ok(array.indexOf(element) >= 0, \"Every element in shuffled array is in orig array\");\n      });\n      return array.each(function(element) {\n        return ok(shuffledArray.indexOf(element) >= 0, \"Every element in orig array is in shuffled array\");\n      });\n    });\n    test(\"#first\", function() {\n      equals([2].first(), 2);\n      equals([1, 2, 3].first(), 1);\n      return equals([].first(), void 0);\n    });\n    test(\"#last\", function() {\n      equals([2].last(), 2);\n      equals([1, 2, 3].last(), 3);\n      return equals([].first(), void 0);\n    });\n    test(\"#maxima\", function() {\n      var maxima;\n      maxima = [-52, 0, 78].maxima();\n      maxima.each(function(n) {\n        return equals(n, 78);\n      });\n      maxima = [0, 0, 1, 0, 1, 0, 1, 0].maxima();\n      equals(3, maxima.length);\n      return maxima.each(function(n) {\n        return equals(n, 1);\n      });\n    });\n    test(\"#maximum\", function() {\n      return equals([-345, 38, 8347].maximum(), 8347);\n    });\n    test(\"#maximum with function\", function() {\n      return equals([3, 4, 5].maximum(function(n) {\n        return n % 4;\n      }), 3);\n    });\n    test(\"#minima\", function() {\n      var minima;\n      minima = [-52, 0, 78].minima();\n      minima.each(function(n) {\n        return equals(n, -52);\n      });\n      minima = [0, 0, 1, 0, 1, 0, 1, 0].minima();\n      equals(5, minima.length);\n      return minima.each(function(n) {\n        return equals(n, 0);\n      });\n    });\n    test(\"#minimum\", function() {\n      return equals([-345, 38, 8347].minimum(), -345);\n    });\n    test(\"#pipeline\", function() {\n      var pipe;\n      pipe = [\n        function(x) {\n          return x * x;\n        }, function(x) {\n          return x - 10;\n        }\n      ];\n      return equals(pipe.pipeline(5), 15);\n    });\n    test(\"#extremes\", function() {\n      var array, extremes;\n      array = [-7, 1, 11, 94];\n      extremes = array.extremes();\n      equals(extremes.min, -7, \"Min is -7\");\n      return equals(extremes.max, 94, \"Max is 94\");\n    });\n    test(\"#extremes with fn\", function() {\n      var array, extremes;\n      array = [1, 11, 94];\n      extremes = array.extremes(function(value) {\n        return value % 11;\n      });\n      equals(extremes.min, 11, extremes.min);\n      return equals(extremes.max, 94, extremes.max);\n    });\n    test(\"#sum\", function() {\n      equals([].sum(), 0, \"Empty array sums to zero\");\n      equals([2].sum(), 2, \"[2] sums to 2\");\n      return equals([1, 2, 3, 4, 5].sum(), 15, \"[1, 2, 3, 4, 5] sums to 15\");\n    });\n    test(\"#eachSlice\", function() {\n      return [1, 2, 3, 4, 5, 6].eachSlice(2, function(array) {\n        equals(array[0] % 2, 1);\n        return equals(array[1] % 2, 0);\n      });\n    });\n    test(\"#without\", function() {\n      var array, excluded;\n      array = [1, 2, 3, 4];\n      excluded = array.without([2, 4]);\n      equals(excluded[0], 1);\n      return equals(excluded[1], 3);\n    });\n    test(\"#clear\", function() {\n      var array;\n      array = [1, 2, 3, 4];\n      equals(array.length, 4);\n      equals(array[0], 1);\n      array.clear();\n      equals(array.length, 0);\n      return equals(array[0], void 0);\n    });\n    test(\"#unique\", function() {\n      var array;\n      array = [0, 0, 0, 1, 1, 1, 2, 3];\n      equals(array.unique().first(), 0);\n      equals(array.unique().last(), 3);\n      return equals(array.unique().length, 4);\n    });\n    test(\"#wrap\", function() {\n      var array;\n      array = [0, 1, 2, 3, 4];\n      equals(array.wrap(0), 0);\n      equals(array.wrap(-1), 4);\n      return equals(array.wrap(2), 2);\n    });\n    return test(\"#zip\", function() {\n      var a, b, c, output;\n      a = [1, 2, 3];\n      b = [4, 5, 6];\n      c = [7, 8];\n      output = a.zip(b, c);\n      equals(output[0][0], 1);\n      equals(output[0][1], 4);\n      equals(output[0][2], 7);\n      return equals(output[2][2], void 0);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/array.coffee",
+              "type": "blob"
+            },
+            "test/function": {
+              "path": "test/function",
+              "content": "(function() {\n  var equals, ok, test;\n\n  require(\"../function\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Function\", function() {\n    test(\"#once\", function() {\n      var addScore, onceScore, score;\n      score = 0;\n      addScore = function() {\n        return score += 100;\n      };\n      onceScore = addScore.once();\n      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function() {\n        return onceScore();\n      });\n      return equals(score, 100);\n    });\n    test(\".identity\", function() {\n      var I;\n      I = Function.identity;\n      return [0, 1, true, false, null, void 0].each(function(x) {\n        return equals(I(x), x);\n      });\n    });\n    test(\"#debounce\", function(done) {\n      var fn;\n      fn = (function() {\n        ok(true);\n        return done();\n      }).debounce(1);\n      fn();\n      fn();\n      return fn();\n    });\n    test(\"#delay\", function(done) {\n      var fn;\n      fn = function(x, y) {\n        equals(x, 3);\n        equals(y, \"testy\");\n        return done();\n      };\n      return fn.delay(25, 3, \"testy\");\n    });\n    return test(\"#defer\", function(done) {\n      var fn;\n      fn = function(x) {\n        equals(x, 3);\n        return done();\n      };\n      return fn.defer(3);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/function.coffee",
+              "type": "blob"
+            },
+            "test/number": {
+              "path": "test/number",
+              "content": "(function() {\n  var equalEnough, equals, ok, test;\n\n  require(\"../number\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  equalEnough = function(expected, actual, tolerance, message) {\n    message || (message = \"\" + expected + \" within \" + tolerance + \" of \" + actual);\n    return ok(expected + tolerance >= actual && expected - tolerance <= actual, message);\n  };\n\n  describe(\"Number\", function() {\n    test(\"#abs\", function() {\n      equals(5..abs(), 5, \"(5).abs() equals 5\");\n      equals(4.2.abs(), 4.2, \"(4.2).abs() equals 4.2\");\n      equals((-1.2).abs(), 1.2, \"(-1.2).abs() equals 1.2\");\n      return equals(0..abs(), 0, \"(0).abs() equals 0\");\n    });\n    test(\"#ceil\", function() {\n      equals(4.9.ceil(), 5, \"(4.9).floor() equals 5\");\n      equals(4.2.ceil(), 5, \"(4.2).ceil() equals 5\");\n      equals((-1.2).ceil(), -1, \"(-1.2).ceil() equals -1\");\n      return equals(3..ceil(), 3, \"(3).ceil() equals 3\");\n    });\n    test(\"#clamp\", function() {\n      equals(5..clamp(0, 3), 3);\n      equals(5..clamp(-1, 0), 0);\n      equals((-5).clamp(0, 1), 0);\n      equals(1..clamp(0, null), 1);\n      equals((-1).clamp(0, null), 0);\n      equals((-10).clamp(-5, 0), -5);\n      equals((-10).clamp(null, 0), -10);\n      return equals(50..clamp(null, 10), 10);\n    });\n    test(\"#floor\", function() {\n      equals(4.9.floor(), 4, \"(4.9).floor() equals 4\");\n      equals(4.2.floor(), 4, \"(4.2).floor() equals 4\");\n      equals((-1.2).floor(), -2, \"(-1.2).floor() equals -2\");\n      return equals(3..floor(), 3, \"(3).floor() equals 3\");\n    });\n    test(\"#round\", function() {\n      equals(4.5.round(), 5, \"(4.5).round() equals 5\");\n      return equals(4.4.round(), 4, \"(4.4).round() equals 4\");\n    });\n    test(\"#sign\", function() {\n      equals(5..sign(), 1, \"Positive number's sign is 1\");\n      equals((-3).sign(), -1, \"Negative number's sign is -1\");\n      return equals(0..sign(), 0, \"Zero's sign is 0\");\n    });\n    test(\"#even\", function() {\n      [0, 2, -32].each(function(n) {\n        return ok(n.even(), \"\" + n + \" is even\");\n      });\n      return [1, -1, 2.2, -3.784].each(function(n) {\n        return equals(n.even(), false, \"\" + n + \" is not even\");\n      });\n    });\n    test(\"#odd\", function() {\n      [1, 9, -37].each(function(n) {\n        return ok(n.odd(), \"\" + n + \" is odd\");\n      });\n      return [0, 32, 2.2, -1.1].each(function(n) {\n        return equals(n.odd(), false, \"\" + n + \" is not odd\");\n      });\n    });\n    test(\"#times\", function() {\n      var n;\n      n = 5;\n      return equals(n.times(function() {}), n, \"returns n\");\n    });\n    test(\"#times called correct amount\", function() {\n      var count, n;\n      n = 5;\n      count = 0;\n      n.times(function() {\n        return count++;\n      });\n      return equals(n, count, \"returns n\");\n    });\n    test(\"#mod should have a positive result when used with a positive base and a negative number\", function() {\n      var n;\n      n = -3;\n      return equals(n.mod(8), 5, \"Should 'wrap' and be positive.\");\n    });\n    test(\"#degrees\", function() {\n      equals(180..degrees, Math.PI);\n      return equals(1..degree, Math.TAU / 360);\n    });\n    test(\"#rotations\", function() {\n      equals(1..rotation, Math.TAU);\n      return equals(0.5.rotations, Math.TAU / 2);\n    });\n    return test(\"#turns\", function() {\n      equals(1..turn, Math.TAU);\n      return equals(0.5.turns, Math.TAU / 2);\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/number.coffee",
+              "type": "blob"
+            },
+            "test/string": {
+              "path": "test/string",
+              "content": "(function() {\n  var equals, ok, test;\n\n  require(\"../string\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"String\", function() {\n    test(\"#blank\", function() {\n      equals(\"  \".blank(), true, \"A string containing only whitespace should be blank\");\n      equals(\"a\".blank(), false, \"A string that contains a letter should not be blank\");\n      equals(\"  a \".blank(), false);\n      return equals(\"  \\n\\t \".blank(), true);\n    });\n    test(\"#extension\", function() {\n      equals(\"README\".extension(), \"\");\n      equals(\"README.md\".extension(), \"md\");\n      equals(\"jquery.min.js\".extension(), \"js\");\n      return equals(\"src/bouse.js.coffee\".extension(), \"coffee\");\n    });\n    test(\"#parse\", function() {\n      equals(\"true\".parse(), true, \"parsing 'true' should equal boolean true\");\n      equals(\"false\".parse(), false, \"parsing 'true' should equal boolean true\");\n      equals(\"7.2\".parse(), 7.2, \"numbers should be cool too\");\n      equals('{\"val\": \"a string\"}'.parse().val, \"a string\", \"even parsing objects works\");\n      return ok(''.parse() === '', \"Empty string parses to exactly the empty string\");\n    });\n    test(\"#startsWith\", function() {\n      ok(\"cool\".startsWith(\"coo\"));\n      return equals(\"cool\".startsWith(\"oo\"), false);\n    });\n    test(\"#toInt\", function() {\n      equals(\"31.3\".toInt(), 31);\n      equals(\"31.\".toInt(), 31);\n      equals(\"-1.02\".toInt(), -1);\n      equals(\"009\".toInt(), 9);\n      equals(\"0109\".toInt(), 109);\n      return equals(\"F\".toInt(16), 15);\n    });\n    return test(\"#withoutExtension\", function() {\n      equals(\"neat.png\".withoutExtension(), \"neat\");\n      return equals(\"not a file\".withoutExtension(), \"not a file\");\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/string.coffee",
+              "type": "blob"
+            },
+            "util": {
+              "path": "util",
+              "content": "(function() {\n  var __slice = [].slice;\n\n  module.exports = {\n    extend: function() {\n      var name, source, sources, target, _i, _len;\n      target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n      for (_i = 0, _len = sources.length; _i < _len; _i++) {\n        source = sources[_i];\n        for (name in source) {\n          target[name] = source[name];\n        }\n      }\n      return target;\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=util.coffee",
+              "type": "blob"
+            }
+          },
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "version": "0.2.0",
+          "entryPoint": "extensions",
+          "repository": {
+            "id": 13577503,
+            "name": "extensions",
+            "full_name": "distri/extensions",
+            "owner": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/distri/extensions",
+            "description": "",
+            "fork": false,
+            "url": "https://api.github.com/repos/distri/extensions",
+            "forks_url": "https://api.github.com/repos/distri/extensions/forks",
+            "keys_url": "https://api.github.com/repos/distri/extensions/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/distri/extensions/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/distri/extensions/teams",
+            "hooks_url": "https://api.github.com/repos/distri/extensions/hooks",
+            "issue_events_url": "https://api.github.com/repos/distri/extensions/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/distri/extensions/events",
+            "assignees_url": "https://api.github.com/repos/distri/extensions/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/distri/extensions/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/distri/extensions/tags",
+            "blobs_url": "https://api.github.com/repos/distri/extensions/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/distri/extensions/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/distri/extensions/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/distri/extensions/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/distri/extensions/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/distri/extensions/languages",
+            "stargazers_url": "https://api.github.com/repos/distri/extensions/stargazers",
+            "contributors_url": "https://api.github.com/repos/distri/extensions/contributors",
+            "subscribers_url": "https://api.github.com/repos/distri/extensions/subscribers",
+            "subscription_url": "https://api.github.com/repos/distri/extensions/subscription",
+            "commits_url": "https://api.github.com/repos/distri/extensions/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/distri/extensions/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/distri/extensions/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/distri/extensions/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/distri/extensions/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/distri/extensions/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/distri/extensions/merges",
+            "archive_url": "https://api.github.com/repos/distri/extensions/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/distri/extensions/downloads",
+            "issues_url": "https://api.github.com/repos/distri/extensions/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/distri/extensions/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/distri/extensions/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/distri/extensions/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/distri/extensions/labels{/name}",
+            "releases_url": "https://api.github.com/repos/distri/extensions/releases{/id}",
+            "created_at": "2013-10-15T01:14:11Z",
+            "updated_at": "2013-12-24T01:04:48Z",
+            "pushed_at": "2013-12-24T01:04:20Z",
+            "git_url": "git://github.com/distri/extensions.git",
+            "ssh_url": "git@github.com:distri/extensions.git",
+            "clone_url": "https://github.com/distri/extensions.git",
+            "svn_url": "https://github.com/distri/extensions",
+            "homepage": null,
+            "size": 964,
+            "stargazers_count": 0,
+            "watchers_count": 0,
+            "language": "CoffeeScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 0,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 0,
+            "open_issues": 0,
+            "watchers": 0,
+            "default_branch": "master",
+            "master_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "organization": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "network_count": 0,
+            "subscribers_count": 1,
+            "branch": "v0.2.0",
+            "defaultBranch": "master"
+          },
+          "dependencies": {}
+        },
+        "core": {
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "core\n====\n\nAn object extension system.\n",
+              "type": "blob"
+            },
+            "core.coffee.md": {
+              "path": "core.coffee.md",
+              "mode": "100644",
+              "content": "Core\n====\n\nThe Core module is used to add extended functionality to objects without\nextending `Object.prototype` directly.\n\n    Core = (I={}, self={}) ->\n      extend self,\n\nExternal access to instance variables. Use of this property should be avoided\nin general, but can come in handy from time to time.\n\n>     #! example\n>     I =\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject = Core(I)\n>\n>     [myObject.I.r, myObject.I.g, myObject.I.b]\n\n        I: I\n\nGenerates a public jQuery style getter / setter method for each `String` argument.\n\n>     #! example\n>     myObject = Core\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject.attrAccessor \"r\", \"g\", \"b\"\n>\n>     myObject.r(254)\n\n        attrAccessor: (attrNames...) ->\n          attrNames.forEach (attrName) ->\n            self[attrName] = (newValue) ->\n              if arguments.length > 0\n                I[attrName] = newValue\n\n                return self\n              else\n                I[attrName]\n\n          return self\n\nGenerates a public jQuery style getter method for each String argument.\n\n>     #! example\n>     myObject = Core\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject.attrReader \"r\", \"g\", \"b\"\n>\n>     [myObject.r(), myObject.g(), myObject.b()]\n\n        attrReader: (attrNames...) ->\n          attrNames.forEach (attrName) ->\n            self[attrName] = ->\n              I[attrName]\n\n          return self\n\nExtends this object with methods from the passed in object. A shortcut for Object.extend(self, methods)\n\n>     I =\n>       x: 30\n>       y: 40\n>       maxSpeed: 5\n>\n>     # we are using extend to give player\n>     # additional methods that Core doesn't have\n>     player = Core(I).extend\n>       increaseSpeed: ->\n>         I.maxSpeed += 1\n>\n>     player.increaseSpeed()\n\n        extend: (objects...) ->\n          extend self, objects...\n\nIncludes a module in this object. A module is a constructor that takes two parameters, `I` and `self`\n\n>     myObject = Core()\n>     myObject.include(Bindable)\n\n>     # now you can bind handlers to functions\n>     myObject.bind \"someEvent\", ->\n>       alert(\"wow. that was easy.\")\n\n        include: (modules...) ->\n          for Module in modules\n            Module(I, self)\n\n          return self\n\n      return self\n\nHelpers\n-------\n\nExtend an object with the properties of other objects.\n\n    extend = (target, sources...) ->\n      for source in sources\n        for name of source\n          target[name] = source[name]\n\n      return target\n\nExport\n\n    module.exports = Core\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "entryPoint: \"core\"\nversion: \"0.6.0\"\n",
+              "type": "blob"
+            },
+            "test/core.coffee": {
+              "path": "test/core.coffee",
+              "mode": "100644",
+              "content": "Core = require \"../core\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Core\", ->\n\n  test \"#extend\", ->\n    o = Core()\n  \n    o.extend\n      test: \"jawsome\"\n  \n    equals o.test, \"jawsome\"\n  \n  test \"#attrAccessor\", ->\n    o = Core\n      test: \"my_val\"\n  \n    o.attrAccessor(\"test\")\n  \n    equals o.test(), \"my_val\"\n    equals o.test(\"new_val\"), o\n    equals o.test(), \"new_val\"\n  \n  test \"#attrReader\", ->\n    o = Core\n      test: \"my_val\"\n  \n    o.attrReader(\"test\")\n  \n    equals o.test(), \"my_val\"\n    equals o.test(\"new_val\"), \"my_val\"\n    equals o.test(), \"my_val\"\n  \n  test \"#include\", ->\n    o = Core\n      test: \"my_val\"\n  \n    M = (I, self) ->\n      self.attrReader \"test\"\n  \n      self.extend\n        test2: \"cool\"\n  \n    ret = o.include M\n  \n    equals ret, o, \"Should return self\"\n  \n    equals o.test(), \"my_val\"\n    equals o.test2, \"cool\"\n  \n  test \"#include multiple\", ->\n    o = Core\n      test: \"my_val\"\n  \n    M = (I, self) ->\n      self.attrReader \"test\"\n  \n      self.extend\n        test2: \"cool\"\n  \n    M2 = (I, self) ->\n      self.extend\n        test2: \"coolio\"\n  \n    o.include M, M2\n  \n    equals o.test2, \"coolio\"\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "core": {
+              "path": "core",
+              "content": "(function() {\n  var Core, extend,\n    __slice = [].slice;\n\n  Core = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = {};\n    }\n    extend(self, {\n      I: I,\n      attrAccessor: function() {\n        var attrNames;\n        attrNames = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        attrNames.forEach(function(attrName) {\n          return self[attrName] = function(newValue) {\n            if (arguments.length > 0) {\n              I[attrName] = newValue;\n              return self;\n            } else {\n              return I[attrName];\n            }\n          };\n        });\n        return self;\n      },\n      attrReader: function() {\n        var attrNames;\n        attrNames = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        attrNames.forEach(function(attrName) {\n          return self[attrName] = function() {\n            return I[attrName];\n          };\n        });\n        return self;\n      },\n      extend: function() {\n        var objects;\n        objects = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        return extend.apply(null, [self].concat(__slice.call(objects)));\n      },\n      include: function() {\n        var Module, modules, _i, _len;\n        modules = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        for (_i = 0, _len = modules.length; _i < _len; _i++) {\n          Module = modules[_i];\n          Module(I, self);\n        }\n        return self;\n      }\n    });\n    return self;\n  };\n\n  extend = function() {\n    var name, source, sources, target, _i, _len;\n    target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n    for (_i = 0, _len = sources.length; _i < _len; _i++) {\n      source = sources[_i];\n      for (name in source) {\n        target[name] = source[name];\n      }\n    }\n    return target;\n  };\n\n  module.exports = Core;\n\n}).call(this);\n\n//# sourceURL=core.coffee",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"entryPoint\":\"core\",\"version\":\"0.6.0\"};",
+              "type": "blob"
+            },
+            "test/core": {
+              "path": "test/core",
+              "content": "(function() {\n  var Core, equals, ok, test;\n\n  Core = require(\"../core\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Core\", function() {\n    test(\"#extend\", function() {\n      var o;\n      o = Core();\n      o.extend({\n        test: \"jawsome\"\n      });\n      return equals(o.test, \"jawsome\");\n    });\n    test(\"#attrAccessor\", function() {\n      var o;\n      o = Core({\n        test: \"my_val\"\n      });\n      o.attrAccessor(\"test\");\n      equals(o.test(), \"my_val\");\n      equals(o.test(\"new_val\"), o);\n      return equals(o.test(), \"new_val\");\n    });\n    test(\"#attrReader\", function() {\n      var o;\n      o = Core({\n        test: \"my_val\"\n      });\n      o.attrReader(\"test\");\n      equals(o.test(), \"my_val\");\n      equals(o.test(\"new_val\"), \"my_val\");\n      return equals(o.test(), \"my_val\");\n    });\n    test(\"#include\", function() {\n      var M, o, ret;\n      o = Core({\n        test: \"my_val\"\n      });\n      M = function(I, self) {\n        self.attrReader(\"test\");\n        return self.extend({\n          test2: \"cool\"\n        });\n      };\n      ret = o.include(M);\n      equals(ret, o, \"Should return self\");\n      equals(o.test(), \"my_val\");\n      return equals(o.test2, \"cool\");\n    });\n    return test(\"#include multiple\", function() {\n      var M, M2, o;\n      o = Core({\n        test: \"my_val\"\n      });\n      M = function(I, self) {\n        self.attrReader(\"test\");\n        return self.extend({\n          test2: \"cool\"\n        });\n      };\n      M2 = function(I, self) {\n        return self.extend({\n          test2: \"coolio\"\n        });\n      };\n      o.include(M, M2);\n      return equals(o.test2, \"coolio\");\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/core.coffee",
+              "type": "blob"
+            }
+          },
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "version": "0.6.0",
+          "entryPoint": "core",
+          "repository": {
+            "id": 13567517,
+            "name": "core",
+            "full_name": "distri/core",
+            "owner": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/distri/core",
+            "description": "An object extension system.",
+            "fork": false,
+            "url": "https://api.github.com/repos/distri/core",
+            "forks_url": "https://api.github.com/repos/distri/core/forks",
+            "keys_url": "https://api.github.com/repos/distri/core/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/distri/core/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/distri/core/teams",
+            "hooks_url": "https://api.github.com/repos/distri/core/hooks",
+            "issue_events_url": "https://api.github.com/repos/distri/core/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/distri/core/events",
+            "assignees_url": "https://api.github.com/repos/distri/core/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/distri/core/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/distri/core/tags",
+            "blobs_url": "https://api.github.com/repos/distri/core/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/distri/core/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/distri/core/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/distri/core/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/distri/core/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/distri/core/languages",
+            "stargazers_url": "https://api.github.com/repos/distri/core/stargazers",
+            "contributors_url": "https://api.github.com/repos/distri/core/contributors",
+            "subscribers_url": "https://api.github.com/repos/distri/core/subscribers",
+            "subscription_url": "https://api.github.com/repos/distri/core/subscription",
+            "commits_url": "https://api.github.com/repos/distri/core/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/distri/core/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/distri/core/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/distri/core/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/distri/core/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/distri/core/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/distri/core/merges",
+            "archive_url": "https://api.github.com/repos/distri/core/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/distri/core/downloads",
+            "issues_url": "https://api.github.com/repos/distri/core/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/distri/core/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/distri/core/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/distri/core/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/distri/core/labels{/name}",
+            "releases_url": "https://api.github.com/repos/distri/core/releases{/id}",
+            "created_at": "2013-10-14T17:04:33Z",
+            "updated_at": "2013-12-24T00:49:21Z",
+            "pushed_at": "2013-10-14T23:49:11Z",
+            "git_url": "git://github.com/distri/core.git",
+            "ssh_url": "git@github.com:distri/core.git",
+            "clone_url": "https://github.com/distri/core.git",
+            "svn_url": "https://github.com/distri/core",
+            "homepage": null,
+            "size": 592,
+            "stargazers_count": 0,
+            "watchers_count": 0,
+            "language": "CoffeeScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 0,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 0,
+            "open_issues": 0,
+            "watchers": 0,
+            "default_branch": "master",
+            "master_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "organization": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "network_count": 0,
+            "subscribers_count": 1,
+            "branch": "v0.6.0",
+            "defaultBranch": "master"
+          },
+          "dependencies": {}
+        }
+      }
+    },
+    "model": {
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "mode": "100644",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2014 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+          "type": "blob"
+        },
+        "README.coffee.md": {
+          "path": "README.coffee.md",
+          "mode": "100644",
+          "content": "Compositions\n============\n\nThe `compositions` module provides helper methods to compose nested data models.\n\nCompositions uses [Observable](/observable/docs) to keep the internal data in sync.\n\n    Core = require \"core\"\n    Observable = require \"observable\"\n\n    module.exports = (I={}, self=Core(I)) ->\n\n      self.extend\n\nObserve any number of attributes as simple observables. For each attribute name passed in we expose a public getter/setter method and listen to changes when the value is set.\n\n        attrObservable: (names...) ->\n          names.forEach (name) ->\n            self[name] = Observable(I[name])\n\n            self[name].observe (newValue) ->\n              I[name] = newValue\n\n          return self\n\nObserve an attribute as a model. Treats the attribute given as an Observable\nmodel instance exposting a getter/setter method of the same name. The Model\nconstructor must be passed in explicitly.\n\n        attrModel: (name, Model) ->\n          model = Model(I[name])\n\n          self[name] = Observable(model)\n\n          self[name].observe (newValue) ->\n            I[name] = newValue.I\n\n          return self\n\nObserve an attribute as a list of sub-models. This is the same as `attrModel`\nexcept the attribute is expected to be an array of models rather than a single one.\n\n        attrModels: (name, Model) ->\n          models = (I[name] or []).map (x) ->\n            Model(x)\n\n          self[name] = Observable(models)\n\n          self[name].observe (newValue) ->\n            I[name] = newValue.map (instance) ->\n              instance.I\n\n          return self\n\nThe JSON representation is kept up to date via the observable properites and resides in `I`.\n\n        toJSON: ->\n          I\n\nReturn our public object.\n\n      return self\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "entryPoint: \"README\"\nversion: \"0.1.1\"\ndependencies:\n  core: \"distri/core:v0.6.0\"\n  observable: \"distri/observable:v0.1.1\"\n",
+          "type": "blob"
+        },
+        "test/compositions.coffee": {
+          "path": "test/compositions.coffee",
+          "mode": "100644",
+          "content": "\nModel = require \"../README\"\n\ndescribe 'Model', ->\n  # Association Testing model\n  Person = (I) ->\n    person = Model(I)\n\n    person.attrAccessor(\n      'firstName'\n      'lastName'\n      'suffix'\n    )\n\n    person.fullName = ->\n      \"#{@firstName()} #{@lastName()} #{@suffix()}\"\n\n    return person\n\n  describe \"#attrObservable\", ->\n    it 'should allow for observing of attributes', ->\n      model = Model\n        name: \"Duder\"\n\n      model.attrObservable \"name\"\n\n      model.name(\"Dudeman\")\n\n      assert.equal model.name(), \"Dudeman\"\n\n    it 'should bind properties to observable attributes', ->\n      model = Model\n        name: \"Duder\"\n\n      model.attrObservable \"name\"\n\n      model.name(\"Dudeman\")\n\n      assert.equal model.name(), \"Dudeman\"\n      assert.equal model.name(), model.I.name\n\n  describe \"#attrModel\", ->\n    it \"should be a model instance\", ->\n      model = Model\n        person:\n          firstName: \"Duder\"\n          lastName: \"Mannington\"\n          suffix: \"Jr.\"\n\n      model.attrModel(\"person\", Person)\n\n      assert.equal model.person().fullName(), \"Duder Mannington Jr.\"\n\n    it \"should allow setting the associated model\", ->\n      model = Model\n        person:\n          firstName: \"Duder\"\n          lastName: \"Mannington\"\n          suffix: \"Jr.\"\n\n      model.attrModel(\"person\", Person)\n\n      otherPerson = Person\n        firstName: \"Mr.\"\n        lastName: \"Man\"\n\n      model.person(otherPerson)\n\n      assert.equal model.person().firstName(), \"Mr.\"\n\n    it \"shouldn't update the instance properties after it's been replaced\", ->\n      model = Model\n        person:\n          firstName: \"Duder\"\n          lastName: \"Mannington\"\n          suffix: \"Jr.\"\n\n      model.attrModel(\"person\", Person)\n\n      duder = model.person()\n\n      otherPerson = Person\n        firstName: \"Mr.\"\n        lastName: \"Man\"\n\n      model.person(otherPerson)\n\n      duder.firstName(\"Joe\")\n\n      assert.equal duder.I.firstName, \"Joe\"\n      assert.equal model.I.person.firstName, \"Mr.\"\n\n  describe \"#attrModels\", ->\n    it \"should have an array of model instances\", ->\n      model = Model\n        people: [{\n          firstName: \"Duder\"\n          lastName: \"Mannington\"\n          suffix: \"Jr.\"\n        }, {\n          firstName: \"Mr.\"\n          lastName: \"Mannington\"\n          suffix: \"Sr.\"\n        }]\n\n      model.attrModels(\"people\", Person)\n\n      assert.equal model.people()[0].fullName(), \"Duder Mannington Jr.\"\n\n    it \"should track pushes\", ->\n      model = Model\n        people: [{\n          firstName: \"Duder\"\n          lastName: \"Mannington\"\n          suffix: \"Jr.\"\n        }, {\n          firstName: \"Mr.\"\n          lastName: \"Mannington\"\n          suffix: \"Sr.\"\n        }]\n\n      model.attrModels(\"people\", Person)\n\n      model.people.push Person\n        firstName: \"JoJo\"\n        lastName: \"Loco\"\n\n      assert.equal model.people().length, 3\n      assert.equal model.I.people.length, 3\n\n    it \"should track pops\", ->\n      model = Model\n        people: [{\n          firstName: \"Duder\"\n          lastName: \"Mannington\"\n          suffix: \"Jr.\"\n        }, {\n          firstName: \"Mr.\"\n          lastName: \"Mannington\"\n          suffix: \"Sr.\"\n        }]\n\n      model.attrModels(\"people\", Person)\n\n      model.people.pop()\n\n      assert.equal model.people().length, 1\n      assert.equal model.I.people.length, 1\n\n  describe \"#toJSON\", ->\n    it \"should return an object appropriate for JSON serialization\", ->\n      model = Model\n        test: true\n\n      assert model.toJSON().test\n\n  describe \"#observeAll\", ->\n    it \"should observe all attributes of a simple model\"\n    ->  # TODO\n      model = Model\n        test: true\n        yolo: \"4life\"\n\n      model.observeAll()\n\n      assert model.test()\n      assert.equal model.yolo(), \"4life\"\n\n    it \"should camel case underscored names\"",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "README": {
+          "path": "README",
+          "content": "(function() {\n  var Core, Observable,\n    __slice = [].slice;\n\n  Core = require(\"core\");\n\n  Observable = require(\"observable\");\n\n  module.exports = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = Core(I);\n    }\n    self.extend({\n      attrObservable: function() {\n        var names;\n        names = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        names.forEach(function(name) {\n          self[name] = Observable(I[name]);\n          return self[name].observe(function(newValue) {\n            return I[name] = newValue;\n          });\n        });\n        return self;\n      },\n      attrModel: function(name, Model) {\n        var model;\n        model = Model(I[name]);\n        self[name] = Observable(model);\n        self[name].observe(function(newValue) {\n          return I[name] = newValue.I;\n        });\n        return self;\n      },\n      attrModels: function(name, Model) {\n        var models;\n        models = (I[name] || []).map(function(x) {\n          return Model(x);\n        });\n        self[name] = Observable(models);\n        self[name].observe(function(newValue) {\n          return I[name] = newValue.map(function(instance) {\n            return instance.I;\n          });\n        });\n        return self;\n      },\n      toJSON: function() {\n        return I;\n      }\n    });\n    return self;\n  };\n\n}).call(this);\n",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"entryPoint\":\"README\",\"version\":\"0.1.1\",\"dependencies\":{\"core\":\"distri/core:v0.6.0\",\"observable\":\"distri/observable:v0.1.1\"}};",
+          "type": "blob"
+        },
+        "test/compositions": {
+          "path": "test/compositions",
+          "content": "(function() {\n  var Model;\n\n  Model = require(\"../README\");\n\n  describe('Model', function() {\n    var Person;\n    Person = function(I) {\n      var person;\n      person = Model(I);\n      person.attrAccessor('firstName', 'lastName', 'suffix');\n      person.fullName = function() {\n        return \"\" + (this.firstName()) + \" \" + (this.lastName()) + \" \" + (this.suffix());\n      };\n      return person;\n    };\n    describe(\"#attrObservable\", function() {\n      it('should allow for observing of attributes', function() {\n        var model;\n        model = Model({\n          name: \"Duder\"\n        });\n        model.attrObservable(\"name\");\n        model.name(\"Dudeman\");\n        return assert.equal(model.name(), \"Dudeman\");\n      });\n      return it('should bind properties to observable attributes', function() {\n        var model;\n        model = Model({\n          name: \"Duder\"\n        });\n        model.attrObservable(\"name\");\n        model.name(\"Dudeman\");\n        assert.equal(model.name(), \"Dudeman\");\n        return assert.equal(model.name(), model.I.name);\n      });\n    });\n    describe(\"#attrModel\", function() {\n      it(\"should be a model instance\", function() {\n        var model;\n        model = Model({\n          person: {\n            firstName: \"Duder\",\n            lastName: \"Mannington\",\n            suffix: \"Jr.\"\n          }\n        });\n        model.attrModel(\"person\", Person);\n        return assert.equal(model.person().fullName(), \"Duder Mannington Jr.\");\n      });\n      it(\"should allow setting the associated model\", function() {\n        var model, otherPerson;\n        model = Model({\n          person: {\n            firstName: \"Duder\",\n            lastName: \"Mannington\",\n            suffix: \"Jr.\"\n          }\n        });\n        model.attrModel(\"person\", Person);\n        otherPerson = Person({\n          firstName: \"Mr.\",\n          lastName: \"Man\"\n        });\n        model.person(otherPerson);\n        return assert.equal(model.person().firstName(), \"Mr.\");\n      });\n      return it(\"shouldn't update the instance properties after it's been replaced\", function() {\n        var duder, model, otherPerson;\n        model = Model({\n          person: {\n            firstName: \"Duder\",\n            lastName: \"Mannington\",\n            suffix: \"Jr.\"\n          }\n        });\n        model.attrModel(\"person\", Person);\n        duder = model.person();\n        otherPerson = Person({\n          firstName: \"Mr.\",\n          lastName: \"Man\"\n        });\n        model.person(otherPerson);\n        duder.firstName(\"Joe\");\n        assert.equal(duder.I.firstName, \"Joe\");\n        return assert.equal(model.I.person.firstName, \"Mr.\");\n      });\n    });\n    describe(\"#attrModels\", function() {\n      it(\"should have an array of model instances\", function() {\n        var model;\n        model = Model({\n          people: [\n            {\n              firstName: \"Duder\",\n              lastName: \"Mannington\",\n              suffix: \"Jr.\"\n            }, {\n              firstName: \"Mr.\",\n              lastName: \"Mannington\",\n              suffix: \"Sr.\"\n            }\n          ]\n        });\n        model.attrModels(\"people\", Person);\n        return assert.equal(model.people()[0].fullName(), \"Duder Mannington Jr.\");\n      });\n      it(\"should track pushes\", function() {\n        var model;\n        model = Model({\n          people: [\n            {\n              firstName: \"Duder\",\n              lastName: \"Mannington\",\n              suffix: \"Jr.\"\n            }, {\n              firstName: \"Mr.\",\n              lastName: \"Mannington\",\n              suffix: \"Sr.\"\n            }\n          ]\n        });\n        model.attrModels(\"people\", Person);\n        model.people.push(Person({\n          firstName: \"JoJo\",\n          lastName: \"Loco\"\n        }));\n        assert.equal(model.people().length, 3);\n        return assert.equal(model.I.people.length, 3);\n      });\n      return it(\"should track pops\", function() {\n        var model;\n        model = Model({\n          people: [\n            {\n              firstName: \"Duder\",\n              lastName: \"Mannington\",\n              suffix: \"Jr.\"\n            }, {\n              firstName: \"Mr.\",\n              lastName: \"Mannington\",\n              suffix: \"Sr.\"\n            }\n          ]\n        });\n        model.attrModels(\"people\", Person);\n        model.people.pop();\n        assert.equal(model.people().length, 1);\n        return assert.equal(model.I.people.length, 1);\n      });\n    });\n    describe(\"#toJSON\", function() {\n      return it(\"should return an object appropriate for JSON serialization\", function() {\n        var model;\n        model = Model({\n          test: true\n        });\n        return assert(model.toJSON().test);\n      });\n    });\n    return describe(\"#observeAll\", function() {\n      it(\"should observe all attributes of a simple model\");\n      (function() {\n        var model;\n        model = Model({\n          test: true,\n          yolo: \"4life\"\n        });\n        model.observeAll();\n        assert(model.test());\n        return assert.equal(model.yolo(), \"4life\");\n      });\n      return it(\"should camel case underscored names\");\n    });\n  });\n\n}).call(this);\n",
+          "type": "blob"
+        }
+      },
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "version": "0.1.1",
+      "entryPoint": "README",
+      "repository": {
+        "id": 17256636,
+        "name": "compositions",
+        "full_name": "distri/compositions",
+        "owner": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://avatars.githubusercontent.com/u/6005125?",
+          "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/distri/compositions",
+        "description": "",
+        "fork": false,
+        "url": "https://api.github.com/repos/distri/compositions",
+        "forks_url": "https://api.github.com/repos/distri/compositions/forks",
+        "keys_url": "https://api.github.com/repos/distri/compositions/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/distri/compositions/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/distri/compositions/teams",
+        "hooks_url": "https://api.github.com/repos/distri/compositions/hooks",
+        "issue_events_url": "https://api.github.com/repos/distri/compositions/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/distri/compositions/events",
+        "assignees_url": "https://api.github.com/repos/distri/compositions/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/distri/compositions/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/distri/compositions/tags",
+        "blobs_url": "https://api.github.com/repos/distri/compositions/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/distri/compositions/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/distri/compositions/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/distri/compositions/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/distri/compositions/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/distri/compositions/languages",
+        "stargazers_url": "https://api.github.com/repos/distri/compositions/stargazers",
+        "contributors_url": "https://api.github.com/repos/distri/compositions/contributors",
+        "subscribers_url": "https://api.github.com/repos/distri/compositions/subscribers",
+        "subscription_url": "https://api.github.com/repos/distri/compositions/subscription",
+        "commits_url": "https://api.github.com/repos/distri/compositions/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/distri/compositions/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/distri/compositions/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/distri/compositions/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/distri/compositions/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/distri/compositions/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/distri/compositions/merges",
+        "archive_url": "https://api.github.com/repos/distri/compositions/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/distri/compositions/downloads",
+        "issues_url": "https://api.github.com/repos/distri/compositions/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/distri/compositions/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/distri/compositions/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/distri/compositions/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/distri/compositions/labels{/name}",
+        "releases_url": "https://api.github.com/repos/distri/compositions/releases{/id}",
+        "created_at": "2014-02-27T17:00:47Z",
+        "updated_at": "2014-02-27T17:16:50Z",
+        "pushed_at": "2014-02-27T17:16:49Z",
+        "git_url": "git://github.com/distri/compositions.git",
+        "ssh_url": "git@github.com:distri/compositions.git",
+        "clone_url": "https://github.com/distri/compositions.git",
+        "svn_url": "https://github.com/distri/compositions",
+        "homepage": null,
+        "size": 140,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": "CoffeeScript",
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "master",
+        "master_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "organization": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://avatars.githubusercontent.com/u/6005125?",
+          "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "network_count": 0,
+        "subscribers_count": 1,
+        "branch": "v0.1.1",
+        "publishBranch": "gh-pages"
+      },
+      "dependencies": {
+        "core": {
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "core\n====\n\nAn object extension system.\n",
+              "type": "blob"
+            },
+            "core.coffee.md": {
+              "path": "core.coffee.md",
+              "mode": "100644",
+              "content": "Core\n====\n\nThe Core module is used to add extended functionality to objects without\nextending `Object.prototype` directly.\n\n    Core = (I={}, self={}) ->\n      extend self,\n\nExternal access to instance variables. Use of this property should be avoided\nin general, but can come in handy from time to time.\n\n>     #! example\n>     I =\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject = Core(I)\n>\n>     [myObject.I.r, myObject.I.g, myObject.I.b]\n\n        I: I\n\nGenerates a public jQuery style getter / setter method for each `String` argument.\n\n>     #! example\n>     myObject = Core\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject.attrAccessor \"r\", \"g\", \"b\"\n>\n>     myObject.r(254)\n\n        attrAccessor: (attrNames...) ->\n          attrNames.forEach (attrName) ->\n            self[attrName] = (newValue) ->\n              if arguments.length > 0\n                I[attrName] = newValue\n\n                return self\n              else\n                I[attrName]\n\n          return self\n\nGenerates a public jQuery style getter method for each String argument.\n\n>     #! example\n>     myObject = Core\n>       r: 255\n>       g: 0\n>       b: 100\n>\n>     myObject.attrReader \"r\", \"g\", \"b\"\n>\n>     [myObject.r(), myObject.g(), myObject.b()]\n\n        attrReader: (attrNames...) ->\n          attrNames.forEach (attrName) ->\n            self[attrName] = ->\n              I[attrName]\n\n          return self\n\nExtends this object with methods from the passed in object. A shortcut for Object.extend(self, methods)\n\n>     I =\n>       x: 30\n>       y: 40\n>       maxSpeed: 5\n>\n>     # we are using extend to give player\n>     # additional methods that Core doesn't have\n>     player = Core(I).extend\n>       increaseSpeed: ->\n>         I.maxSpeed += 1\n>\n>     player.increaseSpeed()\n\n        extend: (objects...) ->\n          extend self, objects...\n\nIncludes a module in this object. A module is a constructor that takes two parameters, `I` and `self`\n\n>     myObject = Core()\n>     myObject.include(Bindable)\n\n>     # now you can bind handlers to functions\n>     myObject.bind \"someEvent\", ->\n>       alert(\"wow. that was easy.\")\n\n        include: (modules...) ->\n          for Module in modules\n            Module(I, self)\n\n          return self\n\n      return self\n\nHelpers\n-------\n\nExtend an object with the properties of other objects.\n\n    extend = (target, sources...) ->\n      for source in sources\n        for name of source\n          target[name] = source[name]\n\n      return target\n\nExport\n\n    module.exports = Core\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "entryPoint: \"core\"\nversion: \"0.6.0\"\n",
+              "type": "blob"
+            },
+            "test/core.coffee": {
+              "path": "test/core.coffee",
+              "mode": "100644",
+              "content": "Core = require \"../core\"\n\nok = assert\nequals = assert.equal\ntest = it\n\ndescribe \"Core\", ->\n\n  test \"#extend\", ->\n    o = Core()\n  \n    o.extend\n      test: \"jawsome\"\n  \n    equals o.test, \"jawsome\"\n  \n  test \"#attrAccessor\", ->\n    o = Core\n      test: \"my_val\"\n  \n    o.attrAccessor(\"test\")\n  \n    equals o.test(), \"my_val\"\n    equals o.test(\"new_val\"), o\n    equals o.test(), \"new_val\"\n  \n  test \"#attrReader\", ->\n    o = Core\n      test: \"my_val\"\n  \n    o.attrReader(\"test\")\n  \n    equals o.test(), \"my_val\"\n    equals o.test(\"new_val\"), \"my_val\"\n    equals o.test(), \"my_val\"\n  \n  test \"#include\", ->\n    o = Core\n      test: \"my_val\"\n  \n    M = (I, self) ->\n      self.attrReader \"test\"\n  \n      self.extend\n        test2: \"cool\"\n  \n    ret = o.include M\n  \n    equals ret, o, \"Should return self\"\n  \n    equals o.test(), \"my_val\"\n    equals o.test2, \"cool\"\n  \n  test \"#include multiple\", ->\n    o = Core\n      test: \"my_val\"\n  \n    M = (I, self) ->\n      self.attrReader \"test\"\n  \n      self.extend\n        test2: \"cool\"\n  \n    M2 = (I, self) ->\n      self.extend\n        test2: \"coolio\"\n  \n    o.include M, M2\n  \n    equals o.test2, \"coolio\"\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "core": {
+              "path": "core",
+              "content": "(function() {\n  var Core, extend,\n    __slice = [].slice;\n\n  Core = function(I, self) {\n    if (I == null) {\n      I = {};\n    }\n    if (self == null) {\n      self = {};\n    }\n    extend(self, {\n      I: I,\n      attrAccessor: function() {\n        var attrNames;\n        attrNames = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        attrNames.forEach(function(attrName) {\n          return self[attrName] = function(newValue) {\n            if (arguments.length > 0) {\n              I[attrName] = newValue;\n              return self;\n            } else {\n              return I[attrName];\n            }\n          };\n        });\n        return self;\n      },\n      attrReader: function() {\n        var attrNames;\n        attrNames = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        attrNames.forEach(function(attrName) {\n          return self[attrName] = function() {\n            return I[attrName];\n          };\n        });\n        return self;\n      },\n      extend: function() {\n        var objects;\n        objects = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        return extend.apply(null, [self].concat(__slice.call(objects)));\n      },\n      include: function() {\n        var Module, modules, _i, _len;\n        modules = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n        for (_i = 0, _len = modules.length; _i < _len; _i++) {\n          Module = modules[_i];\n          Module(I, self);\n        }\n        return self;\n      }\n    });\n    return self;\n  };\n\n  extend = function() {\n    var name, source, sources, target, _i, _len;\n    target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n    for (_i = 0, _len = sources.length; _i < _len; _i++) {\n      source = sources[_i];\n      for (name in source) {\n        target[name] = source[name];\n      }\n    }\n    return target;\n  };\n\n  module.exports = Core;\n\n}).call(this);\n\n//# sourceURL=core.coffee",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"entryPoint\":\"core\",\"version\":\"0.6.0\"};",
+              "type": "blob"
+            },
+            "test/core": {
+              "path": "test/core",
+              "content": "(function() {\n  var Core, equals, ok, test;\n\n  Core = require(\"../core\");\n\n  ok = assert;\n\n  equals = assert.equal;\n\n  test = it;\n\n  describe(\"Core\", function() {\n    test(\"#extend\", function() {\n      var o;\n      o = Core();\n      o.extend({\n        test: \"jawsome\"\n      });\n      return equals(o.test, \"jawsome\");\n    });\n    test(\"#attrAccessor\", function() {\n      var o;\n      o = Core({\n        test: \"my_val\"\n      });\n      o.attrAccessor(\"test\");\n      equals(o.test(), \"my_val\");\n      equals(o.test(\"new_val\"), o);\n      return equals(o.test(), \"new_val\");\n    });\n    test(\"#attrReader\", function() {\n      var o;\n      o = Core({\n        test: \"my_val\"\n      });\n      o.attrReader(\"test\");\n      equals(o.test(), \"my_val\");\n      equals(o.test(\"new_val\"), \"my_val\");\n      return equals(o.test(), \"my_val\");\n    });\n    test(\"#include\", function() {\n      var M, o, ret;\n      o = Core({\n        test: \"my_val\"\n      });\n      M = function(I, self) {\n        self.attrReader(\"test\");\n        return self.extend({\n          test2: \"cool\"\n        });\n      };\n      ret = o.include(M);\n      equals(ret, o, \"Should return self\");\n      equals(o.test(), \"my_val\");\n      return equals(o.test2, \"cool\");\n    });\n    return test(\"#include multiple\", function() {\n      var M, M2, o;\n      o = Core({\n        test: \"my_val\"\n      });\n      M = function(I, self) {\n        self.attrReader(\"test\");\n        return self.extend({\n          test2: \"cool\"\n        });\n      };\n      M2 = function(I, self) {\n        return self.extend({\n          test2: \"coolio\"\n        });\n      };\n      o.include(M, M2);\n      return equals(o.test2, \"coolio\");\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/core.coffee",
+              "type": "blob"
+            }
+          },
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "version": "0.6.0",
+          "entryPoint": "core",
+          "repository": {
+            "id": 13567517,
+            "name": "core",
+            "full_name": "distri/core",
+            "owner": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/distri/core",
+            "description": "An object extension system.",
+            "fork": false,
+            "url": "https://api.github.com/repos/distri/core",
+            "forks_url": "https://api.github.com/repos/distri/core/forks",
+            "keys_url": "https://api.github.com/repos/distri/core/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/distri/core/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/distri/core/teams",
+            "hooks_url": "https://api.github.com/repos/distri/core/hooks",
+            "issue_events_url": "https://api.github.com/repos/distri/core/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/distri/core/events",
+            "assignees_url": "https://api.github.com/repos/distri/core/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/distri/core/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/distri/core/tags",
+            "blobs_url": "https://api.github.com/repos/distri/core/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/distri/core/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/distri/core/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/distri/core/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/distri/core/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/distri/core/languages",
+            "stargazers_url": "https://api.github.com/repos/distri/core/stargazers",
+            "contributors_url": "https://api.github.com/repos/distri/core/contributors",
+            "subscribers_url": "https://api.github.com/repos/distri/core/subscribers",
+            "subscription_url": "https://api.github.com/repos/distri/core/subscription",
+            "commits_url": "https://api.github.com/repos/distri/core/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/distri/core/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/distri/core/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/distri/core/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/distri/core/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/distri/core/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/distri/core/merges",
+            "archive_url": "https://api.github.com/repos/distri/core/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/distri/core/downloads",
+            "issues_url": "https://api.github.com/repos/distri/core/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/distri/core/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/distri/core/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/distri/core/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/distri/core/labels{/name}",
+            "releases_url": "https://api.github.com/repos/distri/core/releases{/id}",
+            "created_at": "2013-10-14T17:04:33Z",
+            "updated_at": "2013-12-24T00:49:21Z",
+            "pushed_at": "2013-10-14T23:49:11Z",
+            "git_url": "git://github.com/distri/core.git",
+            "ssh_url": "git@github.com:distri/core.git",
+            "clone_url": "https://github.com/distri/core.git",
+            "svn_url": "https://github.com/distri/core",
+            "homepage": null,
+            "size": 592,
+            "stargazers_count": 0,
+            "watchers_count": 0,
+            "language": "CoffeeScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 0,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 0,
+            "open_issues": 0,
+            "watchers": 0,
+            "default_branch": "master",
+            "master_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "organization": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
+              "gravatar_id": null,
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "network_count": 0,
+            "subscribers_count": 1,
+            "branch": "v0.6.0",
+            "defaultBranch": "master"
+          },
+          "dependencies": {}
+        },
+        "observable": {
+          "source": {
+            "LICENSE": {
+              "path": "LICENSE",
+              "mode": "100644",
+              "content": "The MIT License (MIT)\n\nCopyright (c) 2014 distri\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+              "type": "blob"
+            },
+            "README.md": {
+              "path": "README.md",
+              "mode": "100644",
+              "content": "observable\n==========\n",
+              "type": "blob"
+            },
+            "main.coffee.md": {
+              "path": "main.coffee.md",
+              "mode": "100644",
+              "content": "Observable\n==========\n\n`Observable` allows for observing arrays, functions, and objects.\n\nFunction dependencies are automagically observed.\n\nStandard array methods are proxied through to the underlying array.\n\n    Observable = (value) ->\n\nReturn the object if it is already an observable object.\n\n      return value if typeof value?.observe is \"function\"\n\nMaintain a set of listeners to observe changes and provide a helper to notify each observer.\n\n      listeners = []\n\n      notify = (newValue) ->\n        listeners.forEach (listener) ->\n          listener(newValue)\n\nOur observable function is stored as a reference to `self`.\n\nIf `value` is a function compute dependencies and listen to observables that it depends on.\n\n      if typeof value is 'function'\n        fn = value\n        self = ->\n          # Automagic dependency observation\n          magicDependency(self)\n\n          return value\n\n        self.observe = (listener) ->\n          listeners.push listener\n\n        changed = ->\n          value = fn()\n          notify(value)\n\n        value = computeDependencies(fn, changed)\n\n      else\n\nWhen called with zero arguments it is treated as a getter. When called with one argument it is treated as a setter.\n\nChanges to the value will trigger notifications.\n\nThe value is always returned.\n\n        self = (newValue) ->\n          if arguments.length > 0\n            if value != newValue\n              value = newValue\n\n              notify(newValue)\n          else\n            # Automagic dependency observation\n            magicDependency(self)\n\n          return value\n\nAdd a listener for when this object changes.\n\n        self.observe = (listener) ->\n          listeners.push listener\n\nThis `each` iterator is similar to [the Maybe monad](http://en.wikipedia.org/wiki/Monad_&#40;functional_programming&#41;#The_Maybe_monad) in that our observable may contain a single value or nothing at all.\n\n      self.each = (args...) ->\n        if value?\n          [value].forEach(args...)\n\nIf the value is an array then proxy array methods and add notifications to mutation events.\n\n      if Array.isArray(value)\n        [\n          \"concat\"\n          \"every\"\n          \"filter\"\n          \"forEach\"\n          \"indexOf\"\n          \"join\"\n          \"lastIndexOf\"\n          \"map\"\n          \"reduce\"\n          \"reduceRight\"\n          \"slice\"\n          \"some\"\n        ].forEach (method) ->\n          self[method] = (args...) ->\n            value[method](args...)\n\n        [\n          \"pop\"\n          \"push\"\n          \"reverse\"\n          \"shift\"\n          \"splice\"\n          \"sort\"\n          \"unshift\"\n        ].forEach (method) ->\n          self[method] = (args...) ->\n            notifyReturning value[method](args...)\n\n        notifyReturning = (returnValue) ->\n          notify(value)\n\n          return returnValue\n\nAdd some extra helpful methods to array observables.\n\n        extend self,\n          each: (args...) ->\n            self.forEach(args...)\n\n            return self\n\nRemove an element from the array and notify observers of changes.\n\n          remove: (object) ->\n            index = value.indexOf(object)\n\n            if index >= 0\n              notifyReturning value.splice(index, 1)[0]\n\n          get: (index) ->\n            value[index]\n\n          first: ->\n            value[0]\n\n          last: ->\n            value[value.length-1]\n\n      self.stopObserving = (fn) ->\n        remove listeners, fn\n\n      return self\n\nExport `Observable`\n\n    module.exports = Observable\n\nAppendix\n--------\n\nThe extend method adds one objects properties to another.\n\n    extend = (target, sources...) ->\n      for source in sources\n        for name of source\n          target[name] = source[name]\n\n      return target\n\nSuper hax for computing dependencies. This needs to be a shared global so that\ndifferent bundled versions of observable libraries can interoperate.\n\n    global.OBSERVABLE_ROOT_HACK = undefined\n\n    magicDependency = (self) ->\n      if base = global.OBSERVABLE_ROOT_HACK\n        self.observe base\n\n    withBase = (root, fn) ->\n      global.OBSERVABLE_ROOT_HACK = root\n      value = fn()\n      global.OBSERVABLE_ROOT_HACK = undefined\n\n      return value\n\n    base = ->\n      global.OBSERVABLE_ROOT_HACK\n\nAutomagically compute dependencies.\n\n    computeDependencies = (fn, root) ->\n      withBase root, ->\n        fn()\n\nRemove a value from an array.\n\n    remove = (array, value) ->\n      index = array.indexOf(value)\n\n      if index >= 0\n        array.splice(index, 1)[0]\n",
+              "type": "blob"
+            },
+            "pixie.cson": {
+              "path": "pixie.cson",
+              "mode": "100644",
+              "content": "version: \"0.1.1\"\n",
+              "type": "blob"
+            },
+            "test/observable.coffee": {
+              "path": "test/observable.coffee",
+              "mode": "100644",
+              "content": "Observable = require \"../main\"\n\ndescribe 'Observable', ->\n  it 'should create an observable for an object', ->\n    n = 5\n\n    observable = Observable(n)\n\n    assert.equal(observable(), n)\n\n  it 'should fire events when setting', ->\n    string = \"yolo\"\n\n    observable = Observable(string)\n    observable.observe (newValue) ->\n      assert.equal newValue, \"4life\"\n\n    observable(\"4life\")\n\n  it 'should be idempotent', ->\n    o = Observable(5)\n\n    assert.equal o, Observable(o)\n\n  describe \"#each\", ->\n    it \"should be invoked once if there is an observable\", ->\n      o = Observable(5)\n      called = 0\n\n      o.each (value) ->\n        called += 1\n        assert.equal value, 5\n\n      assert.equal called, 1\n\n    it \"should not be invoked if observable is null\", ->\n      o = Observable(null)\n      called = 0\n\n      o.each (value) ->\n        called += 1\n\n      assert.equal called, 0\n\n  it \"should allow for stopping observation\", ->\n    observable = Observable(\"string\")\n\n    called = 0\n    fn = (newValue) ->\n      called += 1\n      assert.equal newValue, \"4life\"\n\n    observable.observe fn\n\n    observable(\"4life\")\n\n    observable.stopObserving fn\n\n    observable(\"wat\")\n\n    assert.equal called, 1\n\ndescribe \"Observable Array\", ->\n  it \"should proxy array methods\", ->\n    o = Observable [5]\n\n    o.map (n) ->\n      assert.equal n, 5\n\n  it \"should notify on mutation methods\", (done) ->\n    o = Observable []\n\n    o.observe (newValue) ->\n      assert.equal newValue[0], 1\n\n    o.push 1\n\n    done()\n\n  it \"should have an each method\", ->\n    o = Observable []\n\n    assert o.each\n\n  it \"#get\", ->\n    o = Observable [0, 1, 2, 3]\n\n    assert.equal o.get(2), 2\n\n  it \"#first\", ->\n    o = Observable [0, 1, 2, 3]\n\n    assert.equal o.first(), 0\n\n  it \"#last\", ->\n    o = Observable [0, 1, 2, 3]\n\n    assert.equal o.last(), 3\n\n  it \"#remove\", (done) ->\n    o = Observable [0, 1, 2, 3]\n\n    o.observe (newValue) ->\n      assert.equal newValue.length, 3\n      setTimeout ->\n        done()\n      , 0\n\n    assert.equal o.remove(2), 2\n\n  # TODO: This looks like it might be impossible\n  it \"should proxy the length property\"\n\ndescribe \"Observable functions\", ->\n  it \"should compute dependencies\", (done) ->\n    firstName = Observable \"Duder\"\n    lastName = Observable \"Man\"\n\n    o = Observable ->\n      \"#{firstName()} #{lastName()}\"\n\n    o.observe (newValue) ->\n      assert.equal newValue, \"Duder Bro\"\n\n      done()\n\n    lastName \"Bro\"\n\n  it \"should allow double nesting\", (done) ->\n    bottom = Observable \"rad\"\n    middle = Observable ->\n      bottom()\n    top = Observable ->\n      middle()\n\n    top.observe (newValue) ->\n      assert.equal newValue, \"wat\"\n      assert.equal top(), newValue\n      assert.equal middle(), newValue\n\n      done()\n\n    bottom(\"wat\")\n\n  it \"should have an each method\", ->\n    o = Observable ->\n\n    assert o.each\n\n  it \"should not invoke when returning undefined\", ->\n    o = Observable ->\n\n    o.each ->\n      assert false\n\n  it \"should invoke when returning any defined value\", (done) ->\n    o = Observable -> 5\n\n    o.each (n) ->\n      assert.equal n, 5\n      done()\n\n  it \"should work on an array dependency\", ->\n    oA = Observable [1, 2, 3]\n\n    o = Observable ->\n      oA()[0]\n\n    last = Observable ->\n      oA()[oA().length-1]\n\n    assert.equal o(), 1\n\n    oA.unshift 0\n\n    assert.equal o(), 0\n\n    oA.push 4\n\n    assert.equal last(), 4, \"Last should be 4\"\n",
+              "type": "blob"
+            }
+          },
+          "distribution": {
+            "main": {
+              "path": "main",
+              "content": "(function() {\n  var Observable, base, computeDependencies, extend, magicDependency, remove, withBase,\n    __slice = [].slice;\n\n  Observable = function(value) {\n    var changed, fn, listeners, notify, notifyReturning, self;\n    if (typeof (value != null ? value.observe : void 0) === \"function\") {\n      return value;\n    }\n    listeners = [];\n    notify = function(newValue) {\n      return listeners.forEach(function(listener) {\n        return listener(newValue);\n      });\n    };\n    if (typeof value === 'function') {\n      fn = value;\n      self = function() {\n        magicDependency(self);\n        return value;\n      };\n      self.observe = function(listener) {\n        return listeners.push(listener);\n      };\n      changed = function() {\n        value = fn();\n        return notify(value);\n      };\n      value = computeDependencies(fn, changed);\n    } else {\n      self = function(newValue) {\n        if (arguments.length > 0) {\n          if (value !== newValue) {\n            value = newValue;\n            notify(newValue);\n          }\n        } else {\n          magicDependency(self);\n        }\n        return value;\n      };\n      self.observe = function(listener) {\n        return listeners.push(listener);\n      };\n    }\n    self.each = function() {\n      var args, _ref;\n      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      if (value != null) {\n        return (_ref = [value]).forEach.apply(_ref, args);\n      }\n    };\n    if (Array.isArray(value)) {\n      [\"concat\", \"every\", \"filter\", \"forEach\", \"indexOf\", \"join\", \"lastIndexOf\", \"map\", \"reduce\", \"reduceRight\", \"slice\", \"some\"].forEach(function(method) {\n        return self[method] = function() {\n          var args;\n          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n          return value[method].apply(value, args);\n        };\n      });\n      [\"pop\", \"push\", \"reverse\", \"shift\", \"splice\", \"sort\", \"unshift\"].forEach(function(method) {\n        return self[method] = function() {\n          var args;\n          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n          return notifyReturning(value[method].apply(value, args));\n        };\n      });\n      notifyReturning = function(returnValue) {\n        notify(value);\n        return returnValue;\n      };\n      extend(self, {\n        each: function() {\n          var args;\n          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n          self.forEach.apply(self, args);\n          return self;\n        },\n        remove: function(object) {\n          var index;\n          index = value.indexOf(object);\n          if (index >= 0) {\n            return notifyReturning(value.splice(index, 1)[0]);\n          }\n        },\n        get: function(index) {\n          return value[index];\n        },\n        first: function() {\n          return value[0];\n        },\n        last: function() {\n          return value[value.length - 1];\n        }\n      });\n    }\n    self.stopObserving = function(fn) {\n      return remove(listeners, fn);\n    };\n    return self;\n  };\n\n  module.exports = Observable;\n\n  extend = function() {\n    var name, source, sources, target, _i, _len;\n    target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n    for (_i = 0, _len = sources.length; _i < _len; _i++) {\n      source = sources[_i];\n      for (name in source) {\n        target[name] = source[name];\n      }\n    }\n    return target;\n  };\n\n  global.OBSERVABLE_ROOT_HACK = void 0;\n\n  magicDependency = function(self) {\n    var base;\n    if (base = global.OBSERVABLE_ROOT_HACK) {\n      return self.observe(base);\n    }\n  };\n\n  withBase = function(root, fn) {\n    var value;\n    global.OBSERVABLE_ROOT_HACK = root;\n    value = fn();\n    global.OBSERVABLE_ROOT_HACK = void 0;\n    return value;\n  };\n\n  base = function() {\n    return global.OBSERVABLE_ROOT_HACK;\n  };\n\n  computeDependencies = function(fn, root) {\n    return withBase(root, function() {\n      return fn();\n    });\n  };\n\n  remove = function(array, value) {\n    var index;\n    index = array.indexOf(value);\n    if (index >= 0) {\n      return array.splice(index, 1)[0];\n    }\n  };\n\n}).call(this);\n",
+              "type": "blob"
+            },
+            "pixie": {
+              "path": "pixie",
+              "content": "module.exports = {\"version\":\"0.1.1\"};",
+              "type": "blob"
+            },
+            "test/observable": {
+              "path": "test/observable",
+              "content": "(function() {\n  var Observable;\n\n  Observable = require(\"../main\");\n\n  describe('Observable', function() {\n    it('should create an observable for an object', function() {\n      var n, observable;\n      n = 5;\n      observable = Observable(n);\n      return assert.equal(observable(), n);\n    });\n    it('should fire events when setting', function() {\n      var observable, string;\n      string = \"yolo\";\n      observable = Observable(string);\n      observable.observe(function(newValue) {\n        return assert.equal(newValue, \"4life\");\n      });\n      return observable(\"4life\");\n    });\n    it('should be idempotent', function() {\n      var o;\n      o = Observable(5);\n      return assert.equal(o, Observable(o));\n    });\n    describe(\"#each\", function() {\n      it(\"should be invoked once if there is an observable\", function() {\n        var called, o;\n        o = Observable(5);\n        called = 0;\n        o.each(function(value) {\n          called += 1;\n          return assert.equal(value, 5);\n        });\n        return assert.equal(called, 1);\n      });\n      return it(\"should not be invoked if observable is null\", function() {\n        var called, o;\n        o = Observable(null);\n        called = 0;\n        o.each(function(value) {\n          return called += 1;\n        });\n        return assert.equal(called, 0);\n      });\n    });\n    return it(\"should allow for stopping observation\", function() {\n      var called, fn, observable;\n      observable = Observable(\"string\");\n      called = 0;\n      fn = function(newValue) {\n        called += 1;\n        return assert.equal(newValue, \"4life\");\n      };\n      observable.observe(fn);\n      observable(\"4life\");\n      observable.stopObserving(fn);\n      observable(\"wat\");\n      return assert.equal(called, 1);\n    });\n  });\n\n  describe(\"Observable Array\", function() {\n    it(\"should proxy array methods\", function() {\n      var o;\n      o = Observable([5]);\n      return o.map(function(n) {\n        return assert.equal(n, 5);\n      });\n    });\n    it(\"should notify on mutation methods\", function(done) {\n      var o;\n      o = Observable([]);\n      o.observe(function(newValue) {\n        return assert.equal(newValue[0], 1);\n      });\n      o.push(1);\n      return done();\n    });\n    it(\"should have an each method\", function() {\n      var o;\n      o = Observable([]);\n      return assert(o.each);\n    });\n    it(\"#get\", function() {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      return assert.equal(o.get(2), 2);\n    });\n    it(\"#first\", function() {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      return assert.equal(o.first(), 0);\n    });\n    it(\"#last\", function() {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      return assert.equal(o.last(), 3);\n    });\n    it(\"#remove\", function(done) {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      o.observe(function(newValue) {\n        assert.equal(newValue.length, 3);\n        return setTimeout(function() {\n          return done();\n        }, 0);\n      });\n      return assert.equal(o.remove(2), 2);\n    });\n    return it(\"should proxy the length property\");\n  });\n\n  describe(\"Observable functions\", function() {\n    it(\"should compute dependencies\", function(done) {\n      var firstName, lastName, o;\n      firstName = Observable(\"Duder\");\n      lastName = Observable(\"Man\");\n      o = Observable(function() {\n        return \"\" + (firstName()) + \" \" + (lastName());\n      });\n      o.observe(function(newValue) {\n        assert.equal(newValue, \"Duder Bro\");\n        return done();\n      });\n      return lastName(\"Bro\");\n    });\n    it(\"should allow double nesting\", function(done) {\n      var bottom, middle, top;\n      bottom = Observable(\"rad\");\n      middle = Observable(function() {\n        return bottom();\n      });\n      top = Observable(function() {\n        return middle();\n      });\n      top.observe(function(newValue) {\n        assert.equal(newValue, \"wat\");\n        assert.equal(top(), newValue);\n        assert.equal(middle(), newValue);\n        return done();\n      });\n      return bottom(\"wat\");\n    });\n    it(\"should have an each method\", function() {\n      var o;\n      o = Observable(function() {});\n      return assert(o.each);\n    });\n    it(\"should not invoke when returning undefined\", function() {\n      var o;\n      o = Observable(function() {});\n      return o.each(function() {\n        return assert(false);\n      });\n    });\n    it(\"should invoke when returning any defined value\", function(done) {\n      var o;\n      o = Observable(function() {\n        return 5;\n      });\n      return o.each(function(n) {\n        assert.equal(n, 5);\n        return done();\n      });\n    });\n    return it(\"should work on an array dependency\", function() {\n      var last, o, oA;\n      oA = Observable([1, 2, 3]);\n      o = Observable(function() {\n        return oA()[0];\n      });\n      last = Observable(function() {\n        return oA()[oA().length - 1];\n      });\n      assert.equal(o(), 1);\n      oA.unshift(0);\n      assert.equal(o(), 0);\n      oA.push(4);\n      return assert.equal(last(), 4, \"Last should be 4\");\n    });\n  });\n\n}).call(this);\n",
+              "type": "blob"
+            }
+          },
+          "progenitor": {
+            "url": "http://strd6.github.io/editor/"
+          },
+          "version": "0.1.1",
+          "entryPoint": "main",
+          "repository": {
+            "id": 17119562,
+            "name": "observable",
+            "full_name": "distri/observable",
+            "owner": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://avatars.githubusercontent.com/u/6005125?",
+              "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/distri/observable",
+            "description": "",
+            "fork": false,
+            "url": "https://api.github.com/repos/distri/observable",
+            "forks_url": "https://api.github.com/repos/distri/observable/forks",
+            "keys_url": "https://api.github.com/repos/distri/observable/keys{/key_id}",
+            "collaborators_url": "https://api.github.com/repos/distri/observable/collaborators{/collaborator}",
+            "teams_url": "https://api.github.com/repos/distri/observable/teams",
+            "hooks_url": "https://api.github.com/repos/distri/observable/hooks",
+            "issue_events_url": "https://api.github.com/repos/distri/observable/issues/events{/number}",
+            "events_url": "https://api.github.com/repos/distri/observable/events",
+            "assignees_url": "https://api.github.com/repos/distri/observable/assignees{/user}",
+            "branches_url": "https://api.github.com/repos/distri/observable/branches{/branch}",
+            "tags_url": "https://api.github.com/repos/distri/observable/tags",
+            "blobs_url": "https://api.github.com/repos/distri/observable/git/blobs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/distri/observable/git/tags{/sha}",
+            "git_refs_url": "https://api.github.com/repos/distri/observable/git/refs{/sha}",
+            "trees_url": "https://api.github.com/repos/distri/observable/git/trees{/sha}",
+            "statuses_url": "https://api.github.com/repos/distri/observable/statuses/{sha}",
+            "languages_url": "https://api.github.com/repos/distri/observable/languages",
+            "stargazers_url": "https://api.github.com/repos/distri/observable/stargazers",
+            "contributors_url": "https://api.github.com/repos/distri/observable/contributors",
+            "subscribers_url": "https://api.github.com/repos/distri/observable/subscribers",
+            "subscription_url": "https://api.github.com/repos/distri/observable/subscription",
+            "commits_url": "https://api.github.com/repos/distri/observable/commits{/sha}",
+            "git_commits_url": "https://api.github.com/repos/distri/observable/git/commits{/sha}",
+            "comments_url": "https://api.github.com/repos/distri/observable/comments{/number}",
+            "issue_comment_url": "https://api.github.com/repos/distri/observable/issues/comments/{number}",
+            "contents_url": "https://api.github.com/repos/distri/observable/contents/{+path}",
+            "compare_url": "https://api.github.com/repos/distri/observable/compare/{base}...{head}",
+            "merges_url": "https://api.github.com/repos/distri/observable/merges",
+            "archive_url": "https://api.github.com/repos/distri/observable/{archive_format}{/ref}",
+            "downloads_url": "https://api.github.com/repos/distri/observable/downloads",
+            "issues_url": "https://api.github.com/repos/distri/observable/issues{/number}",
+            "pulls_url": "https://api.github.com/repos/distri/observable/pulls{/number}",
+            "milestones_url": "https://api.github.com/repos/distri/observable/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/distri/observable/notifications{?since,all,participating}",
+            "labels_url": "https://api.github.com/repos/distri/observable/labels{/name}",
+            "releases_url": "https://api.github.com/repos/distri/observable/releases{/id}",
+            "created_at": "2014-02-23T23:17:52Z",
+            "updated_at": "2014-04-02T00:41:29Z",
+            "pushed_at": "2014-04-02T00:41:31Z",
+            "git_url": "git://github.com/distri/observable.git",
+            "ssh_url": "git@github.com:distri/observable.git",
+            "clone_url": "https://github.com/distri/observable.git",
+            "svn_url": "https://github.com/distri/observable",
+            "homepage": null,
+            "size": 164,
+            "stargazers_count": 0,
+            "watchers_count": 0,
+            "language": "CoffeeScript",
+            "has_issues": true,
+            "has_downloads": true,
+            "has_wiki": true,
+            "forks_count": 0,
+            "mirror_url": null,
+            "open_issues_count": 0,
+            "forks": 0,
+            "open_issues": 0,
+            "watchers": 0,
+            "default_branch": "master",
+            "master_branch": "master",
+            "permissions": {
+              "admin": true,
+              "push": true,
+              "pull": true
+            },
+            "organization": {
+              "login": "distri",
+              "id": 6005125,
+              "avatar_url": "https://avatars.githubusercontent.com/u/6005125?",
+              "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+              "url": "https://api.github.com/users/distri",
+              "html_url": "https://github.com/distri",
+              "followers_url": "https://api.github.com/users/distri/followers",
+              "following_url": "https://api.github.com/users/distri/following{/other_user}",
+              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+              "organizations_url": "https://api.github.com/users/distri/orgs",
+              "repos_url": "https://api.github.com/users/distri/repos",
+              "events_url": "https://api.github.com/users/distri/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/distri/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "network_count": 0,
+            "subscribers_count": 2,
+            "branch": "v0.1.1",
+            "publishBranch": "gh-pages"
+          },
+          "dependencies": {}
+        }
+      }
     },
     "eval": {
       "source": {
@@ -2049,6 +4113,73 @@
         }
       }
     },
+    "observable": {
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2014 distri\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "README.md": {
+          "path": "README.md",
+          "content": "observable\n==========\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "main.coffee.md": {
+          "path": "main.coffee.md",
+          "content": "Observable\n==========\n\n`Observable` allows for observing arrays, functions, and objects.\n\nFunction dependencies are automagically observed.\n\nStandard array methods are proxied through to the underlying array.\n\n    Observable = (value) ->\n\nReturn the object if it is already an observable object.\n\n      return value if typeof value?.observe is \"function\"\n\nMaintain a set of listeners to observe changes and provide a helper to notify each observer.\n\n      listeners = []\n\n      notify = (newValue) ->\n        listeners.forEach (listener) ->\n          listener(newValue)\n\nOur observable function is stored as a reference to `self`.\n\nIf `value` is a function compute dependencies and listen to observables that it depends on.\n\n      if typeof value is 'function'\n        fn = value\n        self = ->\n          # Automagic dependency observation\n          magicDependency(self)\n\n          return value\n\n        self.observe = (listener) ->\n          listeners.push listener\n\n        changed = ->\n          value = fn()\n          notify(value)\n\n        value = computeDependencies(fn, changed)\n\n      else\n\nWhen called with zero arguments it is treated as a getter. When called with one argument it is treated as a setter.\n\nChanges to the value will trigger notifications.\n\nThe value is always returned.\n\n        self = (newValue) ->\n          if arguments.length > 0\n            if value != newValue\n              value = newValue\n\n              notify(newValue)\n          else\n            # Automagic dependency observation\n            magicDependency(self)\n\n          return value\n\nAdd a listener for when this object changes.\n\n        self.observe = (listener) ->\n          listeners.push listener\n\nThis `each` iterator is similar to [the Maybe monad](http://en.wikipedia.org/wiki/Monad_&#40;functional_programming&#41;#The_Maybe_monad) in that our observable may contain a single value or nothing at all.\n\n      self.each = (args...) ->\n        if value?\n          [value].forEach(args...)\n\nIf the value is an array then proxy array methods and add notifications to mutation events.\n\n      if Array.isArray(value)\n        [\n          \"concat\"\n          \"every\"\n          \"filter\"\n          \"forEach\"\n          \"indexOf\"\n          \"join\"\n          \"lastIndexOf\"\n          \"map\"\n          \"reduce\"\n          \"reduceRight\"\n          \"slice\"\n          \"some\"\n        ].forEach (method) ->\n          self[method] = (args...) ->\n            value[method](args...)\n\n        [\n          \"pop\"\n          \"push\"\n          \"reverse\"\n          \"shift\"\n          \"splice\"\n          \"sort\"\n          \"unshift\"\n        ].forEach (method) ->\n          self[method] = (args...) ->\n            notifyReturning value[method](args...)\n\n        notifyReturning = (returnValue) ->\n          notify(value)\n\n          return returnValue\n\nAdd some extra helpful methods to array observables.\n\n        extend self,\n          each: (args...) ->\n            self.forEach(args...)\n\n            return self\n\nRemove an element from the array and notify observers of changes.\n\n          remove: (object) ->\n            index = value.indexOf(object)\n\n            if index >= 0\n              notifyReturning value.splice(index, 1)[0]\n\n          get: (index) ->\n            value[index]\n\n          first: ->\n            value[0]\n\n          last: ->\n            value[value.length-1]\n\n      extend self,\n        stopObserving: (fn) ->\n          remove listeners, fn\n\n        toggle: ->\n          self !value\n\n        increment: (n) ->\n          self value + n\n\n        decrement: (n) ->\n          self value - n\n\n        toString: ->\n          \"Observable(#{value})\"\n\n      return self\n\nExport `Observable`\n\n    module.exports = Observable\n\nAppendix\n--------\n\nThe extend method adds one objects properties to another.\n\n    extend = (target, sources...) ->\n      for source in sources\n        for name of source\n          target[name] = source[name]\n\n      return target\n\nSuper hax for computing dependencies. This needs to be a shared global so that\ndifferent bundled versions of observable libraries can interoperate.\n\n    global.OBSERVABLE_ROOT_HACK = undefined\n\n    magicDependency = (self) ->\n      if base = global.OBSERVABLE_ROOT_HACK\n        self.observe base\n\n    withBase = (root, fn) ->\n      global.OBSERVABLE_ROOT_HACK = root\n      value = fn()\n      global.OBSERVABLE_ROOT_HACK = undefined\n\n      return value\n\n    base = ->\n      global.OBSERVABLE_ROOT_HACK\n\nAutomagically compute dependencies.\n\n    computeDependencies = (fn, root) ->\n      withBase root, ->\n        fn()\n\nRemove a value from an array.\n\n    remove = (array, value) ->\n      index = array.indexOf(value)\n\n      if index >= 0\n        array.splice(index, 1)[0]\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "content": "version: \"0.1.2\"\n",
+          "mode": "100644",
+          "type": "blob"
+        },
+        "test/observable.coffee": {
+          "path": "test/observable.coffee",
+          "content": "global.Observable = require \"../main\"\n\ndescribe 'Observable', ->\n  it 'should create an observable for an object', ->\n    n = 5\n\n    observable = Observable(n)\n\n    assert.equal(observable(), n)\n\n  it 'should fire events when setting', ->\n    string = \"yolo\"\n\n    observable = Observable(string)\n    observable.observe (newValue) ->\n      assert.equal newValue, \"4life\"\n\n    observable(\"4life\")\n\n  it 'should be idempotent', ->\n    o = Observable(5)\n\n    assert.equal o, Observable(o)\n\n  describe \"#each\", ->\n    it \"should be invoked once if there is an observable\", ->\n      o = Observable(5)\n      called = 0\n\n      o.each (value) ->\n        called += 1\n        assert.equal value, 5\n\n      assert.equal called, 1\n\n    it \"should not be invoked if observable is null\", ->\n      o = Observable(null)\n      called = 0\n\n      o.each (value) ->\n        called += 1\n\n      assert.equal called, 0\n\n  it \"should allow for stopping observation\", ->\n    observable = Observable(\"string\")\n\n    called = 0\n    fn = (newValue) ->\n      called += 1\n      assert.equal newValue, \"4life\"\n\n    observable.observe fn\n\n    observable(\"4life\")\n\n    observable.stopObserving fn\n\n    observable(\"wat\")\n\n    assert.equal called, 1\n\n  it \"should increment\", ->\n    observable = Observable 1\n\n    observable.increment(5)\n\n    assert.equal observable(), 6\n\n  it \"should decremnet\", ->\n    observable = Observable 1\n\n    observable.decrement 5\n\n    assert.equal observable(), -4\n\n  it \"should toggle\", ->\n    observable = Observable false\n\n    observable.toggle()\n    assert.equal observable(), true\n\n    observable.toggle()\n    assert.equal observable(), false\n\ndescribe \"Observable Array\", ->\n  it \"should proxy array methods\", ->\n    o = Observable [5]\n\n    o.map (n) ->\n      assert.equal n, 5\n\n  it \"should notify on mutation methods\", (done) ->\n    o = Observable []\n\n    o.observe (newValue) ->\n      assert.equal newValue[0], 1\n\n    o.push 1\n\n    done()\n\n  it \"should have an each method\", ->\n    o = Observable []\n\n    assert o.each\n\n  it \"#get\", ->\n    o = Observable [0, 1, 2, 3]\n\n    assert.equal o.get(2), 2\n\n  it \"#first\", ->\n    o = Observable [0, 1, 2, 3]\n\n    assert.equal o.first(), 0\n\n  it \"#last\", ->\n    o = Observable [0, 1, 2, 3]\n\n    assert.equal o.last(), 3\n\n  it \"#remove\", (done) ->\n    o = Observable [0, 1, 2, 3]\n\n    o.observe (newValue) ->\n      assert.equal newValue.length, 3\n      setTimeout ->\n        done()\n      , 0\n\n    assert.equal o.remove(2), 2\n\n  # TODO: This looks like it might be impossible\n  it \"should proxy the length property\"\n\ndescribe \"Observable functions\", ->\n  it \"should compute dependencies\", (done) ->\n    firstName = Observable \"Duder\"\n    lastName = Observable \"Man\"\n\n    o = Observable ->\n      \"#{firstName()} #{lastName()}\"\n\n    o.observe (newValue) ->\n      assert.equal newValue, \"Duder Bro\"\n\n      done()\n\n    lastName \"Bro\"\n\n  it \"should allow double nesting\", (done) ->\n    bottom = Observable \"rad\"\n    middle = Observable ->\n      bottom()\n    top = Observable ->\n      middle()\n\n    top.observe (newValue) ->\n      assert.equal newValue, \"wat\"\n      assert.equal top(), newValue\n      assert.equal middle(), newValue\n\n      done()\n\n    bottom(\"wat\")\n\n  it \"should have an each method\", ->\n    o = Observable ->\n\n    assert o.each\n\n  it \"should not invoke when returning undefined\", ->\n    o = Observable ->\n\n    o.each ->\n      assert false\n\n  it \"should invoke when returning any defined value\", (done) ->\n    o = Observable -> 5\n\n    o.each (n) ->\n      assert.equal n, 5\n      done()\n\n  it \"should work on an array dependency\", ->\n    oA = Observable [1, 2, 3]\n\n    o = Observable ->\n      oA()[0]\n\n    last = Observable ->\n      oA()[oA().length-1]\n\n    assert.equal o(), 1\n\n    oA.unshift 0\n\n    assert.equal o(), 0\n\n    oA.push 4\n\n    assert.equal last(), 4, \"Last should be 4\"\n",
+          "mode": "100644",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "main": {
+          "path": "main",
+          "content": "(function() {\n  var Observable, base, computeDependencies, extend, magicDependency, remove, withBase,\n    __slice = [].slice;\n\n  Observable = function(value) {\n    var changed, fn, listeners, notify, notifyReturning, self;\n    if (typeof (value != null ? value.observe : void 0) === \"function\") {\n      return value;\n    }\n    listeners = [];\n    notify = function(newValue) {\n      return listeners.forEach(function(listener) {\n        return listener(newValue);\n      });\n    };\n    if (typeof value === 'function') {\n      fn = value;\n      self = function() {\n        magicDependency(self);\n        return value;\n      };\n      self.observe = function(listener) {\n        return listeners.push(listener);\n      };\n      changed = function() {\n        value = fn();\n        return notify(value);\n      };\n      value = computeDependencies(fn, changed);\n    } else {\n      self = function(newValue) {\n        if (arguments.length > 0) {\n          if (value !== newValue) {\n            value = newValue;\n            notify(newValue);\n          }\n        } else {\n          magicDependency(self);\n        }\n        return value;\n      };\n      self.observe = function(listener) {\n        return listeners.push(listener);\n      };\n    }\n    self.each = function() {\n      var args, _ref;\n      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n      if (value != null) {\n        return (_ref = [value]).forEach.apply(_ref, args);\n      }\n    };\n    if (Array.isArray(value)) {\n      [\"concat\", \"every\", \"filter\", \"forEach\", \"indexOf\", \"join\", \"lastIndexOf\", \"map\", \"reduce\", \"reduceRight\", \"slice\", \"some\"].forEach(function(method) {\n        return self[method] = function() {\n          var args;\n          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n          return value[method].apply(value, args);\n        };\n      });\n      [\"pop\", \"push\", \"reverse\", \"shift\", \"splice\", \"sort\", \"unshift\"].forEach(function(method) {\n        return self[method] = function() {\n          var args;\n          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n          return notifyReturning(value[method].apply(value, args));\n        };\n      });\n      notifyReturning = function(returnValue) {\n        notify(value);\n        return returnValue;\n      };\n      extend(self, {\n        each: function() {\n          var args;\n          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];\n          self.forEach.apply(self, args);\n          return self;\n        },\n        remove: function(object) {\n          var index;\n          index = value.indexOf(object);\n          if (index >= 0) {\n            return notifyReturning(value.splice(index, 1)[0]);\n          }\n        },\n        get: function(index) {\n          return value[index];\n        },\n        first: function() {\n          return value[0];\n        },\n        last: function() {\n          return value[value.length - 1];\n        }\n      });\n    }\n    extend(self, {\n      stopObserving: function(fn) {\n        return remove(listeners, fn);\n      },\n      toggle: function() {\n        return self(!value);\n      },\n      increment: function(n) {\n        return self(value + n);\n      },\n      decrement: function(n) {\n        return self(value - n);\n      },\n      toString: function() {\n        return \"Observable(\" + value + \")\";\n      }\n    });\n    return self;\n  };\n\n  module.exports = Observable;\n\n  extend = function() {\n    var name, source, sources, target, _i, _len;\n    target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n    for (_i = 0, _len = sources.length; _i < _len; _i++) {\n      source = sources[_i];\n      for (name in source) {\n        target[name] = source[name];\n      }\n    }\n    return target;\n  };\n\n  global.OBSERVABLE_ROOT_HACK = void 0;\n\n  magicDependency = function(self) {\n    var base;\n    if (base = global.OBSERVABLE_ROOT_HACK) {\n      return self.observe(base);\n    }\n  };\n\n  withBase = function(root, fn) {\n    var value;\n    global.OBSERVABLE_ROOT_HACK = root;\n    value = fn();\n    global.OBSERVABLE_ROOT_HACK = void 0;\n    return value;\n  };\n\n  base = function() {\n    return global.OBSERVABLE_ROOT_HACK;\n  };\n\n  computeDependencies = function(fn, root) {\n    return withBase(root, function() {\n      return fn();\n    });\n  };\n\n  remove = function(array, value) {\n    var index;\n    index = array.indexOf(value);\n    if (index >= 0) {\n      return array.splice(index, 1)[0];\n    }\n  };\n\n}).call(this);\n",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.1.2\"};",
+          "type": "blob"
+        },
+        "test/observable": {
+          "path": "test/observable",
+          "content": "(function() {\n  global.Observable = require(\"../main\");\n\n  describe('Observable', function() {\n    it('should create an observable for an object', function() {\n      var n, observable;\n      n = 5;\n      observable = Observable(n);\n      return assert.equal(observable(), n);\n    });\n    it('should fire events when setting', function() {\n      var observable, string;\n      string = \"yolo\";\n      observable = Observable(string);\n      observable.observe(function(newValue) {\n        return assert.equal(newValue, \"4life\");\n      });\n      return observable(\"4life\");\n    });\n    it('should be idempotent', function() {\n      var o;\n      o = Observable(5);\n      return assert.equal(o, Observable(o));\n    });\n    describe(\"#each\", function() {\n      it(\"should be invoked once if there is an observable\", function() {\n        var called, o;\n        o = Observable(5);\n        called = 0;\n        o.each(function(value) {\n          called += 1;\n          return assert.equal(value, 5);\n        });\n        return assert.equal(called, 1);\n      });\n      return it(\"should not be invoked if observable is null\", function() {\n        var called, o;\n        o = Observable(null);\n        called = 0;\n        o.each(function(value) {\n          return called += 1;\n        });\n        return assert.equal(called, 0);\n      });\n    });\n    it(\"should allow for stopping observation\", function() {\n      var called, fn, observable;\n      observable = Observable(\"string\");\n      called = 0;\n      fn = function(newValue) {\n        called += 1;\n        return assert.equal(newValue, \"4life\");\n      };\n      observable.observe(fn);\n      observable(\"4life\");\n      observable.stopObserving(fn);\n      observable(\"wat\");\n      return assert.equal(called, 1);\n    });\n    it(\"should increment\", function() {\n      var observable;\n      observable = Observable(1);\n      observable.increment(5);\n      return assert.equal(observable(), 6);\n    });\n    it(\"should decremnet\", function() {\n      var observable;\n      observable = Observable(1);\n      observable.decrement(5);\n      return assert.equal(observable(), -4);\n    });\n    return it(\"should toggle\", function() {\n      var observable;\n      observable = Observable(false);\n      observable.toggle();\n      assert.equal(observable(), true);\n      observable.toggle();\n      return assert.equal(observable(), false);\n    });\n  });\n\n  describe(\"Observable Array\", function() {\n    it(\"should proxy array methods\", function() {\n      var o;\n      o = Observable([5]);\n      return o.map(function(n) {\n        return assert.equal(n, 5);\n      });\n    });\n    it(\"should notify on mutation methods\", function(done) {\n      var o;\n      o = Observable([]);\n      o.observe(function(newValue) {\n        return assert.equal(newValue[0], 1);\n      });\n      o.push(1);\n      return done();\n    });\n    it(\"should have an each method\", function() {\n      var o;\n      o = Observable([]);\n      return assert(o.each);\n    });\n    it(\"#get\", function() {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      return assert.equal(o.get(2), 2);\n    });\n    it(\"#first\", function() {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      return assert.equal(o.first(), 0);\n    });\n    it(\"#last\", function() {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      return assert.equal(o.last(), 3);\n    });\n    it(\"#remove\", function(done) {\n      var o;\n      o = Observable([0, 1, 2, 3]);\n      o.observe(function(newValue) {\n        assert.equal(newValue.length, 3);\n        return setTimeout(function() {\n          return done();\n        }, 0);\n      });\n      return assert.equal(o.remove(2), 2);\n    });\n    return it(\"should proxy the length property\");\n  });\n\n  describe(\"Observable functions\", function() {\n    it(\"should compute dependencies\", function(done) {\n      var firstName, lastName, o;\n      firstName = Observable(\"Duder\");\n      lastName = Observable(\"Man\");\n      o = Observable(function() {\n        return \"\" + (firstName()) + \" \" + (lastName());\n      });\n      o.observe(function(newValue) {\n        assert.equal(newValue, \"Duder Bro\");\n        return done();\n      });\n      return lastName(\"Bro\");\n    });\n    it(\"should allow double nesting\", function(done) {\n      var bottom, middle, top;\n      bottom = Observable(\"rad\");\n      middle = Observable(function() {\n        return bottom();\n      });\n      top = Observable(function() {\n        return middle();\n      });\n      top.observe(function(newValue) {\n        assert.equal(newValue, \"wat\");\n        assert.equal(top(), newValue);\n        assert.equal(middle(), newValue);\n        return done();\n      });\n      return bottom(\"wat\");\n    });\n    it(\"should have an each method\", function() {\n      var o;\n      o = Observable(function() {});\n      return assert(o.each);\n    });\n    it(\"should not invoke when returning undefined\", function() {\n      var o;\n      o = Observable(function() {});\n      return o.each(function() {\n        return assert(false);\n      });\n    });\n    it(\"should invoke when returning any defined value\", function(done) {\n      var o;\n      o = Observable(function() {\n        return 5;\n      });\n      return o.each(function(n) {\n        assert.equal(n, 5);\n        return done();\n      });\n    });\n    return it(\"should work on an array dependency\", function() {\n      var last, o, oA;\n      oA = Observable([1, 2, 3]);\n      o = Observable(function() {\n        return oA()[0];\n      });\n      last = Observable(function() {\n        return oA()[oA().length - 1];\n      });\n      assert.equal(o(), 1);\n      oA.unshift(0);\n      assert.equal(o(), 0);\n      oA.push(4);\n      return assert.equal(last(), 4, \"Last should be 4\");\n    });\n  });\n\n}).call(this);\n",
+          "type": "blob"
+        }
+      },
+      "progenitor": {
+        "url": "http://www.danielx.net/editor/"
+      },
+      "version": "0.1.2",
+      "entryPoint": "main",
+      "repository": {
+        "branch": "v0.1.2",
+        "default_branch": "master",
+        "full_name": "distri/observable",
+        "homepage": null,
+        "description": "",
+        "html_url": "https://github.com/distri/observable",
+        "url": "https://api.github.com/repos/distri/observable",
+        "publishBranch": "gh-pages"
+      },
+      "dependencies": {}
+    },
     "postmaster": {
       "source": {
         "LICENSE": {
@@ -3227,6 +5358,167 @@
           "dependencies": {}
         }
       }
+    },
+    "util": {
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "mode": "100644",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2014 \n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+          "type": "blob"
+        },
+        "README.md": {
+          "path": "README.md",
+          "mode": "100644",
+          "content": "util\n====\n\nSmall utility methods for JS\n",
+          "type": "blob"
+        },
+        "main.coffee.md": {
+          "path": "main.coffee.md",
+          "mode": "100644",
+          "content": "Util\n====\n\n    module.exports =\n      approach: (current, target, amount) ->\n        (target - current).clamp(-amount, amount) + current\n\nApply a stylesheet idempotently.\n\n      applyStylesheet: (style, id=\"primary\") ->\n        styleNode = document.createElement(\"style\")\n        styleNode.innerHTML = style\n        styleNode.id = id\n\n        if previousStyleNode = document.head.querySelector(\"style##{id}\")\n          previousStyleNode.parentNode.removeChild(prevousStyleNode)\n\n        document.head.appendChild(styleNode)\n\n      defaults: (target, objects...) ->\n        for object in objects\n          for name of object\n            unless target.hasOwnProperty(name)\n              target[name] = object[name]\n\n        return target\n\n      extend: (target, sources...) ->\n        for source in sources\n          for name of source\n            target[name] = source[name]\n\n        return target\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "version: \"0.1.0\"\n",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "main": {
+          "path": "main",
+          "content": "(function() {\n  var __slice = [].slice;\n\n  module.exports = {\n    approach: function(current, target, amount) {\n      return (target - current).clamp(-amount, amount) + current;\n    },\n    applyStylesheet: function(style, id) {\n      var previousStyleNode, styleNode;\n      if (id == null) {\n        id = \"primary\";\n      }\n      styleNode = document.createElement(\"style\");\n      styleNode.innerHTML = style;\n      styleNode.id = id;\n      if (previousStyleNode = document.head.querySelector(\"style#\" + id)) {\n        previousStyleNode.parentNode.removeChild(prevousStyleNode);\n      }\n      return document.head.appendChild(styleNode);\n    },\n    defaults: function() {\n      var name, object, objects, target, _i, _len;\n      target = arguments[0], objects = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n      for (_i = 0, _len = objects.length; _i < _len; _i++) {\n        object = objects[_i];\n        for (name in object) {\n          if (!target.hasOwnProperty(name)) {\n            target[name] = object[name];\n          }\n        }\n      }\n      return target;\n    },\n    extend: function() {\n      var name, source, sources, target, _i, _len;\n      target = arguments[0], sources = 2 <= arguments.length ? __slice.call(arguments, 1) : [];\n      for (_i = 0, _len = sources.length; _i < _len; _i++) {\n        source = sources[_i];\n        for (name in source) {\n          target[name] = source[name];\n        }\n      }\n      return target;\n    }\n  };\n\n}).call(this);\n",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.1.0\"};",
+          "type": "blob"
+        }
+      },
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "version": "0.1.0",
+      "entryPoint": "main",
+      "repository": {
+        "id": 18501018,
+        "name": "util",
+        "full_name": "distri/util",
+        "owner": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://avatars.githubusercontent.com/u/6005125?",
+          "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/distri/util",
+        "description": "Small utility methods for JS",
+        "fork": false,
+        "url": "https://api.github.com/repos/distri/util",
+        "forks_url": "https://api.github.com/repos/distri/util/forks",
+        "keys_url": "https://api.github.com/repos/distri/util/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/distri/util/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/distri/util/teams",
+        "hooks_url": "https://api.github.com/repos/distri/util/hooks",
+        "issue_events_url": "https://api.github.com/repos/distri/util/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/distri/util/events",
+        "assignees_url": "https://api.github.com/repos/distri/util/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/distri/util/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/distri/util/tags",
+        "blobs_url": "https://api.github.com/repos/distri/util/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/distri/util/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/distri/util/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/distri/util/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/distri/util/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/distri/util/languages",
+        "stargazers_url": "https://api.github.com/repos/distri/util/stargazers",
+        "contributors_url": "https://api.github.com/repos/distri/util/contributors",
+        "subscribers_url": "https://api.github.com/repos/distri/util/subscribers",
+        "subscription_url": "https://api.github.com/repos/distri/util/subscription",
+        "commits_url": "https://api.github.com/repos/distri/util/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/distri/util/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/distri/util/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/distri/util/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/distri/util/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/distri/util/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/distri/util/merges",
+        "archive_url": "https://api.github.com/repos/distri/util/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/distri/util/downloads",
+        "issues_url": "https://api.github.com/repos/distri/util/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/distri/util/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/distri/util/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/distri/util/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/distri/util/labels{/name}",
+        "releases_url": "https://api.github.com/repos/distri/util/releases{/id}",
+        "created_at": "2014-04-06T22:42:56Z",
+        "updated_at": "2014-04-06T22:42:56Z",
+        "pushed_at": "2014-04-06T22:42:56Z",
+        "git_url": "git://github.com/distri/util.git",
+        "ssh_url": "git@github.com:distri/util.git",
+        "clone_url": "https://github.com/distri/util.git",
+        "svn_url": "https://github.com/distri/util",
+        "homepage": null,
+        "size": 0,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": null,
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "master",
+        "master_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "organization": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://avatars.githubusercontent.com/u/6005125?",
+          "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "network_count": 0,
+        "subscribers_count": 2,
+        "branch": "v0.1.0",
+        "publishBranch": "gh-pages"
+      },
+      "dependencies": {}
     }
   }
 });

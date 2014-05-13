@@ -35,6 +35,7 @@
               
             </div>
             <div class="content"><pre><code class="lang-coffeescript">loader = require(<span class="string">"./loader"</span>)()
+{defaults} = require <span class="string">"util"</span>
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
@@ -57,7 +58,7 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 {Size} = require <span class="string">"./util"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
-  Object.defaults I,
+  defaults I,
     selector: <span class="string">"body"</span>
 
   activeIndex = Observable(<span class="number">1</span>)
@@ -426,7 +427,7 @@ accidentally setting the pixel values during the preview.</p>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 
