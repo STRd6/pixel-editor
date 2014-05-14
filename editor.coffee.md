@@ -2,6 +2,7 @@ Editor
 ======
 
     loader = require("./loader")()
+    {defaults} = require "util"
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
@@ -24,13 +25,13 @@ Editor
     {Size} = require "./util"
 
     module.exports = (I={}, self) ->
-      Object.defaults I,
+      defaults I,
         selector: "body"
 
       activeIndex = Observable(1)
 
       pixelExtent = Observable Size(32, 32)
-      pixelSize = Observable 8
+      pixelSize = Observable 16
       canvasSize = Observable ->
         pixelExtent().scale(pixelSize())
 
@@ -86,6 +87,8 @@ Editor
 
         pixelSize: pixelSize
         pixelExtent: pixelExtent
+
+        grid: Observable false
 
         handlePaste: (data) ->
           command = self.Command.Composite()
@@ -299,9 +302,6 @@ accidentally setting the pixel values during the preview.
       $(window).resize updateViewportCentering
 
       updateCanvasSize = (size) ->
-        gridImage = GridGen(
-          # TODO: Grid size options and matching pixel size/extent
-        ).backgroundImage()
 
         [canvas, previewCanvas].forEach (canvas) ->
           element = canvas.element()
@@ -314,15 +314,27 @@ accidentally setting the pixel values during the preview.
           width: size.width
           height: size.height
 
-        $selector.find(".overlay").css
-          backgroundImage: gridImage
+        # TODO: Should be bound directly to the template's overlay backgrond image attribute
+        if self.grid()
+          gridImage = GridGen(
+            # TODO: Grid size options and matching pixel size/extent
+          ).backgroundImage()
+
+          $selector.find(".overlay").css
+            backgroundImage: gridImage
+        else
+          $selector.find(".overlay").css
+            backgroundImage: "none"
 
         updateViewportCentering()
 
         self.repaint()
 
+      # TODO: Use auto-dependencies
       updateCanvasSize(canvasSize())
       canvasSize.observe updateCanvasSize
+      self.grid.observe ->
+        updateCanvasSize canvasSize()
 
       updatePixelExtent = (size) ->
         self.layers.forEach (layer) ->
