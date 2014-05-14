@@ -35,6 +35,7 @@
               
             </div>
             <div class="content"><pre><code class="lang-coffeescript">loader = require(<span class="string">"./loader"</span>)()
+{defaults} = require <span class="string">"util"</span>
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
@@ -57,13 +58,13 @@ debugTemplate = require <span class="string">"./templates/debug"</span>
 {Size} = require <span class="string">"./util"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
-  Object.defaults I,
+  defaults I,
     selector: <span class="string">"body"</span>
 
   activeIndex = Observable(<span class="number">1</span>)
 
   pixelExtent = Observable Size(<span class="number">32</span>, <span class="number">32</span>)
-  pixelSize = Observable <span class="number">8</span>
+  pixelSize = Observable <span class="number">16</span>
   canvasSize = Observable -&gt;
     pixelExtent().scale(pixelSize())
 
@@ -119,6 +120,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     pixelSize: pixelSize
     pixelExtent: pixelExtent
+
+    grid: Observable <span class="literal">false</span>
 
     handlePaste: (data) -&gt;
       command = self.Command.Composite()
@@ -339,9 +342,6 @@ accidentally setting the pixel values during the preview.</p>
   $(window).resize updateViewportCentering
 
   <span class="function"><span class="title">updateCanvasSize</span></span> = (size) -&gt;
-    gridImage = GridGen(
-      <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
-    ).backgroundImage()
 
     [canvas, previewCanvas].forEach (canvas) -&gt;
       element = canvas.element()
@@ -354,15 +354,27 @@ accidentally setting the pixel values during the preview.</p>
       width: size.width
       height: size.height
 
-    $selector.find(<span class="string">".overlay"</span>).css
-      backgroundImage: gridImage
+    <span class="comment"># TODO: Should be bound directly to the template's overlay backgrond image attribute</span>
+    <span class="keyword">if</span> self.grid()
+      gridImage = GridGen(
+        <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
+      ).backgroundImage()
+
+      $selector.find(<span class="string">".overlay"</span>).css
+        backgroundImage: gridImage
+    <span class="keyword">else</span>
+      $selector.find(<span class="string">".overlay"</span>).css
+        backgroundImage: <span class="string">"none"</span>
 
     updateViewportCentering()
 
     self.repaint()
 
+  <span class="comment"># TODO: Use auto-dependencies</span>
   updateCanvasSize(canvasSize())
   canvasSize.observe updateCanvasSize
+  self.grid.observe -&gt;
+    updateCanvasSize canvasSize()
 
   <span class="function"><span class="title">updatePixelExtent</span></span> = (size) -&gt;
     self.layers.forEach (layer) -&gt;
@@ -424,20 +436,142 @@ accidentally setting the pixel values during the preview.</p>
         
     </ul>
   </div>
-  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="http://strd6.github.io/require/v0.2.2.js"></script>
-<script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://pixipaint.net/envweb-v0.4.7.js"></script><script>
-  $.ajax({
-    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
-    dataType: "jsonp",
-    jsonpCallback: "STRd6/interactive:v0.8.1",
-    cache: true
-  }).then(function(PACKAGE) {
-    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
-  })
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
 </script><script src="package.js"></script>
 </body>
 </html>
