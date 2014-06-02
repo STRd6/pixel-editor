@@ -30,6 +30,7 @@ Actions
               self[method]()
           name: name
           iconUrl: icon
+          hotkey: hotkey
 
         self.addHotkey hotkey, method
 
