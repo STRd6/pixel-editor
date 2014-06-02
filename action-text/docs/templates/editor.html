@@ -86,9 +86,9 @@
 
   .actions
     - each @actions, (action) -&gt;
-      - perform = -&gt; action.perform()
-      .action(click=perform touchstart=perform style=&quot;background-image: url(#{action.iconUrl})&quot;)
-        .name= @name</code></pre>
+      .action(click=@perform touchstart=@perform style=&quot;background-image: url(#{@iconUrl})&quot;)
+        .text= @name
+        .text= @hotkey</code></pre>
 </div>
         </li>
         
