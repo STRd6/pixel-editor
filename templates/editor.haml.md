@@ -38,9 +38,9 @@ The palette holds our colors.
 
       .actions
         - each @actions, (action) ->
-          - perform = -> action.perform()
-          .action(click=perform touchstart=perform style="background-image: url(#{action.iconUrl})")
-            .name= @name
+          .action(click=@perform touchstart=@perform style="background-image: url(#{@iconUrl})")
+            .text= @name
+            .text= @hotkey
 
 Modal junk
 
