@@ -173,12 +173,18 @@ Editor
 
           self.repaint()
 
-        draw: ({x, y}) ->
-          lastCommand.push self.Command.ChangePixel
-            x: x
-            y: y
-            index: activeIndex()
-            layer: self.activeLayerIndex()
+        draw: (point) ->
+          # TODO: Symmetry mode
+          Symmetry = require "./symmetry"
+          
+          debugger
+
+          Symmetry.flip([point], pixelExtent()).forEach ({x, y}) ->
+            lastCommand.push self.Command.ChangePixel
+              x: x
+              y: y
+              index: activeIndex()
+              layer: self.activeLayerIndex()
 
         changePixel: (params) ->
           {x, y, index, layer} = params
