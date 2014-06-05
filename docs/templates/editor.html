@@ -59,7 +59,7 @@
             <div class="content"><pre><code class="lang-haml">  .main
     .viewport
       .overlay
-    - swap = (e) -&gt; if ($t = $(e.currentTarget)).css(&quot;left&quot;) is &quot;auto&quot; then $t.css(left: 0, right: &quot;auto&quot;) else $t.css(left: &quot;auto&quot;, right: 0) 
+    - swap = (e) -&gt; if ($t = $(e.currentTarget)).css(&quot;left&quot;) is &quot;auto&quot; then $t.css(left: 0, right: &quot;auto&quot;) else $t.css(left: &quot;auto&quot;, right: 0)
     .thumbnail(click=swap)
 
   .notifications
@@ -86,8 +86,9 @@
 
   .actions
     - each @actions, (action) -&gt;
-      - perform = -&gt; action.perform()
-      .action(click=perform touchstart=perform style=&quot;background-image: url(#{action.iconUrl})&quot;)</code></pre>
+      .action(click=@perform touchstart=@perform style=&quot;background-image: url(#{@iconUrl})&quot;)
+        .text= @name
+        .text= @hotkey</code></pre>
 </div>
         </li>
         
