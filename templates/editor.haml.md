@@ -20,7 +20,7 @@ Our layers and preview canvases are placed in the viewport.
       .main
         .viewport
           .overlay
-        - swap = (e) -> if ($t = $(e.currentTarget)).css("left") is "auto" then $t.css(left: 0, right: "auto") else $t.css(left: "auto", right: 0) 
+        - swap = (e) -> if ($t = $(e.currentTarget)).css("left") is "auto" then $t.css(left: 0, right: "auto") else $t.css(left: "auto", right: 0)
         .thumbnail(click=swap)
 
       .notifications
@@ -38,8 +38,9 @@ The palette holds our colors.
 
       .actions
         - each @actions, (action) ->
-          - perform = -> action.perform()
-          .action(click=perform touchstart=perform style="background-image: url(#{action.iconUrl})")
+          .action(click=@perform touchstart=@perform style="background-image: url(#{@iconUrl})")
+            .text= @name
+            .text= @hotkey
 
 Modal junk
 
