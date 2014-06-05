@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>tools</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="tools">Tools</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">{line, circle, rect, rectOutline} = require <span class="string">"./util"</span>
+
+<span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
+  fn start
+  line start, end, fn
+
+<span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
+  [
+    Point(point.x, point.y-<span class="number">1</span>)
+    Point(point.x-<span class="number">1</span>, point.y)
+    Point(point.x+<span class="number">1</span>, point.y)
+    Point(point.x, point.y+<span class="number">1</span>)
+  ]
+
+<span class="function"><span class="title">shapeTool</span></span> = (fn, icon) -&gt;
+  start = <span class="literal">null</span>
+
+  iconUrl: icon
+  touch: ({position})-&gt;
+    start = position
+
+  move: ({editor, position})-&gt;
+    editor.preview -&gt;
+      fn start, position, editor.draw
+
+  release: ({position, editor}) -&gt;
+    fn start, position, editor.draw</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Default tools.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">TOOLS =</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Draw a line when moving while touching.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  pencil: <span class="keyword">do</span> -&gt;
+    previousPosition = <span class="literal">null</span>
+
+    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
+    touch: ({position, editor})-&gt;
+      editor.draw position
+      previousPosition = position
+    move: ({editor, position})-&gt;
+      line previousPosition, position, editor.draw
+      previousPosition = position
+    release: -&gt;
+
+  fill:
+    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII="</span>
+    touch: ({position, editor}) -&gt;
+      index = editor.activeIndex()
+      targetIndex = editor.getPixel(position).index
+
+      <span class="keyword">return</span> <span class="keyword">unless</span> targetIndex?
+      <span class="keyword">return</span> <span class="keyword">if</span> index <span class="keyword">is</span> targetIndex
+
+      queue = [position]
+      editor.draw position
+
+      <span class="comment"># TODO: Allow for interrupts if it takes too long</span>
+      {width, height} = editor.pixelExtent()
+      safetyHatch = width * height
+
+      <span class="keyword">while</span>(queue.length <span class="keyword">and</span> safetyHatch &gt; <span class="number">0</span>)
+        position = queue.pop()
+
+        neighbors(position).forEach (position) -&gt;
+          <span class="keyword">if</span> editor.getPixel(position)?.index <span class="keyword">is</span> targetIndex
+            <span class="comment"># This is here because I HAVE been burned</span>
+            <span class="comment"># Later I should fix the underlying cause, but it seems handy to keep</span>
+            <span class="comment"># a hatch on any while loops.</span>
+            safetyHatch -= <span class="number">1</span>
+
+            editor.draw position
+            queue.push(position)
+
+      <span class="keyword">return</span>
+
+    move: -&gt;
+    release: -&gt;</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2 id="shapes">Shapes</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
+
+  rect: shapeTool rect,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
+
+  rectOutline: shapeTool rectOutline,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span>
+
+  line2: shapeTool line2,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
+
+module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
+  self.extend
+    addTool: (tool) -&gt;
+      self.tools.push tool
+
+    activeTool: Observable()
+
+    tools: Observable []
+
+  <span class="comment"># TODO: Probably want to let the editor add its own tools so this is more</span>
+  <span class="comment"># reusable</span>
+  Object.keys(TOOLS).forEach (name) -&gt;
+    self.addTool TOOLS[name]
+
+  self.activeTool(self.tools()[<span class="number">0</span>])
+
+  <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
+</script><script src="package.js"></script>
+</body>
+</html>
