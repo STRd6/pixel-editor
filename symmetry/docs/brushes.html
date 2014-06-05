@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>templates/editor</title>
+  <title>brushes</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,15 +18,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <p>Editor template</p>
+              <h1 id="brushes">Brushes</h1>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">- activeIndex = @activeIndex
-- activeTool = @activeTool
-- editor = this
-- Observable = require &quot;observable&quot;
-
-.editor</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
 </div>
         </li>
         
@@ -36,79 +32,21 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>The toolbar holds our tools.</p>
+              <p>A brush takes a point and returns a list of points.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">  .toolbar
-    .tools
-      - each @tools, (tool) -&gt;
-        - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
-        - activate = -&gt; activeTool(tool)
-        .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass click=activate)
-    .tools
-      - symmetryMode = @symmetryMode
-      - each [&quot;normal&quot;, &quot;flip&quot;, &quot;flop&quot;, &quot;quad&quot;], (mode) -&gt;
-        - activeClass = -&gt; &quot;active&quot; if mode is symmetryMode()
-        - activate = -&gt; symmetryMode(mode)
-        .tool(class=activeClass click=activate)= mode</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>Our layers and preview canvases are placed in the viewport.</p>
+            <div class="content"><pre><code class="lang-coffeescript">module.exports =
+  pencil: (point) -&gt;
+    [point]
 
-            </div>
-            <div class="content"><pre><code class="lang-haml">  .main
-    .viewport
-      .overlay
-    - swap = (e) -&gt; if ($t = $(e.currentTarget)).css(&quot;left&quot;) is &quot;auto&quot; then $t.css(left: 0, right: &quot;auto&quot;) else $t.css(left: &quot;auto&quot;, right: 0)
-    .thumbnail(click=swap)
-
-  .notifications
-    - each @notifications, (notification) -&gt;
-      %p
-        = notification</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
-              </div>
-              <p>The palette holds our colors.</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-haml">  .palette
-    .color.current
-    - each @palette, (color, index) -&gt;
-      - activate = -&gt; activeIndex index
-      .color(click=activate touchstart=activate style=&quot;background-color: #{color}&quot;)
-
-  .actions
-    - each @actions, (action) -&gt;
-      .action(click=@perform touchstart=@perform style=&quot;background-image: url(#{@iconUrl})&quot;)
-        .text= @name
-        .text= @hotkey</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-5">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
-              </div>
-              <p>Modal junk</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-haml">#modal</code></pre>
+  brush: ({x, y}) -&gt;
+    [
+      Point x, y - <span class="number">1</span>
+      Point x - <span class="number">1</span>, y
+      Point x, y
+      Point x + <span class="number">1</span>, y
+      Point x, y + <span class="number">1</span>
+    ]</code></pre>
 </div>
         </li>
         
@@ -250,6 +188,6 @@
 
 }).call(this);
 
-</script><script src="../package.js"></script>
+</script><script src="package.js"></script>
 </body>
 </html>

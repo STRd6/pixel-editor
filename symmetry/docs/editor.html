@@ -55,6 +55,8 @@ Palette = require(<span class="string">"./palette"</span>)
 template = require <span class="string">"./templates/editor"</span>
 debugTemplate = require <span class="string">"./templates/debug"</span>
 
+Symmetry = require <span class="string">"./symmetry"</span>
+
 {Size} = require <span class="string">"./util"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
@@ -67,6 +69,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   pixelSize = Observable <span class="number">16</span>
   canvasSize = Observable -&gt;
     pixelExtent().scale(pixelSize())
+
+  symmetryMode = Observable(<span class="string">"quad"</span>)
 
   canvas = <span class="literal">null</span>
   lastCommand = <span class="literal">null</span>
@@ -145,6 +149,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       self.repaint()
 
+    symmetryMode: symmetryMode
+
     outputCanvas: (scale=<span class="number">1</span>)-&gt;
       outputCanvas = TouchCanvas pixelExtent().scale(scale)
 
@@ -207,12 +213,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       self.repaint()
 
     draw: (point) -&gt;
-      <span class="comment"># TODO: Symmetry mode</span>
-      Symmetry = require <span class="string">"./symmetry"</span>
-
-      <span class="keyword">debugger</span>
-
-      Symmetry.flip([point], pixelExtent()).forEach ({x, y}) -&gt;
+      Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) -&gt;
         lastCommand.push self.Command.ChangePixel
           x: x
           y: y
