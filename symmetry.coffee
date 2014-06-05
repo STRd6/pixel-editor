@@ -11,12 +11,21 @@ append = (list, transform) ->
   list.concat list.map(transform)
 
 module.exports =
+  normal: (points) ->
+    points
+
   flip: (points, size) ->
     t = mirror(size, Matrix.HORIZONTAL_FLIP)
-    
+
     append(points, t)
 
   flop: (points, size) ->
     t = mirror(size, Matrix.VERTICAL_FLIP)
-    
+
     append(points, t)
+
+  quad: (points, size) ->
+    t1 = mirror(size, Matrix.HORIZONTAL_FLIP)
+    t2 = mirror(size, Matrix.VERTICAL_FLIP)
+
+    append(append(points, t1), t2)
