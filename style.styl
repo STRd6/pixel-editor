@@ -1,12 +1,13 @@
 html, body
   margin: 0
   height: 100%
+  font-family: helvetica
 
 .editor
   background-color: lightgray
   box-sizing: border-box
   height: 100%
-  padding: 0px 80px 40px 40px
+  padding: 0px 40px 64px 40px
   position: relative
   user-select: none
   overflow: hidden
@@ -16,6 +17,13 @@ html, body
     height: 100%
     position: relative
     overflow: auto
+
+    .thumbnail
+      background-color: white
+      border: 1px solid rgba(0, 0, 0, 0.5)
+      position: absolute
+      top: 0
+      left: 0
 
 .notifications
   background-color: rgba(0, 0, 0, 0.5)
@@ -40,7 +48,6 @@ html, body
       margin-bottom: 0
 
 .toolbar
-  background-color: white
   box-sizing: border-box
   height: 100%
   width: 40px
@@ -49,7 +56,7 @@ html, body
   left: 0
 
   .tool
-    background-color: lightgray
+    background-color: #EEE
     background-position: center
     background-repeat: no-repeat
     width: 36px
@@ -60,11 +67,10 @@ html, body
     margin: 2px
 
     &.active
-      background-color: white
+      background-color: #FFF
       border-color: green
 
 .layers
-  background-color: white
   box-sizing: border-box
   font-size: 14px
   height: 100%
@@ -92,9 +98,6 @@ html, body
       height: 16px
       background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACnElEQVQ4T6WT30uTYRTHv8/27n33y/ljaptLzGpEoEZBQRKYBBFdREUXQhFddRNdRBF2ZX9BVJDQpRddRaQhWlBkISoqU2ammWtzzl85N51u757nffa8vZskSHd54Fye7/mcc76HYI9B9liPXQKhUOiMbNIeEXWtmbCMjQgO5IwUOYCYKezuUa3I11pTU9P/t/GOQDQa7TCrqy1mFpdlkwSNZbGeSIIzBsUMVLgcyDEKLnRd+E50e/z1l/IiBQGj+IO0ETovQ0NsYRHRpQSyxAlN8UDLETAu4OArqMIi6qvdMBlEoqp+ovzYuQYSDoefKOrCPVlLIfgjAvnAWcSoF5pBTjUdWSOpJqAygbpqGUdT3XCkwnBazEgdbO4gsdngMknO7NvQS+A/3oSeQAbraVEofni9AQYwHrSPG0ICVgtB69UyxKeGICZ6sbrJOQkPdwqbp44UV/ggSRLeDqWxtsVBDYK2W9sCd56NgVIBu2JCW0s5OOdIL/xE5N0LkFgkxO2uUrMsy7BYLOifVjEepsgayPmulOVHyI8icMpvx40mFzRNAzOWm/z6SifR4JeE4qosVUq8BYLldYFPwTTmfmvI8u3583vwFEu41lgEv9dSIFANAnXkDSNzM99eKonp2yaHG2Z3LUy2YkRXGcZ+ZfF9nhoX0HHYI+Ok34Yj+60QNAMtEgAd7UJU8g0WzjgdGBhwrE2etkkEelltUndUZom9lOmSLP4aRtd1IB6xitCgl81PYirrWLpw/6lvx0jDfe+76PLMxSqSkpx2K6C4ICx2Y4mGWQxH8q0ksDKLcHxT3yw5NDry+nPj474+vsvKPc/vKiylXmaMXjFgmmUQp5lwomtCZKgaUFXaqeu892b7x6l/rPy/T7Xnb/wDHedWhDseHEQAAAAASUVORK5CYII=)
 
-  .thumbnail
-    padding: 2px 0
-
   canvas
     box-sizing: border-box
     border: 1px solid lightgray
@@ -102,7 +105,6 @@ html, body
     margin: auto
 
 .palette
-  background-color: white
   box-sizing: border-box
   height: 100%
   width: 40px
@@ -135,6 +137,7 @@ html, body
 
 .viewport
   background-color: white
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)
   border: 1px solid gray
   margin: auto
 
@@ -158,26 +161,42 @@ html, body
   padding: 1em
 
 .actions
-  background-color: white
   box-sizing: border-box
   width: 100%
-  height: 40px
+  height: 64px
   padding: 0px 40px
   position: absolute
   bottom: 0
   left: 0
 
   .action
-    background-color: lightgray
+    width: 64px
+    height: 64px
+
+    background-color: #EEE
     background-position: center
     background-repeat: no-repeat
-    width: 36px
-    height: 36px
     box-sizing: border-box
     border: 1px solid rgba(0, 0, 0, 0.5)
     border-radius: 2px
     display: inline-block
+    font-size: 12px
     margin: 2px
+    position: relative
+    vertical-align: top
+
+    .text
+      text-align: center
+      white-space: nowrap
+      overflow: hidden
+      position: absolute
+      width: 100%
+      
+      top: 0
+      
+      &:last-child
+        top: auto
+        bottom: 0
 
 #modal
   background-color: rgba(0, 0, 0, 0.25)

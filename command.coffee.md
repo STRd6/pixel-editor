@@ -1,6 +1,8 @@
 Command
 =======
 
+    {extend} = require "util"
+
 Commands that can be done/undone in the editor.
 
     module.exports = (I={}, self) ->
@@ -14,7 +16,7 @@ versions.
 
       C = (name, constructor) ->
         self.Command[name] = (data={}) ->
-          data = Object.extend {}, data
+          data = extend {}, data
           data.name = name
 
           command = constructor(data)
@@ -41,7 +43,7 @@ versions.
           self.changePixel(data)
 
         undo: ->
-          self.changePixel Object.extend {}, data, index: data.previous
+          self.changePixel extend {}, data, index: data.previous
 
       C "Resize", (data) ->
         {width, height, state} = data
@@ -91,7 +93,7 @@ versions.
           command.execute() unless noExecute
 
         toJSON: ->
-          Object.extend {}, data,
+          extend {}, data,
             commands: commands.invoke "toJSON"
 
       self.Command.parse = (commandData) ->

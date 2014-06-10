@@ -1,19 +1,23 @@
 version: "0.1.0"
 remoteDependencies: [
-  "https://code.jquery.com/jquery-1.10.1.min.js"
-  "https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"
-  "https://pixipaint.net/envweb-v0.4.7.js"
+  "https://code.jquery.com/jquery-1.11.0.min.js"
 ]
 dependencies:
   appcache: "distri/appcache:v0.2.0"
+  bindable: "distri/bindable:v0.1.0"
   byte_array: "distri/byte_array:v0.1.1"
+  cornerstone: "distri/cornerstone:v0.2.2-pre.0"
+  model: "distri/compositions:v0.1.1"
   eval: "distri/eval:v0.1.0"
   facebook: "distri/facebook:v0.1.1"
   "grid-gen": "distri/grid-gen:v0.2.0"
   "hotkeys": "distri/hotkeys:v0.2.0"
   "jquery-utils": "distri/jquery-utils:v0.2.0"
-  runtime: "STRd6/runtime:v0.2.0"
+  observable: "distri/observable:v0.1.2"
+  postmaster: "distri/postmaster:v0.2.0"
+  runtime: "distri/runtime:v0.3.0"
   "touch-canvas": "distri/touch-canvas:v0.3.0"
   "undo": "distri/undo:v0.2.0"
+  util: "distri/util:v0.1.0"
 width: 1024
 height: 576
