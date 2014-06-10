@@ -6,6 +6,8 @@ Palette
   Load Palette
   Modify Palette
 
+Symmetry Mode
+
 Layers
   Reorder Layers
   Delete Layers

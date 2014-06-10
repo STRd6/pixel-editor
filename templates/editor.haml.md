@@ -10,10 +10,17 @@ Editor template
 The toolbar holds our tools.
 
       .toolbar
-        - each @tools, (tool) ->
-          - activeClass = -> "active" if tool is activeTool()
-          - activate = -> activeTool(tool)
-          .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
+        .tools
+          - each @tools, (tool) ->
+            - activeClass = -> "active" if tool is activeTool()
+            - activate = -> activeTool(tool)
+            .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
+        .tools
+          - symmetryMode = @symmetryMode
+          - each ["normal", "flip", "flop", "quad"], (mode) ->
+            - activeClass = -> "active" if mode is symmetryMode()
+            - activate = -> symmetryMode(mode)
+            .tool(class=activeClass click=activate)= mode
 
 Our layers and preview canvases are placed in the viewport.
 
