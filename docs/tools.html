@@ -34,7 +34,8 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">{line, circle, rect, rectOutline} = require <span class="string">"./util"</span>
+            <div class="content"><pre><code class="lang-coffeescript">Brushes = require <span class="string">"./brushes"</span>
+{line, circle, rect, rectOutline} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
   fn start
@@ -52,7 +53,7 @@
   start = <span class="literal">null</span>
 
   iconUrl: icon
-  touch: ({position})-&gt;
+  touch: ({position}) -&gt;
     start = position
 
   move: ({editor, position})-&gt;
@@ -60,7 +61,25 @@
       fn start, position, editor.draw
 
   release: ({position, editor}) -&gt;
-    fn start, position, editor.draw</code></pre>
+    fn start, position, editor.draw
+
+<span class="function"><span class="title">brushTool</span></span> = (name, icon) -&gt;
+  previousPosition = <span class="literal">null</span>
+  brush = Brushes[name]
+
+  <span class="function"><span class="title">paint</span></span> = (out) -&gt;
+    (point) -&gt;
+      brush(point).forEach out
+
+  iconUrl: icon
+  touch: ({position, editor})-&gt;
+    paint(editor.draw) position
+    previousPosition = position
+  move: ({editor, position})-&gt;
+    line previousPosition, position, paint(editor.draw)
+    previousPosition = position
+  release: -&gt;
+    previousPosition = <span class="literal">null</span></code></pre>
 </div>
         </li>
         
@@ -86,19 +105,24 @@
               <p>Draw a line when moving while touching.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  pencil: <span class="keyword">do</span> -&gt;
-    previousPosition = <span class="literal">null</span>
+            <div class="content"><pre><code class="lang-coffeescript">  pencil: brushTool <span class="string">"pencil"</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
 
-    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
-    touch: ({position, editor})-&gt;
-      editor.draw position
-      previousPosition = position
-    move: ({editor, position})-&gt;
-      line previousPosition, position, editor.draw
-      previousPosition = position
-    release: -&gt;
+  brush: brushTool <span class="string">"brush"</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Fill a connected area.</p>
 
-  fill:
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  fill:
     iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII="</span>
     touch: ({position, editor}) -&gt;
       index = editor.activeIndex()
@@ -135,10 +159,10 @@
         </li>
         
         
-        <li id="section-5">
+        <li id="section-6">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <h2 id="shapes">Shapes</h2>
 
@@ -149,10 +173,10 @@
         </li>
         
         
-        <li id="section-6">
+        <li id="section-7">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               
             </div>

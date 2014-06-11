@@ -40,10 +40,17 @@
 
             </div>
             <div class="content"><pre><code class="lang-haml">  .toolbar
-    - each @tools, (tool) -&gt;
-      - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
-      - activate = -&gt; activeTool(tool)
-      .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass click=activate)</code></pre>
+    .tools
+      - each @tools, (tool) -&gt;
+        - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
+        - activate = -&gt; activeTool(tool)
+        .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass click=activate)
+    .tools
+      - symmetryMode = @symmetryMode
+      - each [&quot;normal&quot;, &quot;flip&quot;, &quot;flop&quot;, &quot;quad&quot;], (mode) -&gt;
+        - activeClass = -&gt; &quot;active&quot; if mode is symmetryMode()
+        - activate = -&gt; symmetryMode(mode)
+        .tool(class=activeClass click=activate)= mode</code></pre>
 </div>
         </li>
         
