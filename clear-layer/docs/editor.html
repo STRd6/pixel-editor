@@ -171,7 +171,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       pixelExtent Size(size)
 
     repaint: -&gt;
-      console.log <span class="string">"Repaint"</span>
       self.layers().first()?.each (_, x, y) -&gt;
         self.repaintPixel {x, y}
 
