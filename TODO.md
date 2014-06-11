@@ -2,8 +2,6 @@ TODO
 ====
 Replay
 
-Eyedropper
-
 Tool cursors
 
 Clear Action Icon
