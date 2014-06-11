@@ -99,11 +99,10 @@ Actions
           Clear image
         """
         method: ({editor}) ->
-          # Kind of a hack
-          console.log "clearing"
           command = editor.Command.Composite()
           editor.execute command
 
+          # Kind of a hack, just removing the top layer and adding a new one
           command.push editor.Command.RemoveLayer(editor.layer().toJSON())
           command.push editor.Command.NewLayer()
 
