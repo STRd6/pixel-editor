@@ -1,6 +1,6 @@
 TODO
 ====
-Documentation
+Replay
 
 Tool cursors
 
@@ -11,6 +11,8 @@ Symmetry Mode Icons
 Palette
   Load Palette
   Modify Palette
+
+Documentation
 
 Autosave
 
