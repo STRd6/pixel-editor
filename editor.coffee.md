@@ -138,7 +138,8 @@ Editor
           pixelExtent Size(size)
 
         repaint: ->
-          self.layers().first().each (_, x, y) ->
+          console.log "Repaint"
+          self.layers().first()?.each (_, x, y) ->
             self.repaintPixel {x, y}
 
           return self

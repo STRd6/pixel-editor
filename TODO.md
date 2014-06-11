@@ -4,7 +4,7 @@ Documentation
 
 Tool cursors
 
-Clear Layer action
+Clear Action Icon
 
 Symmetry Mode Icons
 
