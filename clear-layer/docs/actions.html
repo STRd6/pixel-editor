@@ -132,11 +132,10 @@ Actions.defaults =
       Clear image
     """</span>
     method: ({editor}) -&gt;
-      <span class="comment"># Kind of a hack</span>
-      console.log <span class="string">"clearing"</span>
       command = editor.Command.Composite()
       editor.execute command
 
+      <span class="comment"># Kind of a hack, just removing the top layer and adding a new one</span>
       command.push editor.Command.RemoveLayer(editor.layer().toJSON())
       command.push editor.Command.NewLayer()
 
