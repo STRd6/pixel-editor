@@ -171,7 +171,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       pixelExtent Size(size)
 
     repaint: -&gt;
-      self.layers().first().each (_, x, y) -&gt;
+      self.layers().first()?.each (_, x, y) -&gt;
         self.repaintPixel {x, y}
 
       <span class="keyword">return</span> self
@@ -212,13 +212,17 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       self.repaint()
 
-    draw: (point) -&gt;
+    draw: (point, options={}) -&gt;
+      {index, layer} = options
+      index ?= activeIndex()
+      layer ?= self.activeLayerIndex()
+
       Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) -&gt;
         lastCommand.push self.Command.ChangePixel
           x: x
           y: y
-          index: activeIndex()
-          layer: self.activeLayerIndex()
+          index: index
+          layer: layer
 
     changePixel: (params) -&gt;
       {x, y, index, layer} = params

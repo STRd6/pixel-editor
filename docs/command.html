@@ -115,7 +115,13 @@ versions.</p>
     undo: -&gt;
       <span class="comment"># TODO: May need to know layer index and previously active layer</span>
       <span class="comment"># index</span>
-      self.removeLayer()
+      self.removeLayer(data)
+
+  C <span class="string">"RemoveLayer"</span>, (data) -&gt;
+    execute: -&gt;
+      self.removeLayer(data)
+    undo: -&gt;
+      self.newLayer(data)
 
   C <span class="string">"Composite"</span>, (data) -&gt;
     <span class="keyword">if</span> data.commands
