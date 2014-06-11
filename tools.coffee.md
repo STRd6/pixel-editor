@@ -68,6 +68,20 @@ Draw a line when moving while touching.
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg==",
         index: 0
 
+      dropper:
+        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAH1JREFUeJztjrsNhDAUBIfLTOiYsiClCHdEDUT0Q0rscElY3QkJOD4hI1nye/aOFm5S/Ny1sd/l43AdAqoq6hDWsr8aqIsRgLYsKcbRbzpq4wb0OQPQTJNXh+E18ulilFLyfBopJZmzEn+WhuGy5NvklWxKrgpYgrclFj3DDPqoerGlCYunAAAAAElFTkSuQmCC"
+        touch: ({position, editor}) ->
+          {x, y} = position
+          index = editor.layer().get(x, y)
+          editor.activeIndex index
+        move: ({position, editor}) ->
+          {x, y} = position
+          index = editor.layer().get(x, y)
+          editor.activeIndex index
+        release: ->
+          # Return to the previous tool
+          editor.activeTool editor.previousTool()
+
 Fill a connected area.
 
       fill:
@@ -125,6 +139,7 @@ Shapes
           self.tools.push tool
 
         activeTool: Observable()
+        previousTool: Observable()
 
         tools: Observable []
 

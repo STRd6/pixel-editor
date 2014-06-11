@@ -2,6 +2,7 @@ Editor template
 
     - activeIndex = @activeIndex
     - activeTool = @activeTool
+    - previousTool = @previousTool
     - editor = this
     - Observable = require "observable"
 
@@ -13,7 +14,7 @@ The toolbar holds our tools.
         .tools
           - each @tools, (tool) ->
             - activeClass = -> "active" if tool is activeTool()
-            - activate = -> activeTool(tool)
+            - activate = -> previousTool(activeTool()); activeTool(tool)
             .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
         .tools
           - symmetryMode = @symmetryMode
