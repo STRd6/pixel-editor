@@ -23,8 +23,9 @@
             </div>
             <div class="content"><pre><code class="lang-haml">- activeIndex = @activeIndex
 - activeTool = @activeTool
+- previousTool = @previousTool
 - editor = this
-- Observable = require &quot;observable&quot;
+- Symmetry = require &quot;../symmetry&quot;
 
 .editor</code></pre>
 </div>
@@ -43,14 +44,15 @@
     .tools
       - each @tools, (tool) -&gt;
         - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
-        - activate = -&gt; activeTool(tool)
+        - activate = -&gt; previousTool(activeTool()); activeTool(tool)
         .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass click=activate)
+    %h2 Symmetry
     .tools
       - symmetryMode = @symmetryMode
       - each [&quot;normal&quot;, &quot;flip&quot;, &quot;flop&quot;, &quot;quad&quot;], (mode) -&gt;
         - activeClass = -&gt; &quot;active&quot; if mode is symmetryMode()
         - activate = -&gt; symmetryMode(mode)
-        .tool(class=activeClass click=activate)= mode</code></pre>
+        .tool(style=&quot;background-image: url(#{Symmetry.icon[mode]})&quot; class=activeClass click=activate)</code></pre>
 </div>
         </li>
         
