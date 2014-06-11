@@ -4,10 +4,6 @@ Replay
 
 Tool cursors
 
-Clear Action Icon
-
-Symmetry Mode Icons
-
 Palette
   Load Palette
   Modify Palette
