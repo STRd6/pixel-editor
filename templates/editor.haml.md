@@ -4,7 +4,7 @@ Editor template
     - activeTool = @activeTool
     - previousTool = @previousTool
     - editor = this
-    - Observable = require "observable"
+    - Symmetry = require "../symmetry"
 
     .editor
 
@@ -16,12 +16,13 @@ The toolbar holds our tools.
             - activeClass = -> "active" if tool is activeTool()
             - activate = -> previousTool(activeTool()); activeTool(tool)
             .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
+        %h2 Symmetry
         .tools
           - symmetryMode = @symmetryMode
           - each ["normal", "flip", "flop", "quad"], (mode) ->
             - activeClass = -> "active" if mode is symmetryMode()
             - activate = -> symmetryMode(mode)
-            .tool(class=activeClass click=activate)= mode
+            .tool(style="background-image: url(#{Symmetry.icon[mode]})" class=activeClass click=activate)
 
 Our layers and preview canvases are placed in the viewport.
 

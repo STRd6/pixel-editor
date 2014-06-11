@@ -37,7 +37,7 @@ Editor
       canvasSize = Observable ->
         pixelExtent().scale(pixelSize())
 
-      symmetryMode = Observable("quad")
+      symmetryMode = Observable("normal")
 
       canvas = null
       lastCommand = null
