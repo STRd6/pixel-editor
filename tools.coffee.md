@@ -30,13 +30,17 @@ Tools
       release: ({position, editor}) ->
         fn start, position, editor.draw
 
-    brushTool = (name, icon) ->
+    brushTool = (brushName, icon, options) ->
       previousPosition = null
-      brush = Brushes[name]
+      brush = Brushes[brushName]
+
+      OP = (out) ->
+        (p) ->
+          out(p, options)
 
       paint = (out) ->
         (point) ->
-          brush(point).forEach out
+          brush(point).forEach OP out
 
       iconUrl: icon
       touch: ({position, editor})->
@@ -59,6 +63,10 @@ Draw a line when moving while touching.
 
       brush: brushTool "brush",
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="
+
+      eraser: brushTool "pencil",
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg==",
+        index: 0
 
 Fill a connected area.
 
