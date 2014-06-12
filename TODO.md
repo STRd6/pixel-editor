@@ -1,6 +1,9 @@
 TODO
 ====
-Replay
+
+Better Circle/Ellipse Tool
+
+Tool Hotkeys
 
 Tool cursors
 
@@ -48,6 +51,8 @@ Plugins
 
 Done
 ====
+Replay
+
 Composite Preview
 
 Zoom In/Out
