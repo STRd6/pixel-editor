@@ -138,6 +138,15 @@ Actions
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
+      "f5":
+        name: "Replay"
+        description: """
+          Replay the drawing process
+        """
+        method: ({editor}) ->
+          editor.replay()
+        icon: ""
+
       "?":
         name: "Help"
         method: ({editor}) ->
