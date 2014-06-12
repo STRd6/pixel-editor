@@ -149,7 +149,7 @@ Actions
           # Unlock interaction
         icon: ""
 
-      "?":
+      "F1":
         name: "Help"
         method: ({editor}) ->
           window.open("./docs")
