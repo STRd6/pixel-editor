@@ -138,7 +138,18 @@ Actions
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
-      "?":
+      "":
+        name: "Replay"
+        description: """
+          Replay the drawing process
+        """
+        method: ({edior}) ->
+          # Lock interaction
+          # Do Replay
+          # Unlock interaction
+        icon: ""
+
+      "F1":
         name: "Help"
         method: ({editor}) ->
           window.open("./docs")
