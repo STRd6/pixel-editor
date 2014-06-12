@@ -42,6 +42,8 @@ Editor
       canvas = null
       lastCommand = null
 
+      replaying = false
+
       self ?= Model(I)
 
       self.include Actions
@@ -147,6 +149,35 @@ Editor
           loader.load(dataURL)
           .then (imageData) ->
             editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
+
+        replay: ->
+          # TODO: May want to prevent adding new commands while replaying!
+          unless replaying
+            replaying = true
+
+            # Copy and clear history
+            steps = self.history()
+            self.history([])
+
+            # TODO: initial state if not blank
+            self.layers []
+            makeLayer()
+            self.repaint()
+
+            delay = (5000 / steps.length).clamp(1, 250)
+            i = 0
+
+            runStep = -> 
+              if step = steps[i]
+                self.execute step
+                i += 1
+
+                setTimeout runStep, delay
+              else
+                # Replay will be done and history will have been automatically rebuilt
+                replaying = false
+
+            setTimeout runStep, delay
 
         restoreState: (state) ->
           self.palette state.palette
