@@ -171,7 +171,16 @@ Actions.defaults =
       editor.grid.toggle()
     icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"</span>
 
-  <span class="string">"?"</span>:
+  <span class="string">"f5"</span>:
+    name: <span class="string">"Replay"</span>
+    description: <span class="string">"""
+      Replay the drawing process
+    """</span>
+    method: ({editor}) -&gt;
+      editor.replay()
+    icon: <span class="string">""</span>
+
+  <span class="string">"F1"</span>:
     name: <span class="string">"Help"</span>
     method: ({editor}) -&gt;
       window.open(<span class="string">"./docs"</span>)

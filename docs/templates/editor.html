@@ -90,8 +90,9 @@
             <div class="content"><pre><code class="lang-haml">  .palette
     .color.current
     - each @palette, (color, index) -&gt;
+      - activeClass = -&gt; &quot;active&quot; if index is activeIndex()
       - activate = -&gt; activeIndex index
-      .color(click=activate touchstart=activate style=&quot;background-color: #{color}&quot;)
+      .color(class=activeClass click=activate touchstart=activate style=&quot;background-color: #{color}&quot;)
 
   .actions
     - each @actions, (action) -&gt;

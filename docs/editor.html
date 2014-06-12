@@ -75,6 +75,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   canvas = <span class="literal">null</span>
   lastCommand = <span class="literal">null</span>
 
+  replaying = <span class="literal">false</span>
+
   self ?= Model(I)
 
   self.include Actions
@@ -180,6 +182,35 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       loader.load(dataURL)
       .<span class="keyword">then</span> (imageData) -&gt;
         editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
+
+    replay: -&gt;
+      <span class="comment"># TODO: May want to prevent adding new commands while replaying!</span>
+      <span class="keyword">unless</span> replaying
+        replaying = <span class="literal">true</span>
+
+        <span class="comment"># Copy and clear history</span>
+        steps = self.history()
+        self.history([])
+
+        <span class="comment"># TODO: initial state if not blank</span>
+        self.layers []
+        makeLayer()
+        self.repaint()
+
+        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+        i = <span class="number">0</span>
+
+        <span class="function"><span class="title">runStep</span></span> = -&gt; 
+          <span class="keyword">if</span> step = steps[i]
+            self.execute step
+            i += <span class="number">1</span>
+
+            setTimeout runStep, delay
+          <span class="keyword">else</span>
+            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
+            replaying = <span class="literal">false</span>
+
+        setTimeout runStep, delay
 
     restoreState: (state) -&gt;
       self.palette state.palette
