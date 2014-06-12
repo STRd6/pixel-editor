@@ -65,7 +65,13 @@ versions.
         undo: ->
           # TODO: May need to know layer index and previously active layer
           # index
-          self.removeLayer()
+          self.removeLayer(data)
+
+      C "RemoveLayer", (data) ->
+        execute: ->
+          self.removeLayer(data)
+        undo: ->
+          self.newLayer(data)
 
       C "Composite", (data) ->
         if data.commands

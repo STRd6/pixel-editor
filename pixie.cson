@@ -19,5 +19,5 @@ dependencies:
   "touch-canvas": "distri/touch-canvas:v0.3.0"
   "undo": "distri/undo:v0.2.0"
   util: "distri/util:v0.1.0"
-width: 1024
-height: 576
+width: 1280
+height: 720

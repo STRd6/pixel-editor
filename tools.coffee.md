@@ -1,6 +1,7 @@
 Tools
 =====
 
+    Brushes = require "./brushes"
     {line, circle, rect, rectOutline} = require "./util"
 
     line2 = (start, end, fn) ->
@@ -19,7 +20,7 @@ Tools
       start = null
 
       iconUrl: icon
-      touch: ({position})->
+      touch: ({position}) ->
         start = position
 
       move: ({editor, position})->
@@ -29,23 +30,59 @@ Tools
       release: ({position, editor}) ->
         fn start, position, editor.draw
 
+    brushTool = (brushName, icon, options) ->
+      previousPosition = null
+      brush = Brushes[brushName]
+
+      OP = (out) ->
+        (p) ->
+          out(p, options)
+
+      paint = (out) ->
+        (point) ->
+          brush(point).forEach OP out
+
+      iconUrl: icon
+      touch: ({position, editor})->
+        paint(editor.draw) position
+        previousPosition = position
+      move: ({editor, position})->
+        line previousPosition, position, paint(editor.draw)
+        previousPosition = position
+      release: ->
+        previousPosition = null
+
 Default tools.
 
     TOOLS =
 
 Draw a line when moving while touching.
 
-      pencil: do ->
-        previousPosition = null
+      pencil: brushTool "pencil",
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="
 
-        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="
-        touch: ({position, editor})->
-          editor.draw position
-          previousPosition = position
-        move: ({editor, position})->
-          line previousPosition, position, editor.draw
-          previousPosition = position
+      brush: brushTool "brush",
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="
+
+      eraser: brushTool "pencil",
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg==",
+        index: 0
+
+      dropper:
+        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAH1JREFUeJztjrsNhDAUBIfLTOiYsiClCHdEDUT0Q0rscElY3QkJOD4hI1nye/aOFm5S/Ny1sd/l43AdAqoq6hDWsr8aqIsRgLYsKcbRbzpq4wb0OQPQTJNXh+E18ulilFLyfBopJZmzEn+WhuGy5NvklWxKrgpYgrclFj3DDPqoerGlCYunAAAAAElFTkSuQmCC"
+        touch: ({position, editor}) ->
+          {x, y} = position
+          index = editor.layer().get(x, y)
+          editor.activeIndex index
+        move: ({position, editor}) ->
+          {x, y} = position
+          index = editor.layer().get(x, y)
+          editor.activeIndex index
         release: ->
+          # Return to the previous tool
+          editor.activeTool editor.previousTool()
+
+Fill a connected area.
 
       fill:
         iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII="
@@ -102,6 +139,7 @@ Shapes
           self.tools.push tool
 
         activeTool: Observable()
+        previousTool: Observable()
 
         tools: Observable []
 

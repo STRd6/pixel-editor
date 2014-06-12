@@ -22,6 +22,8 @@ Editor
     template = require "./templates/editor"
     debugTemplate = require "./templates/debug"
 
+    Symmetry = require "./symmetry"
+
     {Size} = require "./util"
 
     module.exports = (I={}, self) ->
@@ -34,6 +36,8 @@ Editor
       pixelSize = Observable 16
       canvasSize = Observable ->
         pixelExtent().scale(pixelSize())
+
+      symmetryMode = Observable("normal")
 
       canvas = null
       lastCommand = null
@@ -112,6 +116,8 @@ Editor
 
           self.repaint()
 
+        symmetryMode: symmetryMode
+
         outputCanvas: (scale=1)->
           outputCanvas = TouchCanvas pixelExtent().scale(scale)
 
@@ -132,7 +138,7 @@ Editor
           pixelExtent Size(size)
 
         repaint: ->
-          self.layers().first().each (_, x, y) ->
+          self.layers().first()?.each (_, x, y) ->
             self.repaintPixel {x, y}
 
           return self
@@ -173,12 +179,17 @@ Editor
 
           self.repaint()
 
-        draw: ({x, y}) ->
-          lastCommand.push self.Command.ChangePixel
-            x: x
-            y: y
-            index: activeIndex()
-            layer: self.activeLayerIndex()
+        draw: (point, options={}) ->
+          {index, layer} = options
+          index ?= activeIndex()
+          layer ?= self.activeLayerIndex()
+
+          Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
+            lastCommand.push self.Command.ChangePixel
+              x: x
+              y: y
+              index: index
+              layer: layer
 
         changePixel: (params) ->
           {x, y, index, layer} = params

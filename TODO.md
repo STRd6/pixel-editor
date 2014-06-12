@@ -1,14 +1,14 @@
 TODO
 ====
-Documentation
+Replay
+
+Tool cursors
 
 Palette
   Load Palette
   Modify Palette
 
-Layers
-  Reorder Layers
-  Delete Layers
+Documentation
 
 Autosave
 
@@ -20,6 +20,10 @@ Opening an image that is smaller than the canvas grid spacing issues
 
 V2
 ----
+Layers
+  Reorder Layers
+  Delete Layers
+
 Sync to server?
 
 Animation Frames
@@ -67,7 +71,6 @@ Open files from a file picker
 
 Bugs
 ----
-Refreshing canvas gets a little messed up in resizing
 
 Expand canvas when dropping an larger image
 
