@@ -49,9 +49,10 @@
     Point(point.x, point.y+<span class="number">1</span>)
   ]
 
-<span class="function"><span class="title">shapeTool</span></span> = (fn, icon) -&gt;
+<span class="function"><span class="title">shapeTool</span></span> = (fn, hotkey, icon) -&gt;
   start = <span class="literal">null</span>
 
+  hotkeys: hotkey
   iconUrl: icon
   touch: ({position}) -&gt;
     start = position
@@ -63,7 +64,7 @@
   release: ({position, editor}) -&gt;
     fn start, position, editor.draw
 
-<span class="function"><span class="title">brushTool</span></span> = (brushName, icon, options) -&gt;
+<span class="function"><span class="title">brushTool</span></span> = (brushName, hotkey, icon, options) -&gt;
   previousPosition = <span class="literal">null</span>
   brush = Brushes[brushName]
 
@@ -75,6 +76,7 @@
     (point) -&gt;
       brush(point).forEach OP out
 
+  hotkeys: hotkey
   iconUrl: icon
   touch: ({position, editor})-&gt;
     paint(editor.draw) position
@@ -109,17 +111,18 @@
               <p>Draw a line when moving while touching.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  pencil: brushTool <span class="string">"pencil"</span>,
+            <div class="content"><pre><code class="lang-coffeescript">  pencil: brushTool <span class="string">"pencil"</span>, <span class="string">"p"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
 
-  brush: brushTool <span class="string">"brush"</span>,
+  brush: brushTool <span class="string">"brush"</span>, <span class="string">"b"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="</span>
 
-  eraser: brushTool <span class="string">"pencil"</span>,
+  eraser: brushTool <span class="string">"pencil"</span>, <span class="string">"e"</span>, 
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg=="</span>,
     index: <span class="number">0</span>
 
   dropper:
+    hotkeys: <span class="string">"i"</span>
     iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAH1JREFUeJztjrsNhDAUBIfLTOiYsiClCHdEDUT0Q0rscElY3QkJOD4hI1nye/aOFm5S/Ny1sd/l43AdAqoq6hDWsr8aqIsRgLYsKcbRbzpq4wb0OQPQTJNXh+E18ulilFLyfBopJZmzEn+WhuGy5NvklWxKrgpYgrclFj3DDPqoerGlCYunAAAAAElFTkSuQmCC"</span>
     touch: ({position, editor}) -&gt;
       {x, y} = position
@@ -145,6 +148,7 @@
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">  fill:
+    hotkeys: <span class="string">"f"</span>
     iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII="</span>
     touch: ({position, editor}) -&gt;
       index = editor.activeIndex()
@@ -202,21 +206,25 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle,
+            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle, <span class="string">"c"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
 
-  rect: shapeTool rect,
+  rect: shapeTool rect, <span class="string">"r"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
 
-  rectOutline: shapeTool rectOutline,
+  rectOutline: shapeTool rectOutline, <span class="string">"shift+r"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span>
 
-  line2: shapeTool line2,
+  line2: shapeTool line2, <span class="string">"l"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
     addTool: (tool) -&gt;
+      [].concat(tool.hotkeys <span class="keyword">or</span> []).forEach (hotkey) -&gt;
+        self.addHotkey hotkey, -&gt;
+          self.activeTool tool
+
       self.tools.push tool
 
     activeTool: Observable()
@@ -228,6 +236,16 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   <span class="comment"># reusable</span>
   Object.keys(TOOLS).forEach (name) -&gt;
     self.addTool TOOLS[name]
+
+  <span class="function"><span class="title">setNthTool</span></span> = (n) -&gt;
+    -&gt;
+      <span class="keyword">if</span> tool = self.tools.get(n)
+        self.activeTool tool
+
+  [<span class="number">1.</span><span class="number">.9</span>].forEach (n) -&gt;
+    self.addHotkey n.toString(), setNthTool(n-<span class="number">1</span>)
+
+  self.addHotkey <span class="string">"0"</span>, setNthTool(<span class="number">9</span>)
 
   self.activeTool(self.tools()[<span class="number">0</span>])
 
