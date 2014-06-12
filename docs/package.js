@@ -174,13 +174,13 @@
     },
     "README.md": {
       "path": "README.md",
-      "content": "pixel-editor\n============\n\nIt edits pixels\n",
+      "content": "Pixel Editor\n============\n\nIt edits pixels\n\nPalette\n=======\n\nLimited color palette (4, 8, 16, 32, 64, 128, or 256)\n\nTools\n=====\n\nPencil\n\nBrush\n\nEraser\n\nEye Dropper\n\nPaint Bucket\n\nEllipse\n\nSolid Rectangle\n\nRectangle Outline\n\nLine\n\nSymmetry Modes\n==============\n\nNormal\nFlip horizontally\nFlip vertically\nQuad\n\nHotkeys\n=======\n\n0-9 Select nth tool\n",
       "mode": "100644",
       "type": "blob"
     },
     "TODO.md": {
       "path": "TODO.md",
-      "content": "TODO\n====\n\nBetter Circle/Ellipse Tool\n\nTool Hotkeys\n\nTool cursors\n\nPalette\n  Load Palette\n  Modify Palette\n\nDocumentation\n\nAutosave\n\nBugs\n----\nPreview and layers get cut off for larger images\n\nOpening an image that is smaller than the canvas grid spacing issues\n\nV2\n----\nLayers\n  Reorder Layers\n  Delete Layers\n\nSync to server?\n\nAnimation Frames\n  New Frame\n  Delete Frame\n  Onion Skin\n\nSelections\n\nCopy/Paste\n\nReplays\n\nGrid\n  Modify Grid Size\n\nCommand Console\n\nScripts\n\nPlugins\n\nDone\n====\nReplay\n\nComposite Preview\n\nZoom In/Out\n\nResize Image\n\nExport Image\n\nLoad Image\nSave Image\n\nSave Files to desktop\n  .json\n\nExport to desktop\n  .png\n\nOpen files from a file picker\n  .json\n  .png or .jpeg\n\nBugs\n----\n\nExpand canvas when dropping an larger image\n\nPreview Erase/Transparent\n\nPreview Layer in canvas always shows at top\n",
+      "content": "TODO\n====\n\nBetter Circle/Ellipse Tool\n\nTool cursors\n\nPosition Display\n\nPalette\n  Load Palette\n  Modify Palette\n\nDocumentation\n\nAutosave\n\nSelection Tool\n\nBugs\n----\nPreview and layers get cut off for larger images\n\nOpening an image that is smaller than the canvas grid spacing issues\n\nV2\n----\nLayers\n  Reorder Layers\n  Delete Layers\n\nSync to server?\n\nAnimation Frames\n  New Frame\n  Delete Frame\n  Onion Skin\n\nSelections\n\nCopy/Paste\n\nReplays\n\nGrid\n  Modify Grid Size\n\nCommand Console\n\nScripts\n\nPlugins\n\nDone\n====\nTool Hotkeys\n\nReplay\n\nComposite Preview\n\nZoom In/Out\n\nResize Image\n\nExport Image\n\nLoad Image\nSave Image\n\nSave Files to desktop\n  .json\n\nExport to desktop\n  .png\n\nOpen files from a file picker\n  .json\n  .png or .jpeg\n\nBugs\n----\n\nExpand canvas when dropping an larger image\n\nPreview Erase/Transparent\n\nPreview Layer in canvas always shows at top\n",
       "mode": "100644",
       "type": "blob"
     },
