@@ -167,7 +167,7 @@ Editor
             delay = (5000 / steps.length).clamp(1, 250)
             i = 0
 
-            runStep = -> 
+            runStep = ->
               if step = steps[i]
                 self.execute step
                 i += 1
