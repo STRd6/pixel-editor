@@ -3,9 +3,9 @@ TODO
 
 Better Circle/Ellipse Tool
 
-Tool Hotkeys
-
 Tool cursors
+
+Position Display
 
 Palette
   Load Palette
@@ -14,6 +14,8 @@ Palette
 Documentation
 
 Autosave
+
+Selection Tool
 
 Bugs
 ----
@@ -51,6 +53,8 @@ Plugins
 
 Done
 ====
+Tool Hotkeys
+
 Replay
 
 Composite Preview
