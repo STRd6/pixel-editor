@@ -42,8 +42,9 @@ The palette holds our colors.
       .palette
         .color.current
         - each @palette, (color, index) ->
+          - activeClass = -> "active" if index is activeIndex()
           - activate = -> activeIndex index
-          .color(click=activate touchstart=activate style="background-color: #{color}")
+          .color(class=activeClass click=activate touchstart=activate style="background-color: #{color}")
 
       .actions
         - each @actions, (action) ->
