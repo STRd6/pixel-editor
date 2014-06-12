@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>util</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="util">Util</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="deferred">Deferred</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Use jQuery deferred</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">global.Deferred = jQuery.Deferred</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">isObject</span></span> = (object) -&gt;
+  Object::toString.call(object) <span class="keyword">is</span> <span class="string">"[object Object]"</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h2 id="size">Size</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>A 2d extent.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Size</span></span> = (width, height) -&gt;
+  <span class="keyword">if</span> isObject(width)
+    {width, height} = width
+
+  width: width
+  height: height
+  __proto__: Size.prototype
+
+Size.prototype =
+  scale: (scalar) -&gt;
+    Size(<span class="property">@width</span> * scalar, <span class="property">@height</span> * scalar)
+
+  toString: -&gt;
+    <span class="string">"Size(<span class="subst">#{@width}</span>, <span class="subst">#{@height}</span>)"</span>
+
+  max: (otherSize) -&gt;
+    Size(
+      Math.max(<span class="property">@width</span>, otherSize.width)
+      Math.max(<span class="property">@height</span>, otherSize.height)
+    )
+
+  each: (iterator) -&gt;
+    [<span class="number">0.</span>..<span class="property">@height</span>].forEach (y) -&gt;
+      [<span class="number">0.</span>..<span class="property">@width</span>].forEach (x) -&gt;
+        iterator(x, y)
+
+  inverse: -&gt;
+    Size(<span class="number">1</span><span class="regexp">/@width, 1/</span><span class="property">@height</span>)</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <h2 id="point-extensions">Point Extensions</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">Point.prototype.<span class="function"><span class="title">scale</span></span> = (scalar) -&gt;
+  <span class="keyword">if</span> isObject(scalar)
+    Point(<span class="property">@x</span> * scalar.width, <span class="property">@y</span> * scalar.height)
+  <span class="keyword">else</span>
+    Point(<span class="property">@x</span> * scalar, <span class="property">@y</span> * scalar)</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Extra utilities that may be broken out into separate libraries.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">module.exports =
+
+  Size: Size</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>A 2d grid of values.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  Grid: (width, height, defaultValue) -&gt;
+    <span class="function"><span class="title">generateValue</span></span> = (x, y) -&gt;
+      <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
+        defaultValue(x, y)
+      <span class="keyword">else</span>
+        defaultValue
+
+    grid =
+      [<span class="number">0.</span>..height].map (y) -&gt;
+        [<span class="number">0.</span>..width].map (x) -&gt;
+          generateValue(x, y)
+
+    self =
+      contract: (x, y) -&gt;
+        height -= y
+        width -= x
+
+        grid.length = height
+
+        grid.forEach (row) -&gt;
+          row.length = width
+
+        <span class="keyword">return</span> self
+
+      copy: -&gt;
+        Grid(width, height, self.get)
+
+      get: (x, y) -&gt;
+        <span class="keyword">return</span> <span class="keyword">if</span> x &lt; <span class="number">0</span> <span class="keyword">or</span> x &gt;= width
+        <span class="keyword">return</span> <span class="keyword">if</span> y &lt; <span class="number">0</span> <span class="keyword">or</span> y &gt;= height
+
+        grid[y][x]
+
+      set: (x, y, value) -&gt;
+        <span class="keyword">return</span> <span class="keyword">if</span> x &lt; <span class="number">0</span> <span class="keyword">or</span> x &gt;= width
+        <span class="keyword">return</span> <span class="keyword">if</span> y &lt; <span class="number">0</span> <span class="keyword">or</span> y &gt;= height
+
+        grid[y][x] = value
+
+      each: (iterator) -&gt;
+        grid.forEach (row, y) -&gt;
+          row.forEach (value, x) -&gt;
+            iterator(value, x, y)
+
+        <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Expand the grid using the given <code>defaultValue</code> value or function to fill any
+positions that need to be filled.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">      expand: (x, y, defaultValue) -&gt;
+        newRows = [<span class="number">0.</span>..y].map (y) -&gt;
+          [<span class="number">0.</span>..width].map (x) -&gt;
+            <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
+              defaultValue(x, y + height)
+            <span class="keyword">else</span>
+              defaultValue
+
+        grid = grid.concat newRows
+
+        grid = grid.map (row, y) -&gt;
+          row.concat [<span class="number">0.</span>..x].map (x) -&gt;
+            <span class="keyword">if</span> <span class="keyword">typeof</span> defaultValue <span class="keyword">is</span> <span class="string">"function"</span>
+              defaultValue(width + x, y)
+            <span class="keyword">else</span>
+              defaultValue
+
+        height = y + height
+        width = x + width
+
+        <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Return a 1-dimensional array of the data within the grid.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">      toArray: -&gt;
+        grid.reduce (a, b) -&gt;
+          a.concat(b)
+        , []
+
+    <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Call an iterator for each integer point on a line between two integer points.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  line: (p0, p1, iterator) -&gt;
+    {x:x0, y:y0} = p0
+    {x:x1, y:y1} = p1
+
+    dx = (x1 - x0).abs()
+    dy = (y1 - y0).abs()
+    sx = (x1 - x0).sign()
+    sy = (y1 - y0).sign()
+    err = dx - dy
+
+    <span class="keyword">while</span> !(x0 <span class="keyword">is</span> x1 <span class="keyword">and</span> y0 <span class="keyword">is</span> y1)
+      e2 = <span class="number">2</span> * err
+
+      <span class="keyword">if</span> e2 &gt; -dy
+        err -= dy
+        x0 += sx
+
+      <span class="keyword">if</span> e2 &lt; dx
+        err += dx
+        y0 += sy
+
+      iterator
+        x: x0
+        y: y0
+
+  rect: (start, end, iterator) -&gt;
+    [start.y..end.y].forEach (y) -&gt;
+      [start.x..end.x].forEach (x) -&gt;
+        iterator
+          x: x
+          y: y
+
+  rectOutline: (start, end, iterator) -&gt;
+    [start.y..end.y].forEach (y) -&gt;
+      <span class="keyword">if</span> y <span class="keyword">is</span> start.y <span class="keyword">or</span> y <span class="keyword">is</span> end.y
+        [start.x..end.x].forEach (x) -&gt;
+          iterator
+            x: x
+            y: y
+      <span class="keyword">else</span>
+        iterator
+          x: start.x
+          y: y
+
+        iterator
+          x: end.x
+          y: y</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>gross code courtesy of <a href="http://en.wikipedia.org/wiki/Midpoint_circle_algorithm">http://en.wikipedia.org/wiki/Midpoint_circle_algorithm</a></p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  circle: (start, endPoint, iterator) -&gt;
+    center = Point.interpolate(start, endPoint, <span class="number">0.5</span>).floor()
+    {x:x0, y:y0} = center
+    {x:x1, y:y1} = endPoint
+
+    extent = endPoint.subtract(start).scale(<span class="number">0.5</span>).abs().floor()
+
+    radius = Math.min(
+      extent.x
+      extent.y
+    )
+
+    f = <span class="number">1</span> - radius
+    ddFx = <span class="number">1</span>
+    ddFy = -<span class="number">2</span> * radius
+
+    x = <span class="number">0</span>
+    y = radius
+
+    iterator Point(x0, y0 + radius)
+    iterator Point(x0, y0 - radius)
+    iterator Point(x0 + radius, y0)
+    iterator Point(x0 - radius, y0)
+
+    <span class="keyword">while</span> x &lt; y
+      <span class="keyword">if</span> f &gt; <span class="number">0</span>
+        y--
+        ddFy += <span class="number">2</span>
+        f += ddFy
+
+      x++
+      ddFx += <span class="number">2</span>
+      f += ddFx
+
+      iterator Point(x0 + x, y0 + y)
+      iterator Point(x0 - x, y0 + y)
+      iterator Point(x0 + x, y0 - y)
+      iterator Point(x0 - x, y0 - y)
+      iterator Point(x0 + y, y0 + x)
+      iterator Point(x0 - y, y0 + x)
+      iterator Point(x0 + y, y0 - x)
+      iterator Point(x0 - y, y0 - x)</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
+</script><script src="package.js"></script>
+</body>
+</html>
