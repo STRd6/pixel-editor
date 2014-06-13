@@ -97,6 +97,13 @@
       - activate = -&gt; activeIndex index
       .color(class=activeClass click=activate touchstart=activate style=&quot;background-color: #{color}&quot;)
 
+  .palette-editor.hide
+    - close = -&gt; $(&quot;.palette-editor&quot;).addClass(&quot;hide&quot;)
+    - applyPalette = -&gt; editor.applyPalette $(&quot;.palette-editor textarea&quot;).val(); close()
+    %textarea
+    %button(click=applyPalette) Apply
+    %button(click=close) Close
+
   .actions
     - each @actions, (action) -&gt;
       .action(click=@perform touchstart=@perform style=&quot;background-image: url(#{@iconUrl})&quot;)

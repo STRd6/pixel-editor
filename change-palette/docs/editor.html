@@ -132,6 +132,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     grid: Observable <span class="literal">false</span>
 
+    applyPalette: (text) -&gt;
+      self.execute self.Command.ChangePalette
+        palette: text.split(<span class="string">"\n"</span>)
+
     handlePaste: (data) -&gt;
       command = self.Command.Composite()
       self.execute command
