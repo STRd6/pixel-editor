@@ -1,30 +1,28 @@
 TODO
 ====
 
-Better Circle/Ellipse Tool
-
-Tool cursors
-
-Position Display
-
 Palette
   Load Palette
   Modify Palette
+
+Selection Tool
 
 Documentation
 
 Autosave
 
-Selection Tool
+Prompt unsaved on exit
 
 Bugs
 ----
-Preview and layers get cut off for larger images
 
 Opening an image that is smaller than the canvas grid spacing issues
 
 V2
 ----
+
+Better Circle/Ellipse Tool
+
 Layers
   Reorder Layers
   Delete Layers
@@ -36,11 +34,7 @@ Animation Frames
   Delete Frame
   Onion Skin
 
-Selections
-
 Copy/Paste
-
-Replays
 
 Grid
   Modify Grid Size
@@ -51,8 +45,17 @@ Scripts
 
 Plugins
 
+Bugs
+----
+
+Display transparent preview as transparent instead of white
+
 Done
 ====
+Tool cursors
+
+Position Display
+
 Tool Hotkeys
 
 Replay
@@ -86,3 +89,5 @@ Expand canvas when dropping an larger image
 Preview Erase/Transparent
 
 Preview Layer in canvas always shows at top
+
+Preview and layers get cut off for larger images
