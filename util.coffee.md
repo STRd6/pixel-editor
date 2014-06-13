@@ -45,6 +45,9 @@ A 2d extent.
           [0...@width].forEach (x) ->
             iterator(x, y)
 
+      inverse: ->
+        Size(1/@width, 1/@height)
+
 Point Extensions
 ----------------
 

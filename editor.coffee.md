@@ -37,6 +37,8 @@ Editor
       canvasSize = Observable ->
         pixelExtent().scale(pixelSize())
 
+      positionDisplay = Observable("")
+
       symmetryMode = Observable("normal")
 
       canvas = null
@@ -93,6 +95,7 @@ Editor
 
         pixelSize: pixelSize
         pixelExtent: pixelExtent
+        positionDisplay: positionDisplay
 
         grid: Observable false
 
@@ -417,6 +420,12 @@ accidentally setting the pixel values during the preview.
           editor: self
 
         self.trigger "release"
+
+      $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
+        {left, top} = currentTarget.getBoundingClientRect()
+        {x, y} = Point(pageX - left, pageY - top).scale(1/pixelSize()).floor()
+
+        positionDisplay("#{x},#{y}")
 
       self.on "release", ->
         previewCanvas.clear()
