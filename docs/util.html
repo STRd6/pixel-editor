@@ -127,7 +127,10 @@ Size.prototype =
   each: (iterator) -&gt;
     [<span class="number">0.</span>..<span class="property">@height</span>].forEach (y) -&gt;
       [<span class="number">0.</span>..<span class="property">@width</span>].forEach (x) -&gt;
-        iterator(x, y)</code></pre>
+        iterator(x, y)
+
+  inverse: -&gt;
+    Size(<span class="number">1</span><span class="regexp">/@width, 1/</span><span class="property">@height</span>)</code></pre>
 </div>
         </li>
         

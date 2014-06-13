@@ -71,6 +71,9 @@
     - swap = (e) -&gt; if ($t = $(e.currentTarget)).css(&quot;left&quot;) is &quot;auto&quot; then $t.css(left: 0, right: &quot;auto&quot;) else $t.css(left: &quot;auto&quot;, right: 0)
     .thumbnail(click=swap)
 
+  .position
+    = @positionDisplay
+
   .notifications
     - each @notifications, (notification) -&gt;
       %p

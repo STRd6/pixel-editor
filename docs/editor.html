@@ -70,6 +70,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   canvasSize = Observable -&gt;
     pixelExtent().scale(pixelSize())
 
+  positionDisplay = Observable(<span class="string">""</span>)
+
   symmetryMode = Observable(<span class="string">"normal"</span>)
 
   canvas = <span class="literal">null</span>
@@ -126,6 +128,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     pixelSize: pixelSize
     pixelExtent: pixelExtent
+    positionDisplay: positionDisplay
 
     grid: Observable <span class="literal">false</span>
 
@@ -457,6 +460,12 @@ accidentally setting the pixel values during the preview.</p>
       editor: self
 
     self.trigger <span class="string">"release"</span>
+
+  $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
+    {left, top} = currentTarget.getBoundingClientRect()
+    {x, y} = Point(pageX - left, pageY - top).scale(<span class="number">1</span>/pixelSize()).floor()
+
+    positionDisplay(<span class="string">"<span class="subst">#{x}</span>,<span class="subst">#{y}</span>"</span>)
 
   self.<span class="literal">on</span> <span class="string">"release"</span>, -&gt;
     previewCanvas.clear()
