@@ -279,8 +279,7 @@ Editor
           index: self.layer(layer).get(x, y)
           layer: layer ? self.activeLayerIndex()
 
-        # HACK: Adding in transparent to palette
-        palette: Observable(["transparent"].concat Palette.dawnBringer32)
+        palette: Observable(Palette.dawnBringer16)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 

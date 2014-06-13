@@ -138,6 +138,31 @@ Actions
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
+      "ctrl+shift+p": 
+        name: "Load Palette"
+        description: """
+          Load a palette file
+        """
+        method: ({editor}) ->
+          Modal.show FileReading.readerInput
+            accept: "*/*"
+            image: (dataURL) ->
+              # TODO: Load palette from image
+            json: (data) ->
+              # TODO: Load json palette
+              alert "Unknown palette type"
+            text: (text) ->
+              if palette = Palette.load(text)
+                # TODO: Check if palette is different from current palette
+                editor.execute editor.Command.ChangePalette
+                  palette: palette
+              else
+                # TODO: Unknown palette type
+
+            chose: ->
+              Modal.hide()
+        icon: ""
+
       "f5":
         name: "Replay"
         description: """

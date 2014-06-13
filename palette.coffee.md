@@ -4,7 +4,19 @@ Palette
 Helpers
 -------
 
+    JASC_HEADER = """
+      JASC-PAL
+      0100
+      256
+    """
 
+A liberal regex for matching the header in a JASC PAL file.
+
+    JASC_REGEX = ///
+      JASC-PAL\n
+      \d+\n
+      \d+\n
+    ///
 
     fromStrings = (lines) ->
       lines.split("\n").map (line) ->
@@ -24,6 +36,19 @@ Helpers
         colorString.match(/([0-9A-F]{2})/g).map (part) ->
           parseInt part, 0x10
 
+    loadJASC = (lines) ->
+      if lines.match JASC_REGEX
+        colors = fromStrings(lines.replace(JASC_REGEX, "")).unique()
+
+        if colors.length > 32
+          # TODO: Notify on screen
+          console.warn "Dropped excess colors (#{colors.length - 32}), kept first 32"
+          colors[0...32]
+        else
+          colors
+      else
+        alert "unknown file format, currently only support JASC PAL"
+
 Export to Formats
 -----------------
 
@@ -40,9 +65,7 @@ Export to Formats
       .join("\n")
 
       """
-        JASC-PAL
-        0100
-        256
+        #{JASC_HEADER}
         #{entries}
         #{zeroes}
       """
@@ -129,6 +152,8 @@ http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
         138 111 48
       """
 
+      load: loadJASC
       export: exportJASC
+      fromStrings: fromStrings
 
     module.exports = Palette
