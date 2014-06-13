@@ -49,6 +49,13 @@ The palette holds our colors.
           - activate = -> activeIndex index
           .color(class=activeClass click=activate touchstart=activate style="background-color: #{color}")
 
+      .palette-editor.hide
+        - close = -> $(".palette-editor").addClass("hide")
+        - applyPalette = -> editor.applyPalette $(".palette-editor textarea").val(); close()
+        %textarea
+        %button(click=applyPalette) Apply
+        %button(click=close) Close
+
       .actions
         - each @actions, (action) ->
           .action(click=@perform touchstart=@perform style="background-image: url(#{@iconUrl})")

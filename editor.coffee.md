@@ -99,6 +99,10 @@ Editor
 
         grid: Observable false
 
+        applyPalette: (text) ->
+          self.execute self.Command.ChangePalette
+            palette: text.split("\n")
+
         handlePaste: (data) ->
           command = self.Command.Composite()
           self.execute command
