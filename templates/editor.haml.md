@@ -14,7 +14,7 @@ The toolbar holds our tools.
         .tools
           - each @tools, (tool) ->
             - activeClass = -> "active" if tool is activeTool()
-            - activate = -> previousTool(activeTool()); activeTool(tool)
+            - activate = -> activeTool(tool)
             .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
         %h2 Symmetry
         .tools
