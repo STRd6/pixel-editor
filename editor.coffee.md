@@ -427,6 +427,14 @@ accidentally setting the pixel values during the preview.
 
         positionDisplay("#{x},#{y}")
 
+      # TODO: Move this into template?
+      $viewport = $selector.find(".viewport")
+      self.activeTool.observe ({iconUrl, iconOffset}) ->
+        {x, y} = Point(iconOffset)
+
+        $viewport.css
+          cursor: "url(#{iconUrl}) #{x} #{y}, default"
+
       self.on "release", ->
         previewCanvas.clear()
 
