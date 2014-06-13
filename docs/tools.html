@@ -117,7 +117,7 @@
   brush: brushTool <span class="string">"brush"</span>, <span class="string">"b"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="</span>
 
-  eraser: brushTool <span class="string">"pencil"</span>, <span class="string">"e"</span>, 
+  eraser: brushTool <span class="string">"pencil"</span>, <span class="string">"e"</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg=="</span>,
     index: <span class="number">0</span>
 
@@ -246,6 +246,11 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     self.addHotkey n.toString(), setNthTool(n-<span class="number">1</span>)
 
   self.addHotkey <span class="string">"0"</span>, setNthTool(<span class="number">9</span>)
+
+  prevTool = <span class="literal">null</span>
+  self.activeTool.observe (newTool) -&gt;
+    self.previousTool prevTool
+    prevTool = newTool
 
   self.activeTool(self.tools()[<span class="number">0</span>])
 

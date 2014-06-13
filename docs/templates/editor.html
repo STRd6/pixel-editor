@@ -44,7 +44,7 @@
     .tools
       - each @tools, (tool) -&gt;
         - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
-        - activate = -&gt; previousTool(activeTool()); activeTool(tool)
+        - activate = -&gt; activeTool(tool)
         .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass click=activate)
     %h2 Symmetry
     .tools
