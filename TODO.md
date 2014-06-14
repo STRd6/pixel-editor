@@ -7,9 +7,6 @@ Bugs
 ----
 Replay doesn't reset to initial canvas size
 
-Opening an images keeps old layer instead of replacing
-
-Opening an image that is smaller than the canvas grid spacing issues
 
 V2
 ----
@@ -88,6 +85,10 @@ Open files from a file picker
 
 Bugs
 ----
+
+Opening an images keeps old layer instead of replacing
+
+Opening an image that is smaller than the canvas grid spacing issues
 
 Expand canvas when dropping an larger image
 
