@@ -1,0 +1,35 @@
+#!/bin/bash
+
+mkdir -p dist
+rm -r dist/*
+
+cd gh-pages
+cp index.html master.json.js ../dist
+cd ..
+
+# TODO: Read config from pixie.cson
+
+TITLE="Pixi Paint"
+WIDTH=800
+HEIGHT=450
+VERSION="0.1.0"
+
+tee dist/package.json <<EOS
+{
+  "name": "$TITLE",
+  "version": "$VERSION",
+  "main": "index.html",
+  "window": {
+    "title": "$TITLE",
+    "width": $WIDTH,
+    "height": $HEIGHT,
+    "toolbar": false
+  }
+}
+EOS
+
+nwbuild -p "osx,win,linux32,linux64" dist
+
+# To get nw working on newer linux distros need to modify binary
+# cd ~/.nvm/v0.10.28/lib/node_modules/node-webkit-builder/cache/0.9.2/linux32
+# sed -i 's/\x75\x64\x65\x76\x2E\x73\x6F\x2E\x30/\x75\x64\x65\x76\x2E\x73\x6F\x2E\x31/g' nw
