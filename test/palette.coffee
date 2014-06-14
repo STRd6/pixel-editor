@@ -23,10 +23,9 @@ describe "palette", ->
       255 0 251
       255 255 255
     """
-    
-    console.log colors
 
-    assert.equal colors[0], "#000000"
+    # NOTE: Index zero becomes transparent
+    assert.equal colors[0], "transparent"
     assert.equal colors[1], "#FF00FB"
     assert.equal colors[2], "#FFFFFF"
 

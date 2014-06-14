@@ -1,6 +1,8 @@
 Palette
 =======
 
+    require "cornerstone"
+
 Helpers
 -------
 
@@ -9,6 +11,9 @@ Helpers
       0100
       256
     """
+
+    withTransparent = (colors) ->
+      ["transparent"].concat colors[1..-1]
 
 A liberal regex for matching the header in a JASC PAL file.
 
@@ -38,7 +43,7 @@ A liberal regex for matching the header in a JASC PAL file.
 
     loadJASC = (lines) ->
       if lines.match JASC_REGEX
-        colors = fromStrings(lines.replace(JASC_REGEX, "")).unique()
+        colors = withTransparent fromStrings(lines.replace(JASC_REGEX, "")).unique()
 
         if colors.length > 32
           # TODO: Notify on screen
@@ -78,10 +83,10 @@ Palettes
       defaults:
         [
           "transparent"
-          "#000000"
-          "#FFFFFF"
+          "#05050D"
           "#666666"
           "#DCDCDC"
+          "#FFFFFF"
           "#EB070E"
           "#F69508"
           "#FFDE49"
@@ -89,6 +94,7 @@ Palettes
           "#0246E3"
           "#563495"
           "#58C4F5"
+          "#F82481"
           "#E5AC99"
           "#5B4635"
           "#FFFEE9"
@@ -96,7 +102,7 @@ Palettes
 
 http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
 
-      dawnBringer16: fromStrings """
+      dawnBringer16: withTransparent fromStrings """
         20 12 28
         68 36 52
         48 52 109
@@ -117,7 +123,7 @@ http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
 
 http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
 
-      dawnBringer32: fromStrings """
+      dawnBringer32: withTransparent fromStrings """
         0 0 0
         34 32 52
         69 40 60

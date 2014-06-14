@@ -283,7 +283,7 @@ Editor
           index: self.layer(layer).get(x, y)
           layer: layer ? self.activeLayerIndex()
 
-        palette: Observable(Palette.dawnBringer16)
+        palette: Observable(Palette.defaults)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
