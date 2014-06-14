@@ -132,6 +132,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     grid: Observable <span class="literal">false</span>
 
+    applyPalette: (text) -&gt;
+      self.execute self.Command.ChangePalette
+        palette: text.split(<span class="string">"\n"</span>)
+
     handlePaste: (data) -&gt;
       command = self.Command.Composite()
       self.execute command
@@ -312,8 +316,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       index: self.layer(layer).get(x, y)
       layer: layer ? self.activeLayerIndex()
 
-    <span class="comment"># HACK: Adding in transparent to palette</span>
-    palette: Observable([<span class="string">"transparent"</span>].concat Palette.dawnBringer32)</code></pre>
+    palette: Observable(Palette.dawnBringer16)</code></pre>
 </div>
         </li>
         
@@ -466,6 +469,14 @@ accidentally setting the pixel values during the preview.</p>
     {x, y} = Point(pageX - left, pageY - top).scale(<span class="number">1</span>/pixelSize()).floor()
 
     positionDisplay(<span class="string">"<span class="subst">#{x}</span>,<span class="subst">#{y}</span>"</span>)
+
+  <span class="comment"># TODO: Move this into template?</span>
+  $viewport = $selector.find(<span class="string">".viewport"</span>)
+  self.activeTool.observe ({iconUrl, iconOffset}) -&gt;
+    {x, y} = Point(iconOffset)
+
+    $viewport.css
+      cursor: <span class="string">"url(<span class="subst">#{iconUrl}</span>) <span class="subst">#{x}</span> <span class="subst">#{y}</span>, default"</span>
 
   self.<span class="literal">on</span> <span class="string">"release"</span>, -&gt;
     previewCanvas.clear()

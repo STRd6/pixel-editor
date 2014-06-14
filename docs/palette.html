@@ -32,11 +32,9 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h2 id="helpers">Helpers</h2>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">
-</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"cornerstone"</span></code></pre>
 </div>
         </li>
         
@@ -46,9 +44,49 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">fromStrings</span></span> = (lines) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript">JASC_HEADER = <span class="string">"""
+  JASC-PAL
+  0100
+  256
+"""</span>
+
+<span class="function"><span class="title">withTransparent</span></span> = (colors) -&gt;
+  [<span class="string">"transparent"</span>].concat colors[<span class="number">1.</span>.-<span class="number">1</span>]</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>A liberal regex for matching the header in a JASC PAL file.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">JASC_REGEX = <span class="regexp">///
+  JASC-PAL\n
+  \d+\n
+  \d+\n
+///</span>
+
+<span class="function"><span class="title">fromStrings</span></span> = (lines) -&gt;
   lines.split(<span class="string">"\n"</span>).map (line) -&gt;
     <span class="string">"#"</span> + line.split(<span class="string">" "</span>).map (string) -&gt;
       numberToHex parseInt(string, <span class="number">10</span>)
@@ -64,15 +102,28 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
     TRANSPARENT
   <span class="keyword">else</span>
     colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
-      parseInt part, <span class="number">0x10</span></code></pre>
+      parseInt part, <span class="number">0x10</span>
+
+<span class="function"><span class="title">loadJASC</span></span> = (lines) -&gt;
+  <span class="keyword">if</span> lines.match JASC_REGEX
+    colors = withTransparent fromStrings(lines.replace(JASC_REGEX, <span class="string">""</span>)).unique()
+
+    <span class="keyword">if</span> colors.length &gt; <span class="number">32</span>
+      <span class="comment"># TODO: Notify on screen</span>
+      console.warn <span class="string">"Dropped excess colors (<span class="subst">#{colors.length - <span class="number">32</span>}</span>), kept first 32"</span>
+      colors[<span class="number">0.</span>.<span class="number">.32</span>]
+    <span class="keyword">else</span>
+      colors
+  <span class="keyword">else</span>
+    alert <span class="string">"unknown file format, currently only support JASC PAL"</span></code></pre>
 </div>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-6">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <h2 id="export-to-formats">Export to Formats</h2>
 
@@ -83,10 +134,10 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
         </li>
         
         
-        <li id="section-5">
+        <li id="section-7">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               
             </div>
@@ -103,9 +154,7 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
   .join(<span class="string">"\n"</span>)
 
   <span class="string">"""
-    JASC-PAL
-    0100
-    256
+    <span class="subst">#{JASC_HEADER}</span>
     <span class="subst">#{entries}</span>
     <span class="subst">#{zeroes}</span>
   """</span></code></pre>
@@ -113,10 +162,10 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
         </li>
         
         
-        <li id="section-6">
+        <li id="section-8">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <h2 id="palettes">Palettes</h2>
 
@@ -127,10 +176,10 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
         </li>
         
         
-        <li id="section-7">
+        <li id="section-9">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               
             </div>
@@ -139,10 +188,10 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
   defaults:
     [
       <span class="string">"transparent"</span>
-      <span class="string">"#000000"</span>
-      <span class="string">"#FFFFFF"</span>
+      <span class="string">"#05050D"</span>
       <span class="string">"#666666"</span>
       <span class="string">"#DCDCDC"</span>
+      <span class="string">"#FFFFFF"</span>
       <span class="string">"#EB070E"</span>
       <span class="string">"#F69508"</span>
       <span class="string">"#FFDE49"</span>
@@ -150,6 +199,7 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
       <span class="string">"#0246E3"</span>
       <span class="string">"#563495"</span>
       <span class="string">"#58C4F5"</span>
+      <span class="string">"#F82481"</span>
       <span class="string">"#E5AC99"</span>
       <span class="string">"#5B4635"</span>
       <span class="string">"#FFFEE9"</span>
@@ -158,10 +208,10 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
         </li>
         
         
-        <li id="section-8">
+        <li id="section-10">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p><a href="http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795">http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795</a></p>
 
@@ -188,15 +238,15 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
         </li>
         
         
-        <li id="section-9">
+        <li id="section-11">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p><a href="http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247">http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247</a></p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  dawnBringer32: fromStrings <span class="string">"""
+            <div class="content"><pre><code class="lang-coffeescript">  dawnBringer32: withTransparent fromStrings <span class="string">"""
     0 0 0
     34 32 52
     69 40 60
@@ -231,7 +281,9 @@ TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, 
     138 111 48
   """</span>
 
+  load: loadJASC
   <span class="reserved">export</span>: exportJASC
+  fromStrings: fromStrings
 
 module.exports = Palette</code></pre>
 </div>

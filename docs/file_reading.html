@@ -46,6 +46,9 @@ about others later.</p>
 
   <span class="keyword">return</span> <span class="string">"text"</span>
 
+<span class="function"><span class="title">normalizeNewlines</span></span> = (str) -&gt;
+  str.replace(<span class="regexp">/\r\n/g, "\n").replace(/\r/g</span>, <span class="string">"\n"</span>)
+
 module.exports =
   readerInput: ({chose, encoding, image, json, text, accept}) -&gt;
     accept ?= <span class="string">"image/gif,image/png"</span>
@@ -73,7 +76,7 @@ module.exports =
           reader.readAsText(file, encoding)
         <span class="keyword">when</span> <span class="string">"text"</span>
           reader.<span class="function"><span class="title">onload</span></span> = (evt) -&gt;
-            text? evt.target.result
+            text? normalizeNewlines evt.target.result
 
           reader.readAsText(file, encoding)
 
