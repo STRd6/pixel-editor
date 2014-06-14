@@ -11,10 +11,7 @@ Prompt unsaved on exit
 
 Bugs
 ----
-
-Resize doesn't repaint
-
-Error undoing resize
+Replay doesn't reset to initial canvas size
 
 Opening an images keeps old layer instead of replacing
 
@@ -99,3 +96,7 @@ Preview Erase/Transparent
 Preview Layer in canvas always shows at top
 
 Preview and layers get cut off for larger images
+
+Resize doesn't repaint
+
+Error undoing resize

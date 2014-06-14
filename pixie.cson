@@ -16,7 +16,7 @@ dependencies:
   observable: "distri/observable:v0.1.2"
   postmaster: "distri/postmaster:v0.2.0"
   runtime: "distri/runtime:v0.3.0"
-  "touch-canvas": "distri/touch-canvas:v0.3.0"
+  "touch-canvas": "distri/touch-canvas:v0.3.1"
   "undo": "distri/undo:v0.2.0"
   util: "distri/util:v0.1.0"
 width: 1280

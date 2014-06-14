@@ -1,6 +1,10 @@
 Layer
 =====
 
+    require "cornerstone"
+
+    Observable = require "observable"
+
 TouchCanvas, for previews.
 
     TouchCanvas = require "touch-canvas"
@@ -26,6 +30,7 @@ A layer is a 2d set of pixels.
         height: height
 
       self.extend
+        grid: grid
         previewCanvas: previewCanvas.element()
 
         each: grid.each
@@ -49,14 +54,14 @@ A layer is a 2d set of pixels.
           else if newHeight < height
             grid.contract(0, height - newHeight)
 
-          height = newHeight
+          I.height = height = newHeight
 
           if newWidth > width
-            grid.expand(newHeight - width, 0, 0)
+            grid.expand(newWidth - width, 0, 0)
           else if newWidth < width
             grid.contract(width - newWidth, 0)
 
-          width = newWidth
+          I.width = width = newWidth
 
           # TODO: Move this into an observable?
           element = previewCanvas.element()
