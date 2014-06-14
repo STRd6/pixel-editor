@@ -1,10 +1,27 @@
 Palette
 =======
 
+    require "cornerstone"
+
 Helpers
 -------
 
+    JASC_HEADER = """
+      JASC-PAL
+      0100
+      256
+    """
 
+    withTransparent = (colors) ->
+      ["transparent"].concat colors[1..-1]
+
+A liberal regex for matching the header in a JASC PAL file.
+
+    JASC_REGEX = ///
+      JASC-PAL\n
+      \d+\n
+      \d+\n
+    ///
 
     fromStrings = (lines) ->
       lines.split("\n").map (line) ->
@@ -24,6 +41,19 @@ Helpers
         colorString.match(/([0-9A-F]{2})/g).map (part) ->
           parseInt part, 0x10
 
+    loadJASC = (lines) ->
+      if lines.match JASC_REGEX
+        colors = withTransparent fromStrings(lines.replace(JASC_REGEX, "")).unique()
+
+        if colors.length > 32
+          # TODO: Notify on screen
+          console.warn "Dropped excess colors (#{colors.length - 32}), kept first 32"
+          colors[0...32]
+        else
+          colors
+      else
+        alert "unknown file format, currently only support JASC PAL"
+
 Export to Formats
 -----------------
 
@@ -40,9 +70,7 @@ Export to Formats
       .join("\n")
 
       """
-        JASC-PAL
-        0100
-        256
+        #{JASC_HEADER}
         #{entries}
         #{zeroes}
       """
@@ -55,10 +83,10 @@ Palettes
       defaults:
         [
           "transparent"
-          "#000000"
-          "#FFFFFF"
+          "#05050D"
           "#666666"
           "#DCDCDC"
+          "#FFFFFF"
           "#EB070E"
           "#F69508"
           "#FFDE49"
@@ -66,6 +94,7 @@ Palettes
           "#0246E3"
           "#563495"
           "#58C4F5"
+          "#F82481"
           "#E5AC99"
           "#5B4635"
           "#FFFEE9"
@@ -73,7 +102,7 @@ Palettes
 
 http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
 
-      dawnBringer16: fromStrings """
+      dawnBringer16: withTransparent fromStrings """
         20 12 28
         68 36 52
         48 52 109
@@ -94,7 +123,7 @@ http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
 
 http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
 
-      dawnBringer32: fromStrings """
+      dawnBringer32: withTransparent fromStrings """
         0 0 0
         34 32 52
         69 40 60
@@ -129,6 +158,8 @@ http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
         138 111 48
       """
 
+      load: loadJASC
       export: exportJASC
+      fromStrings: fromStrings
 
     module.exports = Palette

@@ -99,6 +99,10 @@ Editor
 
         grid: Observable false
 
+        applyPalette: (text) ->
+          self.execute self.Command.ChangePalette
+            palette: text.split("\n")
+
         handlePaste: (data) ->
           command = self.Command.Composite()
           self.execute command
@@ -279,8 +283,7 @@ Editor
           index: self.layer(layer).get(x, y)
           layer: layer ? self.activeLayerIndex()
 
-        # HACK: Adding in transparent to palette
-        palette: Observable(["transparent"].concat Palette.dawnBringer32)
+        palette: Observable(Palette.defaults)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 

@@ -15,6 +15,9 @@ about others later.
 
       return "text"
 
+    normalizeNewlines = (str) ->
+      str.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+
     module.exports =
       readerInput: ({chose, encoding, image, json, text, accept}) ->
         accept ?= "image/gif,image/png"
@@ -42,7 +45,7 @@ about others later.
               reader.readAsText(file, encoding)
             when "text"
               reader.onload = (evt) ->
-                text? evt.target.result
+                text? normalizeNewlines evt.target.result
 
               reader.readAsText(file, encoding)
 

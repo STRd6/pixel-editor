@@ -138,6 +138,43 @@ Actions
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
+      "ctrl+shift+p": 
+        name: "Load Palette"
+        description: """
+          Load a JASC-PAL palette file (max 32 colors)
+        """
+        method: ({editor}) ->
+          Modal.show FileReading.readerInput
+            accept: "*/*"
+            image: (dataURL) ->
+              # TODO: Load palette from image
+            json: (data) ->
+              # TODO: Load json palette
+              alert "Unknown palette type"
+            text: (text) ->
+              if palette = Palette.load(text)
+                # TODO: Check if palette is different from current palette
+                editor.execute editor.Command.ChangePalette
+                  palette: palette
+              else
+                # TODO: Unknown palette type
+
+            chose: ->
+              Modal.hide()
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC/UlEQVQ4T4WTW0gUYRTH/98s4+66umYGdjHSXLesyMi18qEg7EHKsB6kIunBHoJuFBj4YNBDBEFBUUmUQS1FpaRlCEEldiEybdcSzLVMLc3bquvsdcaZ+Tq70eXBapgzhxm+8/v+3/+cYfjPdbhobVZ6WsqBOckJBeCaNioFnnweGrtWVe/6EC1l/6o/sWdjWVZa6nH7Ult66nwOcCu8I2H09XqGOvqGTje0N1f9DSBcPFLsXLYoaeeKhUbD7EwNhhQPdMWEqa+l0ONEfOpq1eqaWnfOCDh3cHP1Bkf+3uVzfWCyGxoXIGYbEJzWUT3AYTaYsU0vRFPri0czAmorS4JbwsnxPCCBFcrgphTIYj4GfR14au1A3DRDiboJ7n7PF+Z5uLrdaF2+jDHhlx3vngligV+EHg4hWFyArs4WyWoxipibbT78LQkWTcHtWR64vcOTrLvBEbEVtRgZIzHkU/TRcGovVq1bjwRRx4RPQpurUY8XBBafU8IqxtJgUQO4P9sN99iIn3Xfy/XZil8mKcNV0BQDIFjR3PgWSkCBqEewMicXfp8XokGASYng9aAX6fPSkJpowKN3rjvMczdPsm1/khgZcILrHLo8gfBoL4Kj41BHh//a5TYp403N444dBMhVFm9tFCddlyCP9FCrQjAYkzCv6AwNCcPAx3aYtBDMogmqNg1ZsEB6Wo6K+mB6XdOHfua5mafYd7eQYwrtppMFnJT4oUqvoEd6IctBjA/5ACrmLIRk+zF4a0thP9QW6yDzXHfIWaXP4/TQe5pUH4WfCvsIpNMdIWaYcoC+R4OUZJxHz9WtvwHdlx2RzLImo+ZvBlenaBGFSjtylYJmQAv+gKpSLFvsTvRcKfoDcMERtu17bJqefBArjEUM8hPmp/doMYFIkWXJLfTe2B+hI5hjR+g6u/rb4rKaeGWiJZG0C5xHZVNQ5ppMWSFbKEc94hqMC3bxfudRaUm5a1YM0Hky+wgThDWMs01gPPGff3d00BgUarczu7LzUHTtd5jOkNp6KQ05AAAAAElFTkSuQmCC"
+
+      "ctrl+shift+e":
+        name: "Edit Palette"
+        description: """
+          Edit the color palette
+        """
+        method: ({editor}) ->
+          # Show palette editor text
+          # Live update palette in image
+          
+          $(".palette-editor").removeClass("hide").find("textarea").val editor.palette().join("\n")
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADlElEQVQ4T1WTDWyTRRjH/9e3b/t27fr9sWqXNtRUKZDsgy3tCGY6cHVEqQnoxqZBFxUN6FA0JmiCSiAYFseysAwxI0jQqCSiRgMMMzUsBYENhmHTObdpG5d268fWdf16z2sjJF7y3JPcXX733P+5P8F/Y9vnk7UcuC6nTuFdyoooRFYUkcrm45SQBUJphB3NUyDK8hwF/eR2NHKe3AG0np7YVWFVd++pN91ZKuZkhsFYRJfzyGSBRDqPqcgivptIzlMx33EX0HJybH+dPr13dSqA6MzvAKFQlLngrNkAS7kDMgnASSTgOWA5RxH4cwnHAqHwXcCudw4MeIRQg6tcC8s9rFCqRmQ2heDsLHjXw3DXPQ4Jx+FeDYeOE9P4oM2OzoEpFACSno7NJ9127bbV5TKid+bBGcYhZgTE/2qDKOMxOX4dc7ZHcV/FQ1hh4vD6x6Pwr7ehZ3A6RLp2Nh1/cK23fVVZDCQ9zFRiZa7kkGQiHv+bPYNTwC/6cCUUh+ORPVhj5dHWdRUpqZgQRbqFfPH21uSmlK6ELiZAfGlQwYA070UwNoqL6lHIsgRbcxswEo6gdONBVNukaD16GfG5mOHcPt88+fr9Z2nDAg8xtYTk5gaMTdyEWi4FzE68EtJAmc/gU+04huMJqBo/RCUDNHf9iEQ4qx04tDFOzu7fTis866HiRczHEvj51ymo6CJ0qzx4K2yDMreIr/TDGI7GoW7qhttC4D94PndhX5OM6UdJ987G02ql4NWoVI7q6hosxCKsVRIImWUEghE4rDZYSjkMxRVY49sNtSyD7Z0Xgj8c8NsK/6TYRt/z79UYjaYrzdoheKvqkJoeZc1egkpvxjzbv55gwModcK8oRzQexe7egV9+6myuLQKqX+gzyuUlvU/UV225P3URDgRhVunZD0zin2gYf3B2mKpaYDJb4dBxuDYexLsnBr8d6n7msSLA8+JHT4FI+h02s8JuMcIZ/xJ6aQo3F6yYog8go1oJkVLoNRq81FiGkduTOHrmUv/lvvbnioC17b2H/PUVb+5t8/zPAwXXZNmUyRWkAnq+D+HJdWacG7qF/m8Ch6/1v/xGEVD59JEd66pcvbVuO7QqBbQaATqlHBoWpSUyyJkJ5FIJZuZyLAN9Zy7h7OCNjpFTrx4pAlwth40COOYqaieEGCilBgKiY9fqQIhGkPG8IPBQKxlcXYIbYzO/scJab3322tUC4F+pz2ZaFmudeAAAAABJRU5ErkJggg=="
+
       "f5":
         name: "Replay"
         description: """
@@ -145,7 +182,7 @@ Actions
         """
         method: ({editor}) ->
           editor.replay()
-        icon: ""
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZElEQVQ4T6WSX0hTcRTHz9XYTXEPRboC05qilK0N58N8kD1IIstyIHsYhReGrT9j4VOv+lgEQtCkB4ugZ8MSggXtIQXDl7pzLbOtYAij3D9r3Vt39+72vULSD+5bG+fhcs75nO853x9H//nj/vZPT0+nNE3rrNfr32KxWJcZ1+/3p1VV7arVap/j8fgpo2YfEI1Gf6H5CSBTpVLJVJckSYTmOcRoIpHoYwCRSEQHvQSAlQ/MqnwDj2KdlDrRlbb7dNxKdPnm2gHUJAFwr66u7g3fVxAOh0U0L6PAnxY6+9wWgXjNTrJGdM76lC62vqQRYfODoijzhsr19XUXAwiFQl/QvG0o+HrthzMvqTTQOEcNWi816kRHGzL0amZyA9N3Ee2iKJ5kAIIgbCHxBuGw3Prt6mg5SBVlh6rSWfpeGaGy1Eby7RsiFBgreNLpdA8DCAaDKShYRIyN3TvRb+GaScX/p7aDRWWqczV6eOGTiOZngExkMpkzDCAQCOSQLNlsNme5XDZ1IZlMyhiwBcDhXC7XwQDGx8dTSCziBud7Z567mxrhgkqkYP+p1gfU3sKRx3v3LYYsIyby+TyrwOfzGeS9G0gzXpeZC91DL4wVklDhKRQK7A2Gh4f3XECBtfnOEVMXFiaHNlCzi2ivVCqsC16v9x0ULCB5vWf+2GkzF96HRzfxWmMYMlWtVtl3MDg4qCOxhnBGl4aaLFwT1f51AV+z/a8l5JcAuSTLMvsS3W43BChXeZ5/ZLfbTV1YWVmhYrHoB+AxlB5iXHA4HJug240jZbPZATMC4B/R3IPmrK7r3UbNHy8zkCA9UyOUAAAAAElFTkSuQmCC"
 
       "F1":
         name: "Help"
