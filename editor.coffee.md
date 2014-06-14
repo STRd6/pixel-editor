@@ -402,7 +402,7 @@ accidentally setting the pixel values during the preview.
         self.repaint()
 
       canvasPosition = (position) ->
-        position.scale(pixelExtent()).floor()
+        Point(position).scale(pixelExtent()).floor()
 
       previewCanvas.on "touch", (position) ->
         lastCommand = self.Command.Composite()
