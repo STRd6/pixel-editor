@@ -1,8 +1,6 @@
 TODO
 ====
 
-Prompt unsaved on exit
-
 Transparancy Mode (index 0 or none)
 
 Bugs
@@ -51,6 +49,8 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+Prompt unsaved on exit
+
 Palette
   Load Palette
   Modify Palette

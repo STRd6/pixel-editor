@@ -453,4 +453,6 @@ accidentally setting the pixel values during the preview.
           oldMethod.apply(self, arguments)
           self.trigger "change"
 
+      self.include require "./dirty"
+
       return self
