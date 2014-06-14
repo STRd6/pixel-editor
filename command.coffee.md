@@ -68,10 +68,13 @@ versions.
           self.removeLayer(data)
 
       C "RemoveLayer", (data) ->
+        data.previous ?= self.layer().toJSON()
+
         execute: ->
-          self.removeLayer(data)
+          self.removeLayer()
+
         undo: ->
-          self.newLayer(data)
+          self.newLayer(data.previous)
 
       C "Composite", (data) ->
         if data.commands

@@ -1,12 +1,6 @@
 TODO
 ====
 
-Selection Tool
-
-Documentation
-
-Autosave
-
 Prompt unsaved on exit
 
 Bugs
@@ -19,6 +13,12 @@ Opening an image that is smaller than the canvas grid spacing issues
 
 V2
 ----
+
+Selection Tool
+
+Documentation
+
+Autosave
 
 Analytics
 

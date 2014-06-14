@@ -107,9 +107,10 @@ Editor
           command = self.Command.Composite()
           self.execute command
 
-          if data.width > pixelExtent().width or data.height > pixelExtent().height
-            command.push self.Command.Resize pixelExtent().max(data)
-
+          # TODO: Currently paste replaces entire image
+          {width, height} = data
+          command.push self.Command.Resize({width, height})
+          command.push self.Command.RemoveLayer()
           command.push self.Command.NewLayer(data)
 
           self.trigger "change"
