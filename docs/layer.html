@@ -32,10 +32,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>TouchCanvas, for previews.</p>
-
+              
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">TouchCanvas = require <span class="string">"touch-canvas"</span></code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"cornerstone"</span>
+
+Observable = require <span class="string">"observable"</span></code></pre>
 </div>
         </li>
         
@@ -44,6 +45,19 @@
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>TouchCanvas, for previews.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">TouchCanvas = require <span class="string">"touch-canvas"</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>A layer is a 2d set of pixels.</p>
 
@@ -67,6 +81,7 @@
     height: height
 
   self.extend
+    grid: grid
     previewCanvas: previewCanvas.element()
 
     each: grid.each
@@ -90,14 +105,14 @@
       <span class="keyword">else</span> <span class="keyword">if</span> newHeight &lt; height
         grid.contract(<span class="number">0</span>, height - newHeight)
 
-      height = newHeight
+      I.height = height = newHeight
 
       <span class="keyword">if</span> newWidth &gt; width
-        grid.expand(newHeight - width, <span class="number">0</span>, <span class="number">0</span>)
+        grid.expand(newWidth - width, <span class="number">0</span>, <span class="number">0</span>)
       <span class="keyword">else</span> <span class="keyword">if</span> newWidth &lt; width
         grid.contract(width - newWidth, <span class="number">0</span>)
 
-      width = newWidth
+      I.width = width = newWidth
 
       <span class="comment"># TODO: Move this into an observable?</span>
       element = previewCanvas.element()
@@ -138,10 +153,10 @@ module.exports = Layer</code></pre>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-5">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <h2 id="helpers">Helpers</h2>
 
@@ -152,10 +167,10 @@ module.exports = Layer</code></pre>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-6">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               
             </div>

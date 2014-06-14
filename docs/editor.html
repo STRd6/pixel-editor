@@ -140,9 +140,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       command = self.Command.Composite()
       self.execute command
 
-      <span class="keyword">if</span> data.width &gt; pixelExtent().width <span class="keyword">or</span> data.height &gt; pixelExtent().height
-        command.push self.Command.Resize pixelExtent().max(data)
-
+      <span class="comment"># TODO: Currently paste replaces entire image</span>
+      {width, height} = data
+      command.push self.Command.Resize({width, height})
+      command.push self.Command.RemoveLayer()
       command.push self.Command.NewLayer(data)
 
       self.trigger <span class="string">"change"</span>
@@ -442,7 +443,7 @@ accidentally setting the pixel values during the preview.</p>
     self.repaint()
 
   <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
-    position.scale(pixelExtent()).floor()
+    Point(position).scale(pixelExtent()).floor()
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     lastCommand = self.Command.Composite()

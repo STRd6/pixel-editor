@@ -118,10 +118,13 @@ versions.</p>
       self.removeLayer(data)
 
   C <span class="string">"RemoveLayer"</span>, (data) -&gt;
+    data.previous ?= self.layer().toJSON()
+
     execute: -&gt;
-      self.removeLayer(data)
+      self.removeLayer()
+
     undo: -&gt;
-      self.newLayer(data)
+      self.newLayer(data.previous)
 
   C <span class="string">"Composite"</span>, (data) -&gt;
     <span class="keyword">if</span> data.commands
