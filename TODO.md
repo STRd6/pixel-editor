@@ -1,10 +1,6 @@
 TODO
 ====
 
-Palette
-  Load Palette
-  Modify Palette
-
 Selection Tool
 
 Documentation
@@ -16,10 +12,14 @@ Prompt unsaved on exit
 Bugs
 ----
 
+Opening an images keeps old layer instead of replacing
+
 Opening an image that is smaller than the canvas grid spacing issues
 
 V2
 ----
+
+Analytics
 
 Better Circle/Ellipse Tool
 
@@ -52,6 +52,10 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+Palette
+  Load Palette
+  Modify Palette
+
 Tool cursors
 
 Position Display
