@@ -138,7 +138,7 @@ Actions
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
-      "ctrl+shift+p": 
+      "ctrl+shift+p":
         name: "Load Palette"
         description: """
           Load a JASC-PAL palette file (max 32 colors)
@@ -171,7 +171,7 @@ Actions
         method: ({editor}) ->
           # Show palette editor text
           # Live update palette in image
-          
+
           $(".palette-editor").removeClass("hide").find("textarea").val editor.palette().join("\n")
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADlElEQVQ4T1WTDWyTRRjH/9e3b/t27fr9sWqXNtRUKZDsgy3tCGY6cHVEqQnoxqZBFxUN6FA0JmiCSiAYFseysAwxI0jQqCSiRgMMMzUsBYENhmHTObdpG5d268fWdf16z2sjJF7y3JPcXX733P+5P8F/Y9vnk7UcuC6nTuFdyoooRFYUkcrm45SQBUJphB3NUyDK8hwF/eR2NHKe3AG0np7YVWFVd++pN91ZKuZkhsFYRJfzyGSBRDqPqcgivptIzlMx33EX0HJybH+dPr13dSqA6MzvAKFQlLngrNkAS7kDMgnASSTgOWA5RxH4cwnHAqHwXcCudw4MeIRQg6tcC8s9rFCqRmQ2heDsLHjXw3DXPQ4Jx+FeDYeOE9P4oM2OzoEpFACSno7NJ9127bbV5TKid+bBGcYhZgTE/2qDKOMxOX4dc7ZHcV/FQ1hh4vD6x6Pwr7ehZ3A6RLp2Nh1/cK23fVVZDCQ9zFRiZa7kkGQiHv+bPYNTwC/6cCUUh+ORPVhj5dHWdRUpqZgQRbqFfPH21uSmlK6ELiZAfGlQwYA070UwNoqL6lHIsgRbcxswEo6gdONBVNukaD16GfG5mOHcPt88+fr9Z2nDAg8xtYTk5gaMTdyEWi4FzE68EtJAmc/gU+04huMJqBo/RCUDNHf9iEQ4qx04tDFOzu7fTis866HiRczHEvj51ymo6CJ0qzx4K2yDMreIr/TDGI7GoW7qhttC4D94PndhX5OM6UdJ987G02ql4NWoVI7q6hosxCKsVRIImWUEghE4rDZYSjkMxRVY49sNtSyD7Z0Xgj8c8NsK/6TYRt/z79UYjaYrzdoheKvqkJoeZc1egkpvxjzbv55gwModcK8oRzQexe7egV9+6myuLQKqX+gzyuUlvU/UV225P3URDgRhVunZD0zin2gYf3B2mKpaYDJb4dBxuDYexLsnBr8d6n7msSLA8+JHT4FI+h02s8JuMcIZ/xJ6aQo3F6yYog8go1oJkVLoNRq81FiGkduTOHrmUv/lvvbnioC17b2H/PUVb+5t8/zPAwXXZNmUyRWkAnq+D+HJdWacG7qF/m8Ch6/1v/xGEVD59JEd66pcvbVuO7QqBbQaATqlHBoWpSUyyJkJ5FIJZuZyLAN9Zy7h7OCNjpFTrx4pAlwth40COOYqaieEGCilBgKiY9fqQIhGkPG8IPBQKxlcXYIbYzO/scJab3322tUC4F+pz2ZaFmudeAAAAABJRU5ErkJggg=="
 

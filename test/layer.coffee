@@ -13,10 +13,6 @@ describe "Layer", ->
       height: 72
     })
 
-    console.log layer
-
-    console.log global.grid = layer.grid
-
     called = 0
     layer.each (value, x, y) ->
       called += 1
