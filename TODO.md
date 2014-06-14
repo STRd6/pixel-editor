@@ -3,10 +3,11 @@ TODO
 
 Prompt unsaved on exit
 
+Transparancy Mode (index 0 or none)
+
 Bugs
 ----
 Replay doesn't reset to initial canvas size
-
 
 V2
 ----
