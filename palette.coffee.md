@@ -102,7 +102,7 @@ Palettes
 
 http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
 
-      dawnBringer16: withTransparent fromStrings """
+      dawnBringer16: fromStrings """
         20 12 28
         68 36 52
         48 52 109

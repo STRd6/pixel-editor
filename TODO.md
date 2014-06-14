@@ -12,6 +12,10 @@ Prompt unsaved on exit
 Bugs
 ----
 
+Resize doesn't repaint
+
+Error undoing resize
+
 Opening an images keeps old layer instead of replacing
 
 Opening an image that is smaller than the canvas grid spacing issues
