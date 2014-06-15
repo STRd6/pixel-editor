@@ -5,12 +5,13 @@ Transparancy Mode (index 0 or none)
 
 Bugs
 ----
-Replay doesn't reset to initial canvas size
 
 V2
 ----
 
 Selection Tool
+
+Hot reload editor state / initial editor state
 
 Documentation
 
@@ -86,6 +87,8 @@ Open files from a file picker
 
 Bugs
 ----
+
+Replay doesn't reset to initial canvas size
 
 Opening an images keeps old layer instead of replacing
 

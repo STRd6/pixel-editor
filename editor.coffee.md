@@ -45,6 +45,7 @@ Editor
       lastCommand = null
 
       replaying = false
+      initialSize = pixelExtent()
 
       self ?= Model(I)
 
@@ -169,6 +170,7 @@ Editor
 
             # TODO: initial state if not blank
             self.layers []
+            self.resize initialSize
             makeLayer()
             self.repaint()
 
