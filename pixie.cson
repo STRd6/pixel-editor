@@ -3,6 +3,7 @@ remoteDependencies: [
   "https://code.jquery.com/jquery-1.11.0.min.js"
 ]
 dependencies:
+  analytics: "distri/google-analytics:v0.1.0"
   appcache: "distri/appcache:v0.2.0"
   bindable: "distri/bindable:v0.1.0"
   byte_array: "distri/byte_array:v0.1.1"
