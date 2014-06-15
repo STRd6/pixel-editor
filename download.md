@@ -6,6 +6,20 @@ Pixi Paint is a pay what you want pixel editor. Try it out!
 Our primary focus is on ease of use and simplicity. Pixi Paint is fun for
 beginners and experts alike to explore limited palette pixel art.
 
+<h3>Features</h3>
+
+- Brushes and Shapes
+- Color Picker
+- Line Tool
+- Total Palette Control
+- 4 Symmetry Modes
+- Unlimited Undo
+- Toggle Transparency Modes
+- Adjustable Zoom
+- Optional Grid
+- Replays
+- Export to .png
+
 ---
 
 Suggested Donation $1.99
