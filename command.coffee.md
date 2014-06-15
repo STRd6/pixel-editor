@@ -49,7 +49,6 @@ versions.
         data.previous ?= self.paletteZeroTransparent()
 
         execute: ->
-          debugger
           self.paletteZeroTransparent !data.previous
 
         undo: ->

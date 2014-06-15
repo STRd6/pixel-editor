@@ -409,7 +409,6 @@ accidentally setting the pixel values during the preview.
       pixelExtent.observe updatePixelExtent
 
       self.paletteZeroTransparent.observe ->
-        debugger
         self.repaint()
 
       self.palette.observe ->
