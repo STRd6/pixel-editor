@@ -142,12 +142,15 @@ Editor
             # TODO: Only paint once per pixel, rather than once per pixel per layer
             # by being smarter about transparency
             layer.each (index, x, y) ->
-              outputCanvas.drawRect
-                x: x * scale
-                y: y * scale
-                width: scale
-                height: scale
-                color: self.palette()[index]
+              unless isTransparent(index)
+                # TODO: Is there a way we can keep color with transparent pixels
+                # Does it matter for loading?
+                outputCanvas.drawRect
+                  x: x * scale
+                  y: y * scale
+                  width: scale
+                  height: scale
+                  color: self.palette()[index]
 
           outputCanvas.element()
 

@@ -47,7 +47,8 @@ The palette holds our colors.
         - each @palette, (color, index) ->
           - activeClass = -> "active" if index is activeIndex()
           - activate = -> activeIndex index
-          .color(class=activeClass click=activate touchstart=activate style="background-color: #{color}")
+          - style = -> if editor.paletteZeroTransparent() and index is 0 then "background-color: transparent" else "background-color: #{color}"
+          .color(class=activeClass click=activate touchstart=activate style=style)
 
       .palette-editor.hide
         - close = -> $(".palette-editor").addClass("hide")

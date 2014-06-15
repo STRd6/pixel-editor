@@ -139,14 +139,14 @@ Actions
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
-      "`":
+      "t":
         name: "Transparency"
         description: """
           Toggle palette 0 transparent
         """
         method: ({editor}) ->
           editor.execute editor.Command.ChangeTransparencyMode()
-        icon: ""
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA2ElEQVQ4T2NkAIKs6cejGZkY6qamW6pnzzjWxsDIED813UoaFztr5rEKoDauaelWdYxZM45mMTIy5ROrGWTofwbGmGkZlnKZ0454MmbPPPYQaJs8MTYjq8maebwF6AojRpAXSNWMrJ6REs0gV4C88BRfgBGyYGC9AHLdqBcY4imPhcwZR8uZGBmzyEnOmTOOVTJmTT+aOi3TejY4VTH8TyQ2UQFzZO3///9/Qb1wxIuBgalmaoaVFWbKY4wF5lTZ7BlHaxgYGcOAFuhlzTxazPifSXRqhmUFAKiWXyIxiUtgAAAAAElFTkSuQmCC"
 
       "ctrl+shift+p":
         name: "Load Palette"
