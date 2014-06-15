@@ -13,8 +13,8 @@ beginners and experts alike to explore limited palette pixel art.
 - Line Tool
 - Total Palette Control
 - 4 Symmetry Modes
+- 2 Transparency Modes
 - Unlimited Undo
-- Toggle Transparency Modes
 - Adjustable Zoom
 - Optional Grid
 - Replays
@@ -47,4 +47,7 @@ Pixi Paint is [open source software](https://github.com/STRd6/pixel-editor).
 >
 >     $("li.example").remove() # Hack to hide setup code
 >
->     $(".content").eq(1).empty().append $ "<iframe>", src: "http://danielx.net/pixel-editor", style: "border: none; border-top: 1px solid gray", width: 640, height: 640
+>     $(".content").eq(0).empty()
+>     .append($ "<h2>", text: "Live Demo")
+>     $(".content").eq(1).empty()
+>     .append($ "<iframe>", src: "http://danielx.net/pixel-editor", style: "border: none; border-top: 1px solid gray", width: 640, height: 640)
