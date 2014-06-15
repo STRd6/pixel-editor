@@ -12,9 +12,6 @@ Helpers
       256
     """
 
-    withTransparent = (colors) ->
-      ["transparent"].concat colors[1..-1]
-
 A liberal regex for matching the header in a JASC PAL file.
 
     JASC_REGEX = ///
@@ -43,7 +40,7 @@ A liberal regex for matching the header in a JASC PAL file.
 
     loadJASC = (lines) ->
       if lines.match JASC_REGEX
-        colors = withTransparent fromStrings(lines.replace(JASC_REGEX, "")).unique()
+        colors = fromStrings(lines.replace(JASC_REGEX, "")).unique()
 
         if colors.length > 32
           # TODO: Notify on screen
@@ -123,7 +120,7 @@ http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795
 
 http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247
 
-      dawnBringer32: withTransparent fromStrings """
+      dawnBringer32: fromStrings """
         0 0 0
         34 32 52
         69 40 60
