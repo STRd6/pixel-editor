@@ -95,7 +95,8 @@
     - each @palette, (color, index) -&gt;
       - activeClass = -&gt; &quot;active&quot; if index is activeIndex()
       - activate = -&gt; activeIndex index
-      .color(class=activeClass click=activate touchstart=activate style=&quot;background-color: #{color}&quot;)
+      - style = -&gt; if editor.paletteZeroTransparent() and index is 0 then &quot;background-color: transparent&quot; else &quot;background-color: #{color}&quot;
+      .color(class=activeClass click=activate touchstart=activate style=style)
 
   .palette-editor.hide
     - close = -&gt; $(&quot;.palette-editor&quot;).addClass(&quot;hide&quot;)

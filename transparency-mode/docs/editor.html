@@ -175,12 +175,15 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer</span>
         <span class="comment"># by being smarter about transparency</span>
         layer.each (index, x, y) -&gt;
-          outputCanvas.drawRect
-            x: x * scale
-            y: y * scale
-            width: scale
-            height: scale
-            color: self.palette()[index]
+          <span class="keyword">unless</span> isTransparent(index)
+            <span class="comment"># TODO: Is there a way we can keep color with transparent pixels</span>
+            <span class="comment"># Does it matter for loading?</span>
+            outputCanvas.drawRect
+              x: x * scale
+              y: y * scale
+              width: scale
+              height: scale
+              color: self.palette()[index]
 
       outputCanvas.element()
 
