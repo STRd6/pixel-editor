@@ -10,6 +10,9 @@ Editing pixels in your browser.
     global.PACKAGE = PACKAGE
     global.require = require
 
+    # Google Analytics
+    require("analytics").init("UA-3464282-15")
+
     # Setup
     global.Observable = require "observable"
     global.Model = require "model"
