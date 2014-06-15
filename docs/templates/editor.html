@@ -45,7 +45,7 @@
       - each @tools, (tool) -&gt;
         - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
         - activate = -&gt; activeTool(tool)
-        .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; class=activeClass click=activate)
+        .tool(style=&quot;background-image: url(#{@iconUrl})&quot; title=@hotkeys class=activeClass click=activate)
     %h2 Symmetry
     .tools
       - symmetryMode = @symmetryMode
@@ -107,9 +107,8 @@
 
   .actions
     - each @actions, (action) -&gt;
-      .action(click=@perform touchstart=@perform style=&quot;background-image: url(#{@iconUrl})&quot;)
-        .text= @name
-        .text= @hotkey</code></pre>
+      .action(click=@perform touchstart=@perform title=@hotkey style=&quot;background-image: url(#{@iconUrl})&quot;)
+        .text= @name</code></pre>
 </div>
         </li>
         
