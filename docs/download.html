@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>main</title>
+  <title>download</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,10 +18,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="pixel-editor">Pixel Editor</h1>
+              <h1 id="download-pixi-paint">Download Pixi Paint</h1>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">
+            <div class="content"><pre><code>
 </code></pre>
 </div>
         </li>
@@ -32,39 +32,69 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Welcome to this cool pixel editor. Eventually you&#39;ll be able to read this for
-help, but right now it&#39;s mostly code.</p>
-<p>Editing pixels in your browser.</p>
+              <p>Pixi Paint is a pay what you want pixel editor. <a href="http://danielx.net/pixel-editor" target="_blank">Try it now for free!</a></p>
+<p>Our primary focus is on ease of use and simplicity. Pixi Paint is fun for
+beginners and experts alike to explore limited palette pixel art.</p>
+<p>Pixi Paint is <a href="https://github.com/STRd6/pixel-editor">open source software</a>.</p>
+<h2 id="suggested-donation-1-99">Suggested Donation $1.99</h2>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># For debug purposes</span>
-global.PACKAGE = PACKAGE
-global.require = require
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Please donate if Pixi Paint is fun or useful for you!</p>
+<button class="paymentButton">Pay with Card</button>
 
-<span class="comment"># Google Analytics</span>
-require(<span class="string">"analytics"</span>).init(<span class="string">"UA-3464282-15"</span>)
+<h2 id="download">Download</h2>
 
-<span class="comment"># Setup</span>
-global.Observable = require <span class="string">"observable"</span>
-global.Model = require <span class="string">"model"</span>
-global.Bindable = require <span class="string">"bindable"</span>
-require <span class="string">"cornerstone"</span>
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><a href="http://0.pixiecdn.com/PixiePaint-win.zip">Windows</a></p>
+<p><a href="http://0.pixiecdn.com/PixiePaint-osx.zip">OSX</a></p>
+<hr>
 
-require <span class="string">"appcache"</span>
-require <span class="string">"jquery-utils"</span>
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <blockquote>
+<pre><code>#! setup
+# TODO: Figure out the right way to add analytics to all docs/app pages
+require(&quot;analytics&quot;).init(&quot;UA-3464282-15&quot;)
+require(&quot;/stripe-payment&quot;)(&quot;.paymentButton&quot;)
 
-require <span class="string">"./lib/canvas-to-blob"</span>
+$(&quot;li.example&quot;).remove() # Hack to hide setup code</code></pre>
+</blockquote>
 
-runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
-runtime.boot()
-runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
-
-Editor = require <span class="string">"./editor"</span>
-
-<span class="comment"># For debugging</span>
-global.editor = Editor()
-
-editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
 </div>
         </li>
         

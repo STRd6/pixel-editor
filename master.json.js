@@ -42,6 +42,12 @@ window["STRd6/pixel-editor:master"]({
       "mode": "100644",
       "type": "blob"
     },
+    "download.md": {
+      "path": "download.md",
+      "content": "Download Pixi Paint\n===================\n\nPixi Paint is a pay what you want pixel editor. <a href=\"http://danielx.net/pixel-editor\" target=\"_blank\">Try it now for free!</a>\n\nOur primary focus is on ease of use and simplicity. Pixi Paint is fun for\nbeginners and experts alike to explore limited palette pixel art.\n\nPixi Paint is [open source software](https://github.com/STRd6/pixel-editor).\n\nSuggested Donation $1.99\n------------------------\n\nPlease donate if Pixi Paint is fun or useful for you!\n\n<button class=\"paymentButton\">Pay with Card</button>\n\nDownload\n--------\n\n[Windows](http://0.pixiecdn.com/PixiePaint-win.zip)\n\n[OSX](http://0.pixiecdn.com/PixiePaint-osx.zip)\n\n---\n\n>     #! setup\n>     # TODO: Figure out the right way to add analytics to all docs/app pages\n>     require(\"analytics\").init(\"UA-3464282-15\")\n>     require(\"/stripe-payment\")(\".paymentButton\")\n>\n>     $(\"li.example\").remove() # Hack to hide setup code\n",
+      "mode": "100644",
+      "type": "blob"
+    },
     "drop.coffee.md": {
       "path": "drop.coffee.md",
       "content": "Drop and Paste Events\n=====================\n\n    require \"jquery-utils\"\n\n    Loader = require \"./loader\"\n\n    loader = Loader()\n\n    Drop = (I={}, self=Core(I)) ->\n      callback = ({dataURL}) ->\n        loader.load(dataURL)\n        .then (imageData) ->\n          # TODO This coupling seems a little too tight\n          self.handlePaste loader.fromImageDataWithPalette(imageData, self.palette())\n\n      # TODO: Scope these events to the editor, not the entire page\n      $(\"html\").dropImageReader callback\n      $(document).pasteImageReader callback\n\n    module.exports = Drop\n\nHelpers\n-------\n\n    logError = (message) ->\n      console.error message\n",
@@ -104,7 +110,7 @@ window["STRd6/pixel-editor:master"]({
     },
     "main.coffee.md": {
       "path": "main.coffee.md",
-      "content": "Pixel Editor\n============\n\nWelcome to this cool pixel editor. Eventually you'll be able to read this for\nhelp, but right now it's mostly code.\n\nEditing pixels in your browser.\n\n    # For debug purposes\n    global.PACKAGE = PACKAGE\n    global.require = require\n\n    # Setup\n    global.Observable = require \"observable\"\n    global.Model = require \"model\"\n    global.Bindable = require \"bindable\"\n    require \"cornerstone\"\n\n    require \"appcache\"\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    Editor = require \"./editor\"\n\n    # For debugging\n    global.editor = Editor()\n\n    editor.notify(\"Welcome to PixiPaint!\")\n",
+      "content": "Pixel Editor\n============\n\nWelcome to this cool pixel editor. Eventually you'll be able to read this for\nhelp, but right now it's mostly code.\n\nEditing pixels in your browser.\n\n    # For debug purposes\n    global.PACKAGE = PACKAGE\n    global.require = require\n\n    # Google Analytics\n    require(\"analytics\").init(\"UA-3464282-15\")\n\n    # Setup\n    global.Observable = require \"observable\"\n    global.Model = require \"model\"\n    global.Bindable = require \"bindable\"\n    require \"cornerstone\"\n\n    require \"appcache\"\n    require \"jquery-utils\"\n\n    require \"./lib/canvas-to-blob\"\n\n    runtime = require(\"runtime\")(PACKAGE)\n    runtime.boot()\n    runtime.applyStyleSheet(require('./style'))\n\n    Editor = require \"./editor\"\n\n    # For debugging\n    global.editor = Editor()\n\n    editor.notify(\"Welcome to PixiPaint!\")\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -128,7 +134,13 @@ window["STRd6/pixel-editor:master"]({
     },
     "pixie.cson": {
       "path": "pixie.cson",
-      "content": "version: \"0.1.0\"\nremoteDependencies: [\n  \"https://code.jquery.com/jquery-1.11.0.min.js\"\n]\ndependencies:\n  appcache: \"distri/appcache:v0.2.0\"\n  bindable: \"distri/bindable:v0.1.0\"\n  byte_array: \"distri/byte_array:v0.1.1\"\n  cornerstone: \"distri/cornerstone:v0.2.2-pre.0\"\n  model: \"distri/model:v0.1.2\"\n  eval: \"distri/eval:v0.1.0\"\n  facebook: \"distri/facebook:v0.1.1\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  \"hotkeys\": \"distri/hotkeys:v0.2.0\"\n  \"jquery-utils\": \"distri/jquery-utils:v0.2.0\"\n  observable: \"distri/observable:v0.2.0-pre.1\"\n  postmaster: \"distri/postmaster:v0.2.0\"\n  runtime: \"distri/runtime:v0.3.0\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.3.1\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1280\nheight: 720\n",
+      "content": "version: \"0.1.0\"\nremoteDependencies: [\n  \"https://code.jquery.com/jquery-1.11.0.min.js\"\n]\ndependencies:\n  analytics: \"distri/google-analytics:v0.1.0\"\n  appcache: \"distri/appcache:v0.2.0\"\n  bindable: \"distri/bindable:v0.1.0\"\n  byte_array: \"distri/byte_array:v0.1.1\"\n  cornerstone: \"distri/cornerstone:v0.2.2-pre.0\"\n  model: \"distri/model:v0.1.2\"\n  eval: \"distri/eval:v0.1.0\"\n  facebook: \"distri/facebook:v0.1.1\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  \"hotkeys\": \"distri/hotkeys:v0.2.0\"\n  \"jquery-utils\": \"distri/jquery-utils:v0.2.0\"\n  observable: \"distri/observable:v0.2.0-pre.1\"\n  postmaster: \"distri/postmaster:v0.2.0\"\n  runtime: \"distri/runtime:v0.3.0\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.3.1\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1280\nheight: 720\n",
+      "mode": "100644",
+      "type": "blob"
+    },
+    "stripe-payment.coffee": {
+      "path": "stripe-payment.coffee",
+      "content": "q = []\n\npush = (selector) ->\n  q.push selector\n\n$.getScript('https://checkout.stripe.com/checkout.js')\n.done ->\n  console.log \"loaded\"\n  q.forEach process\n  push = process\n\ndescription = 'Pixi Paint ($1.99)'\namount = 199\n\nprocess = (selector) ->\n  handler = StripeCheckout.configure\n    key: 'pk_PPCRZgLrovwFHSKmMkjtVONHDs3pR'\n    image: 'https://fbcdn-photos-h-a.akamaihd.net/hphotos-ak-xap1/t39.2081-0/851574_391517107646989_794757491_n.png'\n    token: (token, args) ->\n      $.post \"http://pixi-paint-payments.herokuapp.com/charge\",\n        amount: amount\n        description: description\n        stripeEmail: token.email\n        stripeToken: token.id\n\n  document.querySelector(selector).addEventListener 'click', (e) ->\n\n    handler.open\n      name: 'Pixi Paint'\n      description: description\n      amount: amount\n  \n    e.preventDefault()\n\nmodule.exports = (selector) ->\n  push selector\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -266,7 +278,7 @@ window["STRd6/pixel-editor:master"]({
     },
     "main": {
       "path": "main",
-      "content": "(function() {\n  var Editor, runtime;\n\n  global.PACKAGE = PACKAGE;\n\n  global.require = require;\n\n  global.Observable = require(\"observable\");\n\n  global.Model = require(\"model\");\n\n  global.Bindable = require(\"bindable\");\n\n  require(\"cornerstone\");\n\n  require(\"appcache\");\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  Editor = require(\"./editor\");\n\n  global.editor = Editor();\n\n  editor.notify(\"Welcome to PixiPaint!\");\n\n}).call(this);\n",
+      "content": "(function() {\n  var Editor, runtime;\n\n  global.PACKAGE = PACKAGE;\n\n  global.require = require;\n\n  require(\"analytics\").init(\"UA-3464282-15\");\n\n  global.Observable = require(\"observable\");\n\n  global.Model = require(\"model\");\n\n  global.Bindable = require(\"bindable\");\n\n  require(\"cornerstone\");\n\n  require(\"appcache\");\n\n  require(\"jquery-utils\");\n\n  require(\"./lib/canvas-to-blob\");\n\n  runtime = require(\"runtime\")(PACKAGE);\n\n  runtime.boot();\n\n  runtime.applyStyleSheet(require('./style'));\n\n  Editor = require(\"./editor\");\n\n  global.editor = Editor();\n\n  editor.notify(\"Welcome to PixiPaint!\");\n\n}).call(this);\n",
       "type": "blob"
     },
     "modal": {
@@ -286,7 +298,12 @@ window["STRd6/pixel-editor:master"]({
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.1.0\",\"remoteDependencies\":[\"https://code.jquery.com/jquery-1.11.0.min.js\"],\"dependencies\":{\"appcache\":\"distri/appcache:v0.2.0\",\"bindable\":\"distri/bindable:v0.1.0\",\"byte_array\":\"distri/byte_array:v0.1.1\",\"cornerstone\":\"distri/cornerstone:v0.2.2-pre.0\",\"model\":\"distri/model:v0.1.2\",\"eval\":\"distri/eval:v0.1.0\",\"facebook\":\"distri/facebook:v0.1.1\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"hotkeys\":\"distri/hotkeys:v0.2.0\",\"jquery-utils\":\"distri/jquery-utils:v0.2.0\",\"observable\":\"distri/observable:v0.2.0-pre.1\",\"postmaster\":\"distri/postmaster:v0.2.0\",\"runtime\":\"distri/runtime:v0.3.0\",\"touch-canvas\":\"distri/touch-canvas:v0.3.1\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1280,\"height\":720};",
+      "content": "module.exports = {\"version\":\"0.1.0\",\"remoteDependencies\":[\"https://code.jquery.com/jquery-1.11.0.min.js\"],\"dependencies\":{\"analytics\":\"distri/google-analytics:v0.1.0\",\"appcache\":\"distri/appcache:v0.2.0\",\"bindable\":\"distri/bindable:v0.1.0\",\"byte_array\":\"distri/byte_array:v0.1.1\",\"cornerstone\":\"distri/cornerstone:v0.2.2-pre.0\",\"model\":\"distri/model:v0.1.2\",\"eval\":\"distri/eval:v0.1.0\",\"facebook\":\"distri/facebook:v0.1.1\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"hotkeys\":\"distri/hotkeys:v0.2.0\",\"jquery-utils\":\"distri/jquery-utils:v0.2.0\",\"observable\":\"distri/observable:v0.2.0-pre.1\",\"postmaster\":\"distri/postmaster:v0.2.0\",\"runtime\":\"distri/runtime:v0.3.0\",\"touch-canvas\":\"distri/touch-canvas:v0.3.1\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1280,\"height\":720};",
+      "type": "blob"
+    },
+    "stripe-payment": {
+      "path": "stripe-payment",
+      "content": "(function() {\n  var amount, description, process, push, q;\n\n  q = [];\n\n  push = function(selector) {\n    return q.push(selector);\n  };\n\n  $.getScript('https://checkout.stripe.com/checkout.js').done(function() {\n    console.log(\"loaded\");\n    q.forEach(process);\n    return push = process;\n  });\n\n  description = 'Pixi Paint ($1.99)';\n\n  amount = 199;\n\n  process = function(selector) {\n    var handler;\n    handler = StripeCheckout.configure({\n      key: 'pk_PPCRZgLrovwFHSKmMkjtVONHDs3pR',\n      image: 'https://fbcdn-photos-h-a.akamaihd.net/hphotos-ak-xap1/t39.2081-0/851574_391517107646989_794757491_n.png',\n      token: function(token, args) {\n        return $.post(\"http://pixi-paint-payments.herokuapp.com/charge\", {\n          amount: amount,\n          description: description,\n          stripeEmail: token.email,\n          stripeToken: token.id\n        });\n      }\n    });\n    return document.querySelector(selector).addEventListener('click', function(e) {\n      handler.open({\n        name: 'Pixi Paint',\n        description: description,\n        amount: amount\n      });\n      return e.preventDefault();\n    });\n  };\n\n  module.exports = function(selector) {\n    return push(selector);\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "style": {
@@ -359,6 +376,189 @@ window["STRd6/pixel-editor:master"]({
     "publishBranch": "gh-pages"
   },
   "dependencies": {
+    "analytics": {
+      "source": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "mode": "100644",
+          "content": "The MIT License (MIT)\n\nCopyright (c) 2014 \n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+          "type": "blob"
+        },
+        "README.md": {
+          "path": "README.md",
+          "mode": "100644",
+          "content": "google-analytics\n================\n\nGoogle analytics for distri apps\n",
+          "type": "blob"
+        },
+        "lib/analytics.js": {
+          "path": "lib/analytics.js",
+          "mode": "100644",
+          "content": "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\nm=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n})(window,document,'script','//www.google-analytics.com/analytics.js','ga');\n",
+          "type": "blob"
+        },
+        "main.coffee.md": {
+          "path": "main.coffee.md",
+          "mode": "100644",
+          "content": "Google Analytics\n================\n\n    module.exports =\n      init: (id) ->\n        require \"./lib/analytics\"\n\n        global.ga('create', id, 'auto')\n        global.ga('send', 'pageview')\n",
+          "type": "blob"
+        },
+        "test/main.coffee": {
+          "path": "test/main.coffee",
+          "mode": "100644",
+          "content": "mocha.globals(\"ga\")\n\ndescribe \"analytics\", ->\n  it \"should put analytics on the page\", ->\n    GA = require \"../main\"\n\n    GA.init(\"UA-XXXX-Y\")\n\n  it \"should be a chill bro\", ->\n    ga(\"send\", \"duder\")\n",
+          "type": "blob"
+        },
+        "pixie.cson": {
+          "path": "pixie.cson",
+          "mode": "100644",
+          "content": "version: \"0.1.0\"\n",
+          "type": "blob"
+        }
+      },
+      "distribution": {
+        "lib/analytics": {
+          "path": "lib/analytics",
+          "content": "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\nm=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n})(window,document,'script','//www.google-analytics.com/analytics.js','ga');\n",
+          "type": "blob"
+        },
+        "main": {
+          "path": "main",
+          "content": "(function() {\n  module.exports = {\n    init: function(id) {\n      require(\"./lib/analytics\");\n      global.ga('create', id, 'auto');\n      return global.ga('send', 'pageview');\n    }\n  };\n\n}).call(this);\n\n//# sourceURL=main.coffee",
+          "type": "blob"
+        },
+        "test/main": {
+          "path": "test/main",
+          "content": "(function() {\n  mocha.globals(\"ga\");\n\n  describe(\"analytics\", function() {\n    it(\"should put analytics on the page\", function() {\n      var GA;\n      GA = require(\"../main\");\n      return GA.init(\"UA-XXXX-Y\");\n    });\n    return it(\"should be a chill bro\", function() {\n      return ga(\"send\", \"duder\");\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/main.coffee",
+          "type": "blob"
+        },
+        "pixie": {
+          "path": "pixie",
+          "content": "module.exports = {\"version\":\"0.1.0\"};",
+          "type": "blob"
+        }
+      },
+      "progenitor": {
+        "url": "http://strd6.github.io/editor/"
+      },
+      "version": "0.1.0",
+      "entryPoint": "main",
+      "repository": {
+        "id": 17791404,
+        "name": "google-analytics",
+        "full_name": "distri/google-analytics",
+        "owner": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://gravatar.com/avatar/192f3f168409e79c42107f081139d9f3?d=https%3A%2F%2Fidenticons.github.com%2Ff90c81ffc1498e260c820082f2e7ca5f.png&r=x",
+          "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "private": false,
+        "html_url": "https://github.com/distri/google-analytics",
+        "description": "Google analytics for distri apps",
+        "fork": false,
+        "url": "https://api.github.com/repos/distri/google-analytics",
+        "forks_url": "https://api.github.com/repos/distri/google-analytics/forks",
+        "keys_url": "https://api.github.com/repos/distri/google-analytics/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/distri/google-analytics/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/distri/google-analytics/teams",
+        "hooks_url": "https://api.github.com/repos/distri/google-analytics/hooks",
+        "issue_events_url": "https://api.github.com/repos/distri/google-analytics/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/distri/google-analytics/events",
+        "assignees_url": "https://api.github.com/repos/distri/google-analytics/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/distri/google-analytics/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/distri/google-analytics/tags",
+        "blobs_url": "https://api.github.com/repos/distri/google-analytics/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/distri/google-analytics/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/distri/google-analytics/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/distri/google-analytics/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/distri/google-analytics/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/distri/google-analytics/languages",
+        "stargazers_url": "https://api.github.com/repos/distri/google-analytics/stargazers",
+        "contributors_url": "https://api.github.com/repos/distri/google-analytics/contributors",
+        "subscribers_url": "https://api.github.com/repos/distri/google-analytics/subscribers",
+        "subscription_url": "https://api.github.com/repos/distri/google-analytics/subscription",
+        "commits_url": "https://api.github.com/repos/distri/google-analytics/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/distri/google-analytics/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/distri/google-analytics/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/distri/google-analytics/issues/comments/{number}",
+        "contents_url": "https://api.github.com/repos/distri/google-analytics/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/distri/google-analytics/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/distri/google-analytics/merges",
+        "archive_url": "https://api.github.com/repos/distri/google-analytics/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/distri/google-analytics/downloads",
+        "issues_url": "https://api.github.com/repos/distri/google-analytics/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/distri/google-analytics/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/distri/google-analytics/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/distri/google-analytics/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/distri/google-analytics/labels{/name}",
+        "releases_url": "https://api.github.com/repos/distri/google-analytics/releases{/id}",
+        "created_at": "2014-03-16T03:39:25Z",
+        "updated_at": "2014-03-16T03:39:25Z",
+        "pushed_at": "2014-03-16T03:39:25Z",
+        "git_url": "git://github.com/distri/google-analytics.git",
+        "ssh_url": "git@github.com:distri/google-analytics.git",
+        "clone_url": "https://github.com/distri/google-analytics.git",
+        "svn_url": "https://github.com/distri/google-analytics",
+        "homepage": null,
+        "size": 0,
+        "stargazers_count": 0,
+        "watchers_count": 0,
+        "language": null,
+        "has_issues": true,
+        "has_downloads": true,
+        "has_wiki": true,
+        "forks_count": 0,
+        "mirror_url": null,
+        "open_issues_count": 0,
+        "forks": 0,
+        "open_issues": 0,
+        "watchers": 0,
+        "default_branch": "master",
+        "master_branch": "master",
+        "permissions": {
+          "admin": true,
+          "push": true,
+          "pull": true
+        },
+        "organization": {
+          "login": "distri",
+          "id": 6005125,
+          "avatar_url": "https://gravatar.com/avatar/192f3f168409e79c42107f081139d9f3?d=https%3A%2F%2Fidenticons.github.com%2Ff90c81ffc1498e260c820082f2e7ca5f.png&r=x",
+          "gravatar_id": "192f3f168409e79c42107f081139d9f3",
+          "url": "https://api.github.com/users/distri",
+          "html_url": "https://github.com/distri",
+          "followers_url": "https://api.github.com/users/distri/followers",
+          "following_url": "https://api.github.com/users/distri/following{/other_user}",
+          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
+          "organizations_url": "https://api.github.com/users/distri/orgs",
+          "repos_url": "https://api.github.com/users/distri/repos",
+          "events_url": "https://api.github.com/users/distri/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/distri/received_events",
+          "type": "Organization",
+          "site_admin": false
+        },
+        "network_count": 0,
+        "subscribers_count": 2,
+        "branch": "v0.1.0",
+        "publishBranch": "gh-pages"
+      },
+      "dependencies": {}
+    },
     "appcache": {
       "source": {
         "LICENSE": {
