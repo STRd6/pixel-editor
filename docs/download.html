@@ -43,8 +43,8 @@ beginners and experts alike to explore limited palette pixel art.</p>
 <li>Line Tool</li>
 <li>Total Palette Control</li>
 <li>4 Symmetry Modes</li>
+<li>2 Transparency Modes</li>
 <li>Unlimited Undo</li>
-<li>Toggle Transparency Modes</li>
 <li>Adjustable Zoom</li>
 <li>Optional Grid</li>
 <li>Replays</li>
@@ -120,7 +120,10 @@ require(&quot;/stripe-payment&quot;)(&quot;.paymentButton&quot;)
 
 $(&quot;li.example&quot;).remove() # Hack to hide setup code
 
-$(&quot;.content&quot;).eq(1).empty().append $ &quot;&lt;iframe&gt;&quot;, src: &quot;http://danielx.net/pixel-editor&quot;, style: &quot;border: none; border-top: 1px solid gray&quot;, width: 640, height: 640</code></pre>
+$(&quot;.content&quot;).eq(0).empty()
+.append($ &quot;&lt;h2&gt;&quot;, text: &quot;Live Demo&quot;)
+$(&quot;.content&quot;).eq(1).empty()
+.append($ &quot;&lt;iframe&gt;&quot;, src: &quot;http://danielx.net/pixel-editor&quot;, style: &quot;border: none; border-top: 1px solid gray&quot;, width: 640, height: 640)</code></pre>
 </blockquote>
 
             </div>
