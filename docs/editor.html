@@ -78,6 +78,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   lastCommand = <span class="literal">null</span>
 
   replaying = <span class="literal">false</span>
+  initialSize = pixelExtent()
 
   self ?= Model(I)
 
@@ -118,6 +119,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         height: size
         color: color
 
+  <span class="function"><span class="title">isTransparent</span></span> = (index) -&gt;
+    (self.palette()[index] <span class="keyword">is</span> <span class="string">"transparent"</span>) <span class="keyword">or</span>
+    (self.paletteZeroTransparent() <span class="keyword">and</span> index <span class="keyword">is</span> <span class="number">0</span>)
+
   self.extend
     activeIndex: activeIndex
     activeLayer: Observable()
@@ -131,6 +136,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     positionDisplay: positionDisplay
 
     grid: Observable <span class="literal">false</span>
+
+    paletteZeroTransparent: Observable(<span class="literal">true</span>)
 
     applyPalette: (text) -&gt;
       self.execute self.Command.ChangePalette
@@ -168,12 +175,15 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer</span>
         <span class="comment"># by being smarter about transparency</span>
         layer.each (index, x, y) -&gt;
-          outputCanvas.drawRect
-            x: x * scale
-            y: y * scale
-            width: scale
-            height: scale
-            color: self.palette()[index]
+          <span class="keyword">unless</span> isTransparent(index)
+            <span class="comment"># TODO: Is there a way we can keep color with transparent pixels</span>
+            <span class="comment"># Does it matter for loading?</span>
+            outputCanvas.drawRect
+              x: x * scale
+              y: y * scale
+              width: scale
+              height: scale
+              color: self.palette()[index]
 
       outputCanvas.element()
 
@@ -202,6 +212,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         <span class="comment"># TODO: initial state if not blank</span>
         self.layers []
+        self.resize initialSize
         makeLayer()
         self.repaint()
 
@@ -284,29 +295,30 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         index = self.layers.map (layer, i) -&gt;
           <span class="keyword">if</span> i <span class="keyword">is</span> layerIndex <span class="comment"># Replace the layer's pixel with our preview pixel</span>
-            <span class="keyword">if</span> colorIndex <span class="keyword">is</span> <span class="number">0</span>
+            <span class="keyword">if</span> isTransparent(colorIndex)
               self.layers.map (layer, i) -&gt;
                 layer.get(x, y)
               .filter (index, i) -&gt;
-                (index != <span class="number">0</span>) <span class="keyword">and</span> !self.layers()[i].hidden() <span class="keyword">and</span> (i &lt; layerIndex)
+                !isTransparent(index) <span class="keyword">and</span> !self.layers()[i].hidden() <span class="keyword">and</span> (i &lt; layerIndex)
               .last() <span class="keyword">or</span> self.backgroundIndex()
             <span class="keyword">else</span>
               colorIndex
           <span class="keyword">else</span>
             layer.get(x, y)
         .filter (index, i) -&gt;
-          <span class="comment"># HACK: Transparent is assumed to be index zero</span>
-          (index != <span class="number">0</span>) <span class="keyword">and</span> !self.layers()[i].hidden()
+          !isTransparent(index) <span class="keyword">and</span> !self.layers()[i].hidden()
         .last() <span class="keyword">or</span> self.backgroundIndex()
       <span class="keyword">else</span>
         index = self.layers.map (layer) -&gt;
           layer.get(x, y)
         .filter (index, i) -&gt;
-          <span class="comment"># HACK: Transparent is assumed to be index zero</span>
-          (index != <span class="number">0</span>) <span class="keyword">and</span> !self.layers()[i].hidden()
+          !isTransparent(index) <span class="keyword">and</span> !self.layers()[i].hidden()
         .last() <span class="keyword">or</span> self.backgroundIndex()
 
-      color = self.palette()[index]
+      <span class="keyword">if</span> isTransparent(index)
+        color = <span class="string">"transparent"</span>
+      <span class="keyword">else</span>
+        color = self.palette()[index]
 
       drawPixel(canvas, x, y, color, pixelSize())
       drawPixel(thumbnailCanvas, x, y, color, <span class="number">1</span>) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
@@ -438,6 +450,9 @@ accidentally setting the pixel values during the preview.</p>
     self.repaint()
 
   pixelExtent.observe updatePixelExtent
+
+  self.paletteZeroTransparent.observe -&gt;
+    self.repaint()
 
   self.palette.observe -&gt;
     self.repaint()

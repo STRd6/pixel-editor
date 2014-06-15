@@ -95,6 +95,15 @@ versions.</p>
     undo: -&gt;
       self.changePixel extend {}, data, index: data.previous
 
+  C <span class="string">"ChangeTransparencyMode"</span>, (data) -&gt;
+    data.previous ?= self.paletteZeroTransparent()
+
+    execute: -&gt;
+      self.paletteZeroTransparent !data.previous
+
+    undo: -&gt;
+      self.paletteZeroTransparent data.previous
+
   C <span class="string">"Resize"</span>, (data) -&gt;
     {width, height, state} = data
 
