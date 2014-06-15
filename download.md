@@ -1,12 +1,12 @@
 Download Pixi Paint
 ===================
 
-Pixi Paint is a pay what you want pixel editor. <a href="http://danielx.net/pixel-editor" target="_blank">Try it now for free!</a>
+Pixi Paint is a pay what you want pixel editor. Try it out!
 
 Our primary focus is on ease of use and simplicity. Pixi Paint is fun for
 beginners and experts alike to explore limited palette pixel art.
 
-Pixi Paint is [open source software](https://github.com/STRd6/pixel-editor).
+---
 
 Suggested Donation $1.99
 ------------------------
@@ -22,6 +22,8 @@ Download
 
 [OSX](http://0.pixiecdn.com/PixiePaint-osx.zip)
 
+Pixi Paint is [open source software](https://github.com/STRd6/pixel-editor).
+
 ---
 
 >     #! setup
@@ -30,3 +32,5 @@ Download
 >     require("/stripe-payment")(".paymentButton")
 >
 >     $("li.example").remove() # Hack to hide setup code
+>
+>     $(".content").eq(1).empty().append $ "<iframe>", src: "http://danielx.net/pixel-editor", style: "border: none; border-top: 1px solid gray", width: 640, height: 640
