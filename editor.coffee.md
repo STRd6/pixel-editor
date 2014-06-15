@@ -86,6 +86,10 @@ Editor
             height: size
             color: color
 
+      isTransparent = (index) ->
+        (self.palette()[index] is "transparent") or
+        (self.paletteZeroTransparent() and index is 0)
+
       self.extend
         activeIndex: activeIndex
         activeLayer: Observable()
@@ -99,6 +103,8 @@ Editor
         positionDisplay: positionDisplay
 
         grid: Observable false
+
+        paletteZeroTransparent: Observable(true)
 
         applyPalette: (text) ->
           self.execute self.Command.ChangePalette
@@ -253,29 +259,30 @@ Editor
 
             index = self.layers.map (layer, i) ->
               if i is layerIndex # Replace the layer's pixel with our preview pixel
-                if colorIndex is 0
+                if isTransparent(colorIndex)
                   self.layers.map (layer, i) ->
                     layer.get(x, y)
                   .filter (index, i) ->
-                    (index != 0) and !self.layers()[i].hidden() and (i < layerIndex)
+                    !isTransparent(index) and !self.layers()[i].hidden() and (i < layerIndex)
                   .last() or self.backgroundIndex()
                 else
                   colorIndex
               else
                 layer.get(x, y)
             .filter (index, i) ->
-              # HACK: Transparent is assumed to be index zero
-              (index != 0) and !self.layers()[i].hidden()
+              !isTransparent(index) and !self.layers()[i].hidden()
             .last() or self.backgroundIndex()
           else
             index = self.layers.map (layer) ->
               layer.get(x, y)
             .filter (index, i) ->
-              # HACK: Transparent is assumed to be index zero
-              (index != 0) and !self.layers()[i].hidden()
+              !isTransparent(index) and !self.layers()[i].hidden()
             .last() or self.backgroundIndex()
 
-          color = self.palette()[index]
+          if isTransparent(index)
+            color = "transparent"
+          else
+            color = self.palette()[index]
 
           drawPixel(canvas, x, y, color, pixelSize())
           drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas
@@ -400,6 +407,10 @@ accidentally setting the pixel values during the preview.
         self.repaint()
 
       pixelExtent.observe updatePixelExtent
+
+      self.paletteZeroTransparent.observe ->
+        debugger
+        self.repaint()
 
       self.palette.observe ->
         self.repaint()

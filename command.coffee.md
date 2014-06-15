@@ -45,6 +45,16 @@ versions.
         undo: ->
           self.changePixel extend {}, data, index: data.previous
 
+      C "ChangeTransparencyMode", (data) ->
+        data.previous ?= self.paletteZeroTransparent()
+
+        execute: ->
+          debugger
+          self.paletteZeroTransparent !data.previous
+
+        undo: ->
+          self.paletteZeroTransparent data.previous
+
       C "Resize", (data) ->
         {width, height, state} = data
 
