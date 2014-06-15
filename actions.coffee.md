@@ -79,6 +79,18 @@ Actions
 
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACs0lEQVQ4T42SS0hUURjH/2fGO2MPTC3p6VQudBEt1Bm1UWgXCEW0LNpIlk5WYoq2UYseFAmaYaRNAy2KApMkq5lRepChjJqaiUJp4cKyRTgzPsZp7jl954xEK+teDt/HPff/+57MWuwpE2DbDQx5AFLIXwuIGMbAIOgLPUa6NNARgkPnmDVp+BwKLV3rbz7QymwO7x1nVV4h6P+0rWalEVwgHKHziyvxKrMBBMTcIsdcSBcT03P6PfeEf+zrTBWzOjrH71bmprX5gqg6lCTlOH2jD9eLMxHhQKzGYNIMWCKYf0EnKzA5swAjOC64BpYkYNZZmbvucW8AFQc3qJTPNvXjyokMaEaKbjJQ6kBgUcd8iINTdq6uH8jPjENZY4+QgPDtCrvW7gugJH+9AlQ7B3GpMB2rY43QqITFMBU+r1NGEgACzCB9hxl1D96DAF7eVG5nT6mE4/sSFYA0WGM2UnSGiE7RKfWFsK7Egl6X9zt2W0xoeDQIZjvpFY2ldjzrD+Db9BQ1izpOAC2GGkewCKUcoWYsD0QFiI9PxC6LGU2twwRweEV9aQ6e9/lVrVKl5qcUAqSnyASgSy4P+QYKkrqJoeXJSBRQdyoH7gG/ov8ZPoFkw6RQzl+lT1ZIh8ApSQyujo9RwFVHFrqGAtGtoUu5Q9LqEiCjy0zI51xXO0IeLIkC991jEuARl4uy8Go4iNoj25YhK5uKllEkJwg87BwHy6Ymni+04c1IALWHk9Hw7tiK6lK7E+XNH7AlXqDt5ScClHhFTYEV3aNB1BDAN/V6RYAteS/Kbg1hc5xA+1sCUAm8usDKesYkwPJfGZy5OYCNBOjonpCb6Jk8dzRjp5zh/uzoKv/ruejyqQa/6P3yk1mL3PXU11QwsYcJJNDw1Oio3Wpsf1sZJDpWIRh4UDDjyG82p2waquUVyAAAAABJRU5ErkJggg=="
 
+      "ctrl+e":
+        name: "Export"
+        description: """
+          Export image in a chunky size
+        """
+        method: ({editor}) ->
+          if name = prompt("File name", "image")
+            if size = prompt("Pixel Size", 4)
+              editor.outputCanvas(parseInt(size, 10)).toBlob (blob) ->
+                saveAs blob, "#{name}.png"
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACFklEQVQ4T2NkoBAwgvRHVq7o/feXMfrt138cX35hMfEfqhgXGwMDD+f/+Zv6ogrBBoSVr3rZlm4iKiYqysjIyMLwHygGwhB9jAz/gRwQhvD/M/z984shsXHHh+0TwwXBBrhkL/+wtt2HP6tvEYOUrAADO/M/hr//2RkYmPgZmIAqwBhIMAPxoxuXGdqKMhmiqjZ/3DM1TABsgFXq8g87+wP4e9fvY9CxtAUqZAba+BdoOQsQMwINYARSTEBDmBiuHD/IkOhqxRBTg2bAdqAB07YdY9C1doS4Fwe4fOwAQ4KrJUMs2IBwhAu2Ag2YvGEfg66lA9jW////MfwDuuLfPyZgKIDM/M/AzPiX4dqpIwzJXo4McbVbUQ3Y0hfAX79oCYO+kTfD779/wJo//XzJ8OuvDNgAEBBjf8/w6OZFhpyQIIa4OjQXbO4N4M/oWccgq20JUQ0OeojNyODxteMMkwqDUQ2wAAbilp4A/uwJW4AGWOH0P0ji8dVjDH053gzxyC4AGbC5O4A/ZyKZBpgnL/2wtTeIP7Swk0FMQRuvC149uMqwpLuMIbZ288d906GxYAE0YEtvIP/rH8DEAw8yXOb8Z+Bj+QU0YBPCALec5Q+XNLjLsbFxQqIQmmTBgYhhDiPDnz8/GeIbdwKTchgkKQcWr+j685fJ8vvv/7r/0DIONnewATMTJ9P/Bev7IwpgUYzX3/gkAZ2z7hEMLct4AAAAAElFTkSuQmCC"
+
       "ctrl+r":
         name: "Resize"
         description: """
@@ -140,7 +152,7 @@ Actions
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
 
       "t":
-        name: "Transparency"
+        name: "Transparency Mode"
         description: """
           Toggle palette 0 transparent
         """

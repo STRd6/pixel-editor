@@ -15,7 +15,7 @@ The toolbar holds our tools.
           - each @tools, (tool) ->
             - activeClass = -> "active" if tool is activeTool()
             - activate = -> activeTool(tool)
-            .tool(style="background-image: url(#{tool.iconUrl})" class=activeClass click=activate)
+            .tool(style="background-image: url(#{@iconUrl})" title=@hotkeys class=activeClass click=activate)
         %h2 Symmetry
         .tools
           - symmetryMode = @symmetryMode
@@ -59,9 +59,8 @@ The palette holds our colors.
 
       .actions
         - each @actions, (action) ->
-          .action(click=@perform touchstart=@perform style="background-image: url(#{@iconUrl})")
+          .action(click=@perform touchstart=@perform title=@hotkey style="background-image: url(#{@iconUrl})")
             .text= @name
-            .text= @hotkey
 
 Modal junk
 
