@@ -337,7 +337,7 @@ accidentally setting the pixel values during the preview.
       $(I.selector).append template self
 
       canvas = TouchCanvas canvasSize()
-      previewCanvas = TouchCanvas canvasSize()
+      self.previewCanvas = previewCanvas = TouchCanvas canvasSize()
       thumbnailCanvas = TouchCanvas pixelExtent()
 
       # TODO: Tempest should have an easier way to do this
