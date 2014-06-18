@@ -367,8 +367,7 @@ accidentally setting the pixel values during the preview.
 
       $selector.find(".thumbnail").append thumbnailCanvas.element()
 
-
-      self.TRANSPARENT_FILL = "white" # TODO: Real transparent bg fill
+      self.TRANSPARENT_FILL = require("./lib/checker")().pattern()
 
       updateViewportCentering = (->
         size = canvasSize()
@@ -435,8 +434,9 @@ accidentally setting the pixel values during the preview.
         Point(position).scale(pixelExtent()).floor()
 
       previewCanvas.on "touch", (position) ->
-        lastCommand = self.Command.Composite()
-        self.execute lastCommand
+        unless lastCommand?.empty?()
+          lastCommand = self.Command.Composite()
+          self.execute lastCommand
 
         activeTool().touch
           position: canvasPosition position
@@ -475,6 +475,24 @@ accidentally setting the pixel values during the preview.
 
         # TODO: Think more about triggering change events
         self.trigger "change"
+
+      # Decorate `execute` to soak empty last commands
+      # TODO: This seems a little gross
+      do ->
+        oldExecute = self.execute
+        self.execute = (command) ->
+          console.log self.history().map (i) ->
+            i.toJSON()
+
+          if self.history().last()?.empty?()
+            console.log "Undid"
+            lastCommand = command
+            self.undo()
+
+          oldExecute command
+          
+          console.log self.history().map (i) ->
+            i.toJSON()
 
       # TODO: Extract this decorator pattern
       ["undo", "execute", "redo"].forEach (method) ->

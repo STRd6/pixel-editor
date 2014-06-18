@@ -113,6 +113,7 @@ Select a region, then move it.
             drawOutline(canvas, scale, selection)
         else if moving
           {Command} = editor
+
           command = Command.Composite()
 
           # Paint the source region
