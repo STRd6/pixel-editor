@@ -407,8 +407,7 @@ accidentally setting the pixel values during the preview.</p>
 
   $selector.find(<span class="string">".thumbnail"</span>).append thumbnailCanvas.element()
 
-
-  self.TRANSPARENT_FILL = <span class="string">"white"</span> <span class="comment"># TODO: Real transparent bg fill</span>
+  self.TRANSPARENT_FILL = require(<span class="string">"./lib/checker"</span>)().pattern()
 
   updateViewportCentering = (-&gt;
     size = canvasSize()
@@ -475,8 +474,9 @@ accidentally setting the pixel values during the preview.</p>
     Point(position).scale(pixelExtent()).floor()
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
-    lastCommand = self.Command.Composite()
-    self.execute lastCommand
+    <span class="keyword">unless</span> lastCommand?.empty?()
+      lastCommand = self.Command.Composite()
+      self.execute lastCommand
 
     activeTool().touch
       position: canvasPosition position
@@ -515,6 +515,24 @@ accidentally setting the pixel values during the preview.</p>
 
     <span class="comment"># TODO: Think more about triggering change events</span>
     self.trigger <span class="string">"change"</span>
+
+  <span class="comment"># Decorate `execute` to soak empty last commands</span>
+  <span class="comment"># TODO: This seems a little gross</span>
+  <span class="keyword">do</span> -&gt;
+    oldExecute = self.execute
+    self.<span class="function"><span class="title">execute</span></span> = (command) -&gt;
+      console.log self.history().map (i) -&gt;
+        i.toJSON()
+
+      <span class="keyword">if</span> self.history().last()?.empty?()
+        console.log <span class="string">"Undid"</span>
+        lastCommand = command
+        self.undo()
+
+      oldExecute command
+
+      console.log self.history().map (i) -&gt;
+        i.toJSON()
 
   <span class="comment"># TODO: Extract this decorator pattern</span>
   [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;
