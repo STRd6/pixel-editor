@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>README</title>
+  <title>lib/rectangle</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,10 +18,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="pixel-editor">Pixel Editor</h1>
+              <h1 id="rectangle">Rectangle</h1>
 
             </div>
-            <div class="content"><pre><code>
+            <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
         </li>
@@ -32,106 +32,29 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>It edits pixels</p>
-<h1 id="palette">Palette</h1>
-
+              
             </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>Limited color palette (4, 8, 16, 32, 64, 128, or 256)</p>
-<h1 id="tools">Tools</h1>
+            <div class="content"><pre><code class="lang-coffeescript">{abs, min} = Math
 
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
-              </div>
-              <p>Pencil</p>
-<p>Brush</p>
-<p>Eraser</p>
-<p>Eye Dropper</p>
-<p>Paint Bucket</p>
-<p>Ellipse</p>
-<p>Solid Rectangle</p>
-<p>Rectangle Outline</p>
-<p>Line</p>
-<h1 id="symmetry-modes">Symmetry Modes</h1>
+Size = require <span class="string">"./size"</span>
 
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-5">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
-              </div>
-              <p>Normal
-Flip horizontally
-Flip vertically
-Quad</p>
-<h1 id="hotkeys">Hotkeys</h1>
+module.exports = <span class="function"><span class="title">Rectangle</span></span> = (position, size) -&gt;
+  <span class="keyword">if</span> position?.size?
+    {position, size} = position
 
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-6">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
-              </div>
-              <p>0-9 Select nth tool</p>
-<h1 id="developer-instructions">Developer Instructions</h1>
+  position: Point(position)
+  size: Size(size)
+  __proto__: Rectangle.prototype
 
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-7">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-7">&#182;</a>
-              </div>
-              <p>Fork on Github <a href="https://github.com/STRd6/pixel-editor/fork">https://github.com/STRd6/pixel-editor/fork</a></p>
-<p>Go to <a href="http://danielx.net/editor">http://danielx.net/editor</a></p>
-<p>Load your fork by clicking &quot;Load Repo&quot; and typing in &quot;<username>/pixel-editor&quot;</p>
-<p>When it loads click &quot;Run&quot; to make sure it works</p>
-<p>Click &quot;New Feature&quot; to start working on a feature branch</p>
-<p>Modify the code and click &quot;Run&quot; to see your changes.</p>
-<p>Click &quot;Save&quot; to push the code to your feature branch</p>
-<p>Review your branch on Github to make a pull request.</p>
-<p>Hopefully that works, but if not open an issue at <a href="https://github.com/STRd6/editor/issues/">https://github.com/STRd6/editor/issues/</a>
-and let me know what&#39;s not working.</p>
+Rectangle.prototype =
+  each: (iterator) -&gt;
+    p = <span class="property">@position</span>
 
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
+    <span class="property">@size</span>.each (x, y) -&gt;
+      iterator(p.x + x, p.y + y)
+
+Rectangle.<span class="function"><span class="title">fromPoints</span></span> = (start, end) -&gt;
+  Rectangle Point(min(start.x, end.x), min(start.y, end.y)), Size(abs(end.x - start.x), abs(end.y - start.y))</code></pre>
 </div>
         </li>
         
@@ -273,6 +196,6 @@ and let me know what&#39;s not working.</p>
 
 }).call(this);
 
-</script><script src="package.js"></script>
+</script><script src="../package.js"></script>
 </body>
 </html>

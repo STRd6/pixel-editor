@@ -49,7 +49,9 @@
               <p>Use jQuery deferred</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">global.Deferred = jQuery.Deferred</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">global.Deferred = jQuery.Deferred
+
+Size = require <span class="string">"./lib/size"</span></code></pre>
 </div>
         </li>
         
@@ -86,7 +88,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
-              <h2 id="size">Size</h2>
+              <h2 id="point-extensions">Point Extensions</h2>
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">
@@ -100,60 +102,6 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
-              <p>A 2d extent.</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">Size</span></span> = (width, height) -&gt;
-  <span class="keyword">if</span> isObject(width)
-    {width, height} = width
-
-  width: width
-  height: height
-  __proto__: Size.prototype
-
-Size.prototype =
-  scale: (scalar) -&gt;
-    Size(<span class="property">@width</span> * scalar, <span class="property">@height</span> * scalar)
-
-  toString: -&gt;
-    <span class="string">"Size(<span class="subst">#{@width}</span>, <span class="subst">#{@height}</span>)"</span>
-
-  max: (otherSize) -&gt;
-    Size(
-      Math.max(<span class="property">@width</span>, otherSize.width)
-      Math.max(<span class="property">@height</span>, otherSize.height)
-    )
-
-  each: (iterator) -&gt;
-    [<span class="number">0.</span>..<span class="property">@height</span>].forEach (y) -&gt;
-      [<span class="number">0.</span>..<span class="property">@width</span>].forEach (x) -&gt;
-        iterator(x, y)
-
-  inverse: -&gt;
-    Size(<span class="number">1</span><span class="regexp">/@width, 1/</span><span class="property">@height</span>)</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-8">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-8">&#182;</a>
-              </div>
-              <h2 id="point-extensions">Point Extensions</h2>
-
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-9">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-9">&#182;</a>
-              </div>
               
             </div>
             <div class="content"><pre><code class="lang-coffeescript">Point.prototype.<span class="function"><span class="title">scale</span></span> = (scalar) -&gt;
@@ -165,10 +113,10 @@ Size.prototype =
         </li>
         
         
-        <li id="section-10">
+        <li id="section-8">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>Extra utilities that may be broken out into separate libraries.</p>
 
@@ -182,10 +130,10 @@ Size.prototype =
         </li>
         
         
-        <li id="section-11">
+        <li id="section-9">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               <p>Call an iterator for each integer point on a line between two integer points.</p>
 
@@ -241,10 +189,10 @@ Size.prototype =
         </li>
         
         
-        <li id="section-12">
+        <li id="section-10">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>gross code courtesy of <a href="http://en.wikipedia.org/wiki/Midpoint_circle_algorithm">http://en.wikipedia.org/wiki/Midpoint_circle_algorithm</a></p>
 

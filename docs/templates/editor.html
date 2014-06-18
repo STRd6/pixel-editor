@@ -91,7 +91,7 @@
 
             </div>
             <div class="content"><pre><code class="lang-haml">  .palette
-    .color.current
+    .color.current(style=@activeColorStyle)
     - each @palette, (color, index) -&gt;
       - activeClass = -&gt; &quot;active&quot; if index is activeIndex()
       - activate = -&gt; activeIndex index

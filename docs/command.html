@@ -160,6 +160,9 @@ versions.</p>
       commands.push command
       command.execute() <span class="keyword">unless</span> noExecute
 
+    empty: -&gt;
+      commands.length <span class="keyword">is</span> <span class="number">0</span>
+
     toJSON: -&gt;
       extend {}, data,
         commands: commands.invoke <span class="string">"toJSON"</span>

@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>README</title>
+  <title>lib/size</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,10 +18,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h1 id="pixel-editor">Pixel Editor</h1>
+              <h2 id="size">Size</h2>
 
             </div>
-            <div class="content"><pre><code>
+            <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
         </li>
@@ -32,12 +32,43 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>It edits pixels</p>
-<h1 id="palette">Palette</h1>
+              <p>A 2d extent.</p>
 
             </div>
-            <div class="content"><pre><code>
-</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">module.exports = <span class="function"><span class="title">Size</span></span> = (width, height) -&gt;
+  <span class="keyword">if</span> isObject(width)
+    {width, height} = width
+
+  width: width
+  height: height
+  __proto__: Size.prototype
+
+Size.prototype =
+  scale: (scalar) -&gt;
+    Size(<span class="property">@width</span> * scalar, <span class="property">@height</span> * scalar)
+
+  toString: -&gt;
+    <span class="string">"Size(<span class="subst">#{@width}</span>, <span class="subst">#{@height}</span>)"</span>
+
+  max: (otherSize) -&gt;
+    Size(
+      Math.max(<span class="property">@width</span>, otherSize.width)
+      Math.max(<span class="property">@height</span>, otherSize.height)
+    )
+
+  each: (iterator) -&gt;
+    {width, height} = <span class="keyword">this</span>
+
+    [<span class="number">0.</span>..height].forEach (y) -&gt;
+      [<span class="number">0.</span>..width].forEach (x) -&gt;
+        iterator(x, y)
+        <span class="keyword">return</span>
+      <span class="keyword">return</span>
+
+    <span class="keyword">return</span> <span class="keyword">this</span>
+
+  inverse: -&gt;
+    Size(<span class="number">1</span><span class="regexp">/@width, 1/</span><span class="property">@height</span>)</code></pre>
 </div>
         </li>
         
@@ -47,11 +78,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>Limited color palette (4, 8, 16, 32, 64, 128, or 256)</p>
-<h1 id="tools">Tools</h1>
+              <h2 id="helpers">Helpers</h2>
 
             </div>
-            <div class="content"><pre><code>
+            <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
         </li>
@@ -62,76 +92,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>Pencil</p>
-<p>Brush</p>
-<p>Eraser</p>
-<p>Eye Dropper</p>
-<p>Paint Bucket</p>
-<p>Ellipse</p>
-<p>Solid Rectangle</p>
-<p>Rectangle Outline</p>
-<p>Line</p>
-<h1 id="symmetry-modes">Symmetry Modes</h1>
-
+              
             </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-5">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-5">&#182;</a>
-              </div>
-              <p>Normal
-Flip horizontally
-Flip vertically
-Quad</p>
-<h1 id="hotkeys">Hotkeys</h1>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-6">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
-              </div>
-              <p>0-9 Select nth tool</p>
-<h1 id="developer-instructions">Developer Instructions</h1>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-7">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-7">&#182;</a>
-              </div>
-              <p>Fork on Github <a href="https://github.com/STRd6/pixel-editor/fork">https://github.com/STRd6/pixel-editor/fork</a></p>
-<p>Go to <a href="http://danielx.net/editor">http://danielx.net/editor</a></p>
-<p>Load your fork by clicking &quot;Load Repo&quot; and typing in &quot;<username>/pixel-editor&quot;</p>
-<p>When it loads click &quot;Run&quot; to make sure it works</p>
-<p>Click &quot;New Feature&quot; to start working on a feature branch</p>
-<p>Modify the code and click &quot;Run&quot; to see your changes.</p>
-<p>Click &quot;Save&quot; to push the code to your feature branch</p>
-<p>Review your branch on Github to make a pull request.</p>
-<p>Hopefully that works, but if not open an issue at <a href="https://github.com/STRd6/editor/issues/">https://github.com/STRd6/editor/issues/</a>
-and let me know what&#39;s not working.</p>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">isObject</span></span> = (object) -&gt;
+  Object::toString.call(object) <span class="keyword">is</span> <span class="string">"[object Object]"</span></code></pre>
 </div>
         </li>
         
@@ -273,6 +237,6 @@ and let me know what&#39;s not working.</p>
 
 }).call(this);
 
-</script><script src="package.js"></script>
+</script><script src="../package.js"></script>
 </body>
 </html>
