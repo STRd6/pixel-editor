@@ -296,7 +296,22 @@ Editor
           index: self.layer(layer).get(x, y)
           layer: layer ? self.activeLayerIndex()
 
+        getIndex: (x, y) ->
+          self.layer().get(x, y)
+
+        color: (index) ->
+          if isTransparent(index)
+            "transparent"
+          else
+            self.palette()[index]
+
         palette: Observable(Palette.dawnBringer16)
+
+        selection: (rectangle) ->
+          each: (iterator) ->
+            rectangle.each (x, y) ->
+              index = self.getIndex(x, y)
+              iterator(index, x, y)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
@@ -319,6 +334,12 @@ accidentally setting the pixel values during the preview.
           canvas = realCanvas
           lastCommand = realCommand
 
+      self.activeColor = Observable ->
+        self.color(self.activeIndex())
+
+      self.activeColorStyle = Observable ->
+        "background-color: #{self.activeColor()}"
+
       makeLayer = (data) ->
         layer = Layer
           width: pixelExtent().width
@@ -340,21 +361,14 @@ accidentally setting the pixel values during the preview.
       self.previewCanvas = previewCanvas = TouchCanvas canvasSize()
       thumbnailCanvas = TouchCanvas pixelExtent()
 
-      # TODO: Tempest should have an easier way to do this
-      updateActiveColor = (newIndex) ->
-        color = self.palette()[newIndex]
-
-        $selector.find(".palette .current").css
-          backgroundColor: color
-
-      updateActiveColor(activeIndex())
-      activeIndex.observe updateActiveColor
-
       $selector.find(".viewport")
         .append(canvas.element())
         .append($(previewCanvas.element()).addClass("preview"))
 
       $selector.find(".thumbnail").append thumbnailCanvas.element()
+
+
+      self.TRANSPARENT_FILL = "white" # TODO: Real transparent bg fill
 
       updateViewportCentering = (->
         size = canvasSize()

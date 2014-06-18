@@ -5,7 +5,7 @@ describe "Grid", ->
     grid = Grid(32, 32, 0)
 
     grid.expand(128 - 32, 72 - 32, 0)
-    
+
     called = 0
     grid.each (value, x, y) ->
       called += 1

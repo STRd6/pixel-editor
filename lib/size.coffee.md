@@ -25,9 +25,15 @@ A 2d extent.
         )
 
       each: (iterator) ->
-        [0...@height].forEach (y) ->
-          [0...@width].forEach (x) ->
+        {width, height} = this
+
+        [0...height].forEach (y) ->
+          [0...width].forEach (x) ->
             iterator(x, y)
+            return
+          return
+
+        return this
 
       inverse: ->
         Size(1/@width, 1/@height)
