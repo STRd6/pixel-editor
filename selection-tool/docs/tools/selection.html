@@ -47,7 +47,18 @@
   <span class="keyword">else</span>
     y = <span class="number">1</span>
 
-  end.add(Point(x, y))</code></pre>
+  end.add(Point(x, y))
+
+<span class="function"><span class="title">drawOutline</span></span> = (canvas, scale, rectangle) -&gt;
+  canvas.drawRect
+    x: rectangle.position.x * scale
+    y: rectangle.position.y * scale
+    width: rectangle.size.width * scale
+    height: rectangle.size.height * scale
+    color: <span class="string">"transparent"</span>
+    stroke:
+      width: <span class="number">2</span>
+      color: <span class="string">"green"</span></code></pre>
 </div>
         </li>
         
@@ -62,7 +73,8 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = -&gt;
   selecting = <span class="literal">true</span>
-  selection = selectionStart = selectionEnd = <span class="literal">undefined</span>
+  moving = <span class="literal">false</span>
+  selection = delta = selectionStart = startPosition = selectionEnd = <span class="literal">undefined</span>
 
   touch: ({position, editor}) -&gt;
     <span class="keyword">if</span> selecting
@@ -70,32 +82,106 @@
       selectionEnd = position.add(Point(<span class="number">1</span>, <span class="number">1</span>))
     <span class="keyword">else</span>
       <span class="comment"># if clicked in selection</span>
-      <span class="comment"># else </span>
+      moving = <span class="literal">true</span>
+      startPosition = position
+      delta = Point(<span class="number">0</span>, <span class="number">0</span>)
+      <span class="comment"># else</span>
       <span class="comment">#   clear selection</span>
 
   move: ({position, editor}) -&gt;
-    selectionEnd = endDeltoid(selectionStart, position)
-
-    selection = Rectangle.fromPoints(selectionStart, selectionEnd)
-
-    editor.previewCanvas.clear()
     scale = editor.pixelSize()
 
-    <span class="keyword">debugger</span>
+    canvas = editor.previewCanvas
+    canvas.clear()
 
-    editor.previewCanvas.drawRect
-      x: selection.position.x * scale
-      y: selection.position.y * scale
-      width: selection.size.width * scale
-      height: selection.size.height * scale
-      color: <span class="string">"transparent"</span>
-      stroke:
-        width: <span class="number">2</span>
-        color: <span class="string">"green"</span>
-
-  release: -&gt;
     <span class="keyword">if</span> selecting
-    <span class="keyword">else</span></code></pre>
+      selectionEnd = endDeltoid(selectionStart, position)
+
+      selection = Rectangle.fromPoints(selectionStart, selectionEnd)
+
+      drawOutline(canvas, scale, selection)
+
+    <span class="keyword">else</span>
+      <span class="comment"># Update selection position</span>
+      delta = position.subtract(startPosition)
+
+      <span class="comment"># Draw background area</span>
+      color = editor.activeColor()
+
+      <span class="comment"># TODO: Is it possible to avoid this transparent hack?</span>
+      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+        editor.previewCanvas.drawRect
+          x: (selection.position.x) * scale
+          y: (selection.position.y) * scale
+          width: selection.size.width * scale
+          height: selection.size.height * scale
+          color: editor.TRANSPARENT_FILL
+      <span class="keyword">else</span>
+        editor.previewCanvas.drawRect
+          x: (selection.position.x) * scale
+          y: (selection.position.y) * scale
+          width: selection.size.width * scale
+          height: selection.size.height * scale
+          color: color
+
+      <span class="comment"># Draw Floating pixels</span>
+      editor.selection(selection).each (index, x, y) -&gt;
+        editor.previewCanvas.drawRect
+          x: (x + delta.x) * scale
+          y: (y + delta.y) * scale
+          width: scale
+          height: scale
+          color: editor.color(index)
+
+      <span class="comment"># Draw selection area</span>
+      editor.previewCanvas.drawRect
+        x: (selection.position.x + delta.x) * scale
+        y: (selection.position.y + delta.y) * scale
+        width: selection.size.width * scale
+        height: selection.size.height * scale
+        color: <span class="string">"transparent"</span>
+        stroke:
+          width: <span class="number">2</span>
+          color: <span class="string">"green"</span>
+
+  release: ({editor}) -&gt;
+    <span class="keyword">if</span> selecting
+      selecting = !selecting
+      <span class="comment"># HACK: Painting the ui on the preview canvas after it get's auto</span>
+      <span class="comment"># cleared from the release event</span>
+      setTimeout -&gt;
+        canvas = editor.previewCanvas
+        scale = editor.pixelSize()
+        drawOutline(canvas, scale, selection)
+    <span class="keyword">else</span> <span class="keyword">if</span> moving
+      {Command} = editor
+      command = Command.Composite()
+
+      <span class="comment"># Paint the source region</span>
+      selection.each (x, y) -&gt;
+        data = editor.getPixel({x, y})
+        data.index = editor.activeIndex()
+
+        command.push Command.ChangePixel(data), <span class="literal">true</span>
+
+      <span class="comment"># Paint the target region</span>
+      editor.selection(selection).each (index, x, y) -&gt;
+
+        <span class="comment"># TODO: This depends on current transparancy mode of editor</span>
+        <span class="comment"># not sure if there is a way to make it independent easily</span>
+        <span class="keyword">unless</span> editor.color(index) <span class="keyword">is</span> <span class="string">"transparent"</span>
+          data =
+            x: x + delta.x
+            y: y + delta.y
+            index: index
+            layer: editor.activeLayerIndex()
+
+          command.push Command.ChangePixel(data), <span class="literal">true</span>
+
+      editor.execute command
+
+      moving = <span class="literal">false</span>
+      selecting = <span class="literal">true</span></code></pre>
 </div>
         </li>
         

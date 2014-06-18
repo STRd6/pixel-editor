@@ -57,9 +57,15 @@ Size.prototype =
     )
 
   each: (iterator) -&gt;
-    [<span class="number">0.</span>..<span class="property">@height</span>].forEach (y) -&gt;
-      [<span class="number">0.</span>..<span class="property">@width</span>].forEach (x) -&gt;
+    {width, height} = <span class="keyword">this</span>
+
+    [<span class="number">0.</span>..height].forEach (y) -&gt;
+      [<span class="number">0.</span>..width].forEach (x) -&gt;
         iterator(x, y)
+        <span class="keyword">return</span>
+      <span class="keyword">return</span>
+
+    <span class="keyword">return</span> <span class="keyword">this</span>
 
   inverse: -&gt;
     Size(<span class="number">1</span><span class="regexp">/@width, 1/</span><span class="property">@height</span>)</code></pre>
