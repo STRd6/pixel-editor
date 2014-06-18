@@ -94,6 +94,8 @@ Draw a line when moving while touching.
           # Return to the previous tool
           editor.activeTool editor.previousTool()
 
+      move: require("./tools/selection")()
+
 Fill a connected area.
 
       fill:
