@@ -46,6 +46,11 @@ Select a region, then move it.
           # else
           #   clear selection
 
+      iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABlUlEQVQ4T6WTz0sCQRTHnyvpNYsuGSQbpQgiiAiC/0L/RIcuHbwkQocOQRAFXTpEB4M8dOgQ1L8hiAjiam5gpn+B6MWZ13uzzrblEoSPnZmdH+/znTdvJgBLWmBJf1CAq9cRapBABBQAgkakkCAkgqCOpLHZTMDlgflD1AVsRkKA5EzrAamSkiBUcSvnEHs0hevDnUXAxcsQo6sh5cyLvwtBaBcKQKX3OYGbo71FwPnzELciK76q2llSGG8EuC3GFwFnTwOMrtEO9NY9quxIXZqT0BlMobxvqH8uyWQyoGinj33cWg+7sXpV3X+CdPpjqJQS6qza7TakUikHcFJlAIfgxOpV1YfIc1Z/AvelXTAMA1qtFqTTaQdwXHnH7Y2w6+xV5VQqCKlaH2N4KCcUoNlsQiaTcQDFux7KmQT61KkLyjnHqPOv7gb1+bJUy3EIBoPQaDQgm806gN9m2zbGYjECEGluHLc2BtTrdcjlcv6AbreLpmn+ectrtRrk83l/gGVZyOo6XX4tzxcKBX/Afx7Y0q/xCyxxSSDAf7z0AAAAAElFTkSuQmCC"
+      iconOffset:
+        x: 1
+        y: 2
+
       move: ({position, editor}) ->
         scale = editor.pixelSize()
 
