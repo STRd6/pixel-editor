@@ -521,18 +521,11 @@ accidentally setting the pixel values during the preview.</p>
   <span class="keyword">do</span> -&gt;
     oldExecute = self.execute
     self.<span class="function"><span class="title">execute</span></span> = (command) -&gt;
-      console.log self.history().map (i) -&gt;
-        i.toJSON()
-
       <span class="keyword">if</span> self.history().last()?.empty?()
-        console.log <span class="string">"Undid"</span>
         lastCommand = command
         self.undo()
 
       oldExecute command
-
-      console.log self.history().map (i) -&gt;
-        i.toJSON()
 
   <span class="comment"># TODO: Extract this decorator pattern</span>
   [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;
