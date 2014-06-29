@@ -481,18 +481,11 @@ accidentally setting the pixel values during the preview.
       do ->
         oldExecute = self.execute
         self.execute = (command) ->
-          console.log self.history().map (i) ->
-            i.toJSON()
-
           if self.history().last()?.empty?()
-            console.log "Undid"
             lastCommand = command
             self.undo()
 
           oldExecute command
-          
-          console.log self.history().map (i) ->
-            i.toJSON()
 
       # TODO: Extract this decorator pattern
       ["undo", "execute", "redo"].forEach (method) ->
