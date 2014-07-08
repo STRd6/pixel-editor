@@ -19,7 +19,6 @@ Editing pixels in your browser.
     global.Bindable = require "bindable"
     require "cornerstone"
 
-    require "appcache"
     require "jquery-utils"
 
     require "./lib/canvas-to-blob"

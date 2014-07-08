@@ -4,7 +4,6 @@ remoteDependencies: [
 ]
 dependencies:
   analytics: "distri/google-analytics:v0.1.0"
-  appcache: "distri/appcache:v0.2.0"
   bindable: "distri/bindable:v0.1.0"
   byte_array: "distri/byte_array:v0.1.1"
   cornerstone: "distri/cornerstone:v0.2.2-pre.0"
