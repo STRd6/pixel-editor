@@ -296,7 +296,22 @@ Editor
           index: self.layer(layer).get(x, y)
           layer: layer ? self.activeLayerIndex()
 
+        getIndex: (x, y) ->
+          self.layer().get(x, y)
+
+        color: (index) ->
+          if isTransparent(index)
+            "transparent"
+          else
+            self.palette()[index]
+
         palette: Observable(Palette.dawnBringer16)
+
+        selection: (rectangle) ->
+          each: (iterator) ->
+            rectangle.each (x, y) ->
+              index = self.getIndex(x, y)
+              iterator(index, x, y)
 
 This preview function is a little nuts, but I'm not sure how to clean it up.
 
@@ -319,6 +334,12 @@ accidentally setting the pixel values during the preview.
           canvas = realCanvas
           lastCommand = realCommand
 
+      self.activeColor = Observable ->
+        self.color(self.activeIndex())
+
+      self.activeColorStyle = Observable ->
+        "background-color: #{self.activeColor()}"
+
       makeLayer = (data) ->
         layer = Layer
           width: pixelExtent().width
@@ -337,24 +358,16 @@ accidentally setting the pixel values during the preview.
       $(I.selector).append template self
 
       canvas = TouchCanvas canvasSize()
-      previewCanvas = TouchCanvas canvasSize()
+      self.previewCanvas = previewCanvas = TouchCanvas canvasSize()
       thumbnailCanvas = TouchCanvas pixelExtent()
-
-      # TODO: Tempest should have an easier way to do this
-      updateActiveColor = (newIndex) ->
-        color = self.palette()[newIndex]
-
-        $selector.find(".palette .current").css
-          backgroundColor: color
-
-      updateActiveColor(activeIndex())
-      activeIndex.observe updateActiveColor
 
       $selector.find(".viewport")
         .append(canvas.element())
         .append($(previewCanvas.element()).addClass("preview"))
 
       $selector.find(".thumbnail").append thumbnailCanvas.element()
+
+      self.TRANSPARENT_FILL = require("./lib/checker")().pattern()
 
       updateViewportCentering = (->
         size = canvasSize()
@@ -421,8 +434,9 @@ accidentally setting the pixel values during the preview.
         Point(position).scale(pixelExtent()).floor()
 
       previewCanvas.on "touch", (position) ->
-        lastCommand = self.Command.Composite()
-        self.execute lastCommand
+        unless lastCommand?.empty?()
+          lastCommand = self.Command.Composite()
+          self.execute lastCommand
 
         activeTool().touch
           position: canvasPosition position
@@ -448,17 +462,30 @@ accidentally setting the pixel values during the preview.
 
       # TODO: Move this into template?
       $viewport = $selector.find(".viewport")
-      self.activeTool.observe ({iconUrl, iconOffset}) ->
+      setCursor = ({iconUrl, iconOffset}) ->
         {x, y} = Point(iconOffset)
 
         $viewport.css
           cursor: "url(#{iconUrl}) #{x} #{y}, default"
+      self.activeTool.observe setCursor
+      setCursor self.activeTool()
 
       self.on "release", ->
         previewCanvas.clear()
 
         # TODO: Think more about triggering change events
         self.trigger "change"
+
+      # Decorate `execute` to soak empty last commands
+      # TODO: This seems a little gross
+      do ->
+        oldExecute = self.execute
+        self.execute = (command) ->
+          if self.history().last()?.empty?()
+            lastCommand = command
+            self.undo()
+
+          oldExecute command
 
       # TODO: Extract this decorator pattern
       ["undo", "execute", "redo"].forEach (method) ->

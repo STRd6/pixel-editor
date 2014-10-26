@@ -43,7 +43,7 @@ Our layers and preview canvases are placed in the viewport.
 The palette holds our colors.
 
       .palette
-        .color.current
+        .color.current(style=@activeColorStyle)
         - each @palette, (color, index) ->
           - activeClass = -> "active" if index is activeIndex()
           - activate = -> activeIndex index

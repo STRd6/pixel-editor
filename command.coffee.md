@@ -110,6 +110,9 @@ versions.
           commands.push command
           command.execute() unless noExecute
 
+        empty: ->
+          commands.length is 0
+
         toJSON: ->
           extend {}, data,
             commands: commands.invoke "toJSON"
