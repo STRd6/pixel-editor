@@ -1,5 +1,5 @@
 Debug Some junk
 
     %pre.debug
-      - each @items, (item) ->
+      - @items.each (item) ->
         = item
