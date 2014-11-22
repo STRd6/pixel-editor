@@ -92,7 +92,7 @@ window["STRd6/pixel-editor:updated-haml"]({
     },
     "lib/checker.coffee": {
       "path": "lib/checker.coffee",
-      "content": "module.exports = ({colors, size}={}) ->\n  colors ?= [\"white\", \"#CCCCCC\"]\n  size ?= 8\n\n  canvasWidth = 2 * size\n  canvasHeight = 2 * size\n\n  canvas = document.createElement(\"canvas\")\n  canvas.width = canvasWidth\n  canvas.height = canvasHeight\n\n  context = canvas.getContext(\"2d\")\n\n  context.fillStyle = colors[0]\n  context.fillRect(0, 0, size, size)\n  context.fillRect(size, size, size, size)\n  \n  context.fillStyle = colors[1]\n  context.fillRect(0, size, size, size)\n  context.fillRect(size, 0, size, size)\n\n  pattern: (repeat=\"repeat\") ->\n    context.createPattern(canvas, repeat)\n\n  backgroundImage: ->\n    \"url(#{this.toDataURL()})\"\n\n  toDataURL: ->\n    canvas.toDataURL(\"image/png\")\n",
+      "content": "module.exports = ({colors, size}={}) ->\n  colors ?= [\"white\", \"#CCCCCC\"]\n  size ?= 8\n\n  canvasWidth = 2 * size\n  canvasHeight = 2 * size\n\n  canvas = document.createElement(\"canvas\")\n  canvas.width = canvasWidth\n  canvas.height = canvasHeight\n\n  context = canvas.getContext(\"2d\")\n\n  context.fillStyle = colors[0]\n  context.fillRect(0, 0, size, size)\n  context.fillRect(size, size, size, size)\n\n  context.fillStyle = colors[1]\n  context.fillRect(0, size, size, size)\n  context.fillRect(size, 0, size, size)\n\n  pattern: (repeat=\"repeat\") ->\n    context.createPattern(canvas, repeat)\n\n  backgroundImage: ->\n    \"url(#{this.toDataURL()})\"\n\n  toDataURL: ->\n    canvas.toDataURL(\"image/png\")\n",
       "mode": "100644",
       "type": "blob"
     },
