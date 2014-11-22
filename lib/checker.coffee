@@ -14,7 +14,7 @@ module.exports = ({colors, size}={}) ->
   context.fillStyle = colors[0]
   context.fillRect(0, 0, size, size)
   context.fillRect(size, size, size, size)
-  
+
   context.fillStyle = colors[1]
   context.fillRect(0, size, size, size)
   context.fillRect(size, 0, size, size)
