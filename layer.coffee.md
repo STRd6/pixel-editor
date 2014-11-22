@@ -3,8 +3,6 @@ Layer
 
     require "cornerstone"
 
-    Observable = require "observable"
-
 TouchCanvas, for previews.
 
     TouchCanvas = require "touch-canvas"
