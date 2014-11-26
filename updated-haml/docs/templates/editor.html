@@ -43,7 +43,6 @@
             <div class="content"><pre><code class="lang-haml">  .toolbar
     .tools
       - @tools.each (tool) -&gt;
-        - console.log tool
         - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
         - activate = -&gt; activeTool(tool)
         .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; title=tool.hotkeys class=activeClass click=activate)
