@@ -13,7 +13,6 @@ The toolbar holds our tools.
       .toolbar
         .tools
           - @tools.each (tool) ->
-            - console.log tool
             - activeClass = -> "active" if tool is activeTool()
             - activate = -> activeTool(tool)
             .tool(style="background-image: url(#{tool.iconUrl})" title=tool.hotkeys class=activeClass click=activate)
