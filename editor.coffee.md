@@ -497,4 +497,6 @@ accidentally setting the pixel values during the preview.
 
       self.include require "./dirty"
 
+      self.include require("./plugins/save_to_s3")
+
       return self
