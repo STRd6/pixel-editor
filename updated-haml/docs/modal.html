@@ -35,7 +35,10 @@
               <p>Messing around with some modal BS</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># HACK: Dismiss modal by clicking on overlay</span>
+            <div class="content"><pre><code class="lang-coffeescript">$(<span class="string">"body"</span>).append $ <span class="string">"&lt;div&gt;"</span>,
+  id: <span class="string">"modal"</span>
+
+<span class="comment"># HACK: Dismiss modal by clicking on overlay</span>
 $ -&gt;
   $(<span class="string">"#modal"</span>).click (e) -&gt;
     <span class="keyword">if</span> e.target <span class="keyword">is</span> <span class="keyword">this</span>
