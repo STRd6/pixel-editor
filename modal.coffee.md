@@ -3,6 +3,9 @@ Modal
 
 Messing around with some modal BS
 
+    $("body").append $ "<div>",
+      id: "modal"
+
     # HACK: Dismiss modal by clicking on overlay
     $ ->
       $("#modal").click (e) ->

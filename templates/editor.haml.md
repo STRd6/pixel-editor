@@ -61,7 +61,3 @@ The palette holds our colors.
         - @actions.each (action) ->
           .action(click=action.perform touchstart=action.perform title=action.hotkey style="background-image: url(#{action.iconUrl})")
             .text= action.name
-
-Modal junk
-
-    #modal
