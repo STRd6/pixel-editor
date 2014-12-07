@@ -3,6 +3,8 @@ Pixel Editor
 
 It edits pixels
 
+http://www.danielx.net/pixel-editor/
+
 Palette
 =======
 
