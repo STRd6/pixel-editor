@@ -3,8 +3,6 @@ Layer
 
     require "cornerstone"
 
-    Observable = require "observable"
-
 TouchCanvas, for previews.
 
     TouchCanvas = require "touch-canvas"
@@ -98,9 +96,3 @@ A layer is a 2d set of pixels.
       return self
 
     module.exports = Layer
-
-Helpers
--------
-
-    previewCanvas = (width, height) ->
-      canvas = document.createElement("canvas")

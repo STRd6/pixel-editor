@@ -12,14 +12,14 @@ The toolbar holds our tools.
 
       .toolbar
         .tools
-          - each @tools, (tool) ->
+          - @tools.each (tool) ->
             - activeClass = -> "active" if tool is activeTool()
             - activate = -> activeTool(tool)
-            .tool(style="background-image: url(#{@iconUrl})" title=@hotkeys class=activeClass click=activate)
+            .tool(style="background-image: url(#{tool.iconUrl})" title=tool.hotkeys class=activeClass click=activate)
         %h2 Symmetry
         .tools
           - symmetryMode = @symmetryMode
-          - each ["normal", "flip", "flop", "quad"], (mode) ->
+          - ["normal", "flip", "flop", "quad"].forEach (mode) ->
             - activeClass = -> "active" if mode is symmetryMode()
             - activate = -> symmetryMode(mode)
             .tool(style="background-image: url(#{Symmetry.icon[mode]})" class=activeClass click=activate)
@@ -36,7 +36,7 @@ Our layers and preview canvases are placed in the viewport.
         = @positionDisplay
 
       .notifications
-        - each @notifications, (notification) ->
+        - @notifications.forEach (notification) ->
           %p
             = notification
 
@@ -44,7 +44,7 @@ The palette holds our colors.
 
       .palette
         .color.current(style=@activeColorStyle)
-        - each @palette, (color, index) ->
+        - @palette.forEach (color, index) ->
           - activeClass = -> "active" if index is activeIndex()
           - activate = -> activeIndex index
           - style = -> if editor.paletteZeroTransparent() and index is 0 then "background-color: transparent" else "background-color: #{color}"
@@ -58,10 +58,6 @@ The palette holds our colors.
         %button(click=close) Close
 
       .actions
-        - each @actions, (action) ->
-          .action(click=@perform touchstart=@perform title=@hotkey style="background-image: url(#{@iconUrl})")
-            .text= @name
-
-Modal junk
-
-    #modal
+        - @actions.each (action) ->
+          .action(click=action.perform touchstart=action.perform title=action.hotkey style="background-image: url(#{action.iconUrl})")
+            .text= action.name

@@ -362,8 +362,10 @@ accidentally setting the pixel values during the preview.
       thumbnailCanvas = TouchCanvas pixelExtent()
 
       $selector.find(".viewport")
-        .append(canvas.element())
-        .append($(previewCanvas.element()).addClass("preview"))
+      .append(canvas.element())
+      .append($(previewCanvas.element()).addClass("preview"))
+      .css
+        backgroundImage: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"
 
       $selector.find(".thumbnail").append thumbnailCanvas.element()
 
@@ -496,5 +498,7 @@ accidentally setting the pixel values during the preview.
           self.trigger "change"
 
       self.include require "./dirty"
+
+      self.include require("./plugins/save_to_s3")
 
       return self
