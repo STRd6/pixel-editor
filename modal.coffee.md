@@ -3,18 +3,18 @@ Modal
 
 Messing around with some modal BS
 
-    $("body").append $ "<div>",
+    modal = $ "<div>",
       id: "modal"
 
-    # HACK: Dismiss modal by clicking on overlay
-    $ ->
-      $("#modal").click (e) ->
-        if e.target is this
-          Modal.hide()
+    modal.click (e) ->
+      if e.target is this
+        Modal.hide()
+
+    $("body").append modal
 
     module.exports = Modal =
       show: (element) ->
-        $("#modal").empty().append(element).addClass("active")
+        modal.empty().append(element).addClass("active")
 
       hide: ->
-        $("#modal").removeClass("active")
+        modal.removeClass("active")
