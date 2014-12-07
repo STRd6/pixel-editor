@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>templates/editor</title>
+  <title>plugins/save_to_s3</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
@@ -18,16 +18,11 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <p>Editor template</p>
+              <h1 id="save-to-s3">Save to S3</h1>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">- activeIndex = @activeIndex
-- activeTool = @activeTool
-- previousTool = @previousTool
-- editor = this
-- Symmetry = require &quot;../symmetry&quot;
-
-.editor</code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
 </div>
         </li>
         
@@ -37,78 +32,27 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>The toolbar holds our tools.</p>
+              <p>Save images to S3 directly.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-haml">  .toolbar
-    .tools
-      - @tools.each (tool) -&gt;
-        - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
-        - activate = -&gt; activeTool(tool)
-        .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; title=tool.hotkeys class=activeClass click=activate)
-    %h2 Symmetry
-    .tools
-      - symmetryMode = @symmetryMode
-      - [&quot;normal&quot;, &quot;flip&quot;, &quot;flop&quot;, &quot;quad&quot;].forEach (mode) -&gt;
-        - activeClass = -&gt; &quot;active&quot; if mode is symmetryMode()
-        - activate = -&gt; symmetryMode(mode)
-        .tool(style=&quot;background-image: url(#{Symmetry.icon[mode]})&quot; class=activeClass click=activate)</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>Our layers and preview canvases are placed in the viewport.</p>
+            <div class="content"><pre><code class="lang-coffeescript">module.<span class="function"><span class="title">exports</span></span> = (I, self) -&gt;
+  <span class="comment"># Init from I.s3_policy</span>
 
-            </div>
-            <div class="content"><pre><code class="lang-haml">  .main
-    .viewport
-      .overlay
-    - swap = (e) -&gt; if ($t = $(e.currentTarget)).css(&quot;left&quot;) is &quot;auto&quot; then $t.css(left: 0, right: &quot;auto&quot;) else $t.css(left: &quot;auto&quot;, right: 0)
-    .thumbnail(click=swap)
+  self.addAction
+    perform: -&gt;
+      alert <span class="string">"wat"</span>
+      <span class="comment"># Get image data</span>
 
-  .position
-    = @positionDisplay
+      <span class="comment"># Get replay data</span>
 
-  .notifications
-    - @notifications.forEach (notification) -&gt;
-      %p
-        = notification</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-4">&#182;</a>
-              </div>
-              <p>The palette holds our colors.</p>
+      <span class="comment"># Upload to S3</span>
 
-            </div>
-            <div class="content"><pre><code class="lang-haml">  .palette
-    .color.current(style=@activeColorStyle)
-    - @palette.forEach (color, index) -&gt;
-      - activeClass = -&gt; &quot;active&quot; if index is activeIndex()
-      - activate = -&gt; activeIndex index
-      - style = -&gt; if editor.paletteZeroTransparent() and index is 0 then &quot;background-color: transparent&quot; else &quot;background-color: #{color}&quot;
-      .color(class=activeClass click=activate touchstart=activate style=style)
+      <span class="comment"># Post Save hook</span>
+    name: <span class="string">"Save"</span>
+    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKFSURBVDjLhVNNaxNRFD3vzUwSJ622YEwgYoVaNBUVilZwqStBtJBNxC4EEel/sDsXLhRcVxSUQo07QVy0jbpQqiANsS5ciNpowBhM2kk7nWS+vPdJqi0tXjhz39x595zz7syIMAxRKBSilM8TLgZBcIjyAIGWwQfKnyjfIxRGRkZ8bAoxOzs7SJumEonE0VQqhXg8DtM0wcTLy8toNpsol8uo1WqvqJbLZrOVDQzT09MvFhcXWS7cLlzXDYvFYpjP5x8w8b+QdDmcTCbxv0in0yCRs5vrOhUVU7VaRSwWQzQahWEYqmbbNur1OiqVCvr7+5kA2xLouo5GowHHcdS953mwLAutVks949qWBJ2zaJqmHPBmxs0ndXRHe2G3PfR2RfBo/geEHEy8v1sKg1CgYa3hebFyct0BK9KwVBZCYM12cHr4IC4MdeHpm+8Yv5TZoPzwZY0cibeyQ+D7vmpm8Npuuag3PbV55l11vdGhktUCakttEgr+zoDVGdzMx5FSQAsB1w9we2yI1OioRKDR1dShZmOttv8QMDrqHcKYIeGQixv5ryAueEQUEJiEn/PCNAJIVuRXRV+ieoWd8Eix5XvQpEFWdZAfyho1SiIQcEmsTQNmB5fn5uYeZzKZeF9fnyLhITbtKgxqHDvXTWRtopRKNaRzx/QIbk2V8ctahZ7L5Z5NTk4eWVhYuF4qlbJSyl38L/hBijQNBFjD/flr2G3uIxcSNfsbrp64Q6sYDZpmwHZHR0e/ULrCmJiY6F5ZWTmg6+n5/Skg2dXEmWPD6ImklYklJ409cQ9mhD4icirUQLaI42Mzrwf27jjVE+0hyzvpGC4EDViEPgJh42P5M35aLn4DnlayCCcx84IAAAAASUVORK5CYII="</span>
+    <span class="comment"># TODO: hotkey: hotkey</span>
 
-  .palette-editor.hide
-    - close = -&gt; $(&quot;.palette-editor&quot;).addClass(&quot;hide&quot;)
-    - applyPalette = -&gt; editor.applyPalette $(&quot;.palette-editor textarea&quot;).val(); close()
-    %textarea
-    %button(click=applyPalette) Apply
-    %button(click=close) Close
-
-  .actions
-    - @actions.each (action) -&gt;
-      .action(click=action.perform touchstart=action.perform title=action.hotkey style=&quot;background-image: url(#{action.iconUrl})&quot;)
-        .text= action.name</code></pre>
+  <span class="keyword">return</span> self</code></pre>
 </div>
         </li>
         
