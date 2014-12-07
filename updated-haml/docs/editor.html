@@ -402,8 +402,10 @@ accidentally setting the pixel values during the preview.</p>
   thumbnailCanvas = TouchCanvas pixelExtent()
 
   $selector.find(<span class="string">".viewport"</span>)
-    .append(canvas.element())
-    .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
+  .append(canvas.element())
+  .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
+  .css
+    backgroundImage: <span class="string">"url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"</span>
 
   $selector.find(<span class="string">".thumbnail"</span>).append thumbnailCanvas.element()
 
