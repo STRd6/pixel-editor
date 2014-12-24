@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1419457901817
+
+CACHE:
+index.html
+../more-cleanup.json.js
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
