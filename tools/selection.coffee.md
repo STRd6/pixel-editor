@@ -70,7 +70,7 @@ Select a region, then move it.
 
           # Draw background area
           color = editor.activeColor()
-          
+
           # TODO: Is it possible to avoid this transparent hack?
           if color is "transparent"
             editor.previewCanvas.drawRect
@@ -130,7 +130,7 @@ Select a region, then move it.
 
           # Paint the target region
           editor.selection(selection).each (index, x, y) ->
-            
+
             # TODO: This depends on current transparancy mode of editor
             # not sure if there is a way to make it independent easily
             unless editor.color(index) is "transparent"
