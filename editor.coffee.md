@@ -1,8 +1,9 @@
 Editor
 ======
 
+    require "cornerstone"
+
     loader = require("./loader")()
-    {defaults} = require "util"
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
@@ -23,8 +24,6 @@ Editor
     debugTemplate = require "./templates/debug"
 
     Symmetry = require "./symmetry"
-
-    {Size} = require "./util"
 
     module.exports = (I={}, self) ->
       defaults I,

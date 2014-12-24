@@ -5,7 +5,7 @@ remoteDependencies: [
 dependencies:
   analytics: "distri/google-analytics:v0.1.0"
   byte_array: "distri/byte_array:v0.1.1"
-  cornerstone: "distri/cornerstone:v0.2.6"
+  cornerstone: "distri/cornerstone:v0.2.7"
   eval: "distri/eval:v0.1.0"
   facebook: "distri/facebook:v0.1.1"
   "grid-gen": "distri/grid-gen:v0.2.0"

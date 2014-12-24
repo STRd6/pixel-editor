@@ -8,8 +8,6 @@ Use jQuery deferred
 
     global.Deferred = jQuery.Deferred
 
-    Size = require "./lib/size"
-
 Helpers
 -------
 
@@ -28,8 +26,6 @@ Point Extensions
 Extra utilities that may be broken out into separate libraries.
 
     module.exports =
-
-      Size: Size
 
       Grid: require "./lib/grid"
 
