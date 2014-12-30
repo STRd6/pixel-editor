@@ -10,3 +10,11 @@
     #assert.equal editor.eval("5"), 5
 
 
+describe "plugins", ->
+  it "should be able to load via JSON package", ->
+    result = require
+      distribution:
+        main:
+          content: "module.exports = 'the test'"
+
+    assert.equal result, "the test"
