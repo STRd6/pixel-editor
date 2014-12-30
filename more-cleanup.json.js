@@ -188,7 +188,7 @@ window["STRd6/pixel-editor:more-cleanup"]({
     },
     "test/editor.coffee": {
       "path": "test/editor.coffee",
-      "content": "\n\n#Editor = require \"../editor\"\n#\n#describe \"editor\", ->\n  #it \"should have eval\", ->\n    #editor = Editor\n      #selector: \"#not_present\"\n#\n    #assert.equal editor.eval(\"5\"), 5\n\n\n",
+      "content": "\n\n#Editor = require \"../editor\"\n#\n#describe \"editor\", ->\n  #it \"should have eval\", ->\n    #editor = Editor\n      #selector: \"#not_present\"\n#\n    #assert.equal editor.eval(\"5\"), 5\n\n\ndescribe \"plugins\", ->\n  it \"should be able to load via JSON package\", ->\n    result = require\n      distribution:\n        main:\n          content: \"module.exports = 'the test'\"\n\n    assert.equal result, \"the test\"\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -362,7 +362,7 @@ window["STRd6/pixel-editor:more-cleanup"]({
     },
     "test/editor": {
       "path": "test/editor",
-      "content": "(function() {\n\n\n}).call(this);\n",
+      "content": "(function() {\n  describe(\"plugins\", function() {\n    return it(\"should be able to load via JSON package\", function() {\n      var result;\n      result = require({\n        distribution: {\n          main: {\n            content: \"module.exports = 'the test'\"\n          }\n        }\n      });\n      return assert.equal(result, \"the test\");\n    });\n  });\n\n}).call(this);\n",
       "type": "blob"
     },
     "test/grid": {
