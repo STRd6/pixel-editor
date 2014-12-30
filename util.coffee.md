@@ -26,8 +26,7 @@ Point Extensions
 Extra utilities that may be broken out into separate libraries.
 
     module.exports =
-
-      Grid: require "./lib/grid"
+      Grid: require "grid"
 
 Call an iterator for each integer point on a line between two integer points.
 
