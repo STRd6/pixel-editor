@@ -3,8 +3,6 @@ Rectangle
 
     {abs, min} = Math
 
-    Size = require "./size"
-
     module.exports = Rectangle = (position, size) ->
       if position?.size?
         {position, size} = position

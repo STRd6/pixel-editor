@@ -8,8 +8,6 @@ Use jQuery deferred
 
     global.Deferred = jQuery.Deferred
 
-    Size = require "./lib/size"
-
 Helpers
 -------
 
@@ -28,10 +26,7 @@ Point Extensions
 Extra utilities that may be broken out into separate libraries.
 
     module.exports =
-
-      Size: Size
-
-      Grid: require "./lib/grid"
+      Grid: require "grid"
 
 Call an iterator for each integer point on a line between two integer points.
 
