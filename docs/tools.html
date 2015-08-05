@@ -35,7 +35,7 @@
               
             </div>
             <div class="content"><pre><code class="lang-coffeescript">Brushes = require <span class="string">"./brushes"</span>
-{line, circle, rect, rectOutline} = require <span class="string">"./util"</span>
+{line, rect, rectOutline} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
   fn start
@@ -220,10 +220,7 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  circle: shapeTool circle, <span class="string">"c"</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment"># TODO: Real offset</span>
-    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
-
-  rect: shapeTool rect, <span class="string">"r"</span>, <span class="number">1</span>, <span class="number">4</span>,
+            <div class="content"><pre><code class="lang-coffeescript">  rect: shapeTool rect, <span class="string">"r"</span>, <span class="number">1</span>, <span class="number">4</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
 
   rectOutline: shapeTool rectOutline, <span class="string">"shift+r"</span>, <span class="number">1</span>, <span class="number">4</span>,
