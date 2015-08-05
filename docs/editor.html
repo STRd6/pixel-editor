@@ -34,8 +34,9 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">loader = require(<span class="string">"./loader"</span>)()
-{defaults} = require <span class="string">"util"</span>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"cornerstone"</span>
+
+loader = require(<span class="string">"./loader"</span>)()
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
 GridGen = require <span class="string">"grid-gen"</span>
@@ -56,8 +57,6 @@ template = require <span class="string">"./templates/editor"</span>
 debugTemplate = require <span class="string">"./templates/debug"</span>
 
 Symmetry = require <span class="string">"./symmetry"</span>
-
-{Size} = require <span class="string">"./util"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
   defaults I,
