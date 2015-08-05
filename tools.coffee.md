@@ -2,7 +2,7 @@ Tools
 =====
 
     Brushes = require "./brushes"
-    {line, circle, rect, rectOutline} = require "./util"
+    {line, rect, rectOutline} = require "./util"
 
     line2 = (start, end, fn) ->
       fn start
@@ -138,9 +138,6 @@ Fill a connected area.
 
 Shapes
 ------
-
-      circle: shapeTool circle, "c", 0, 0, # TODO: Real offset
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
 
       rect: shapeTool rect, "r", 1, 4,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
