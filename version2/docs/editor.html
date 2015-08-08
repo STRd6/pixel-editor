@@ -373,6 +373,9 @@ accidentally setting the pixel values during the preview.</p>
       canvas = realCanvas
       lastCommand = realCommand
 
+    thumbnailClick: (e) -&gt; 
+      $(e.currentTarget).toggleClass(<span class="string">"right"</span>)
+
   self.activeColor = Observable -&gt;
     self.color(self.activeIndex())
 
