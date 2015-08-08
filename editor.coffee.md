@@ -31,10 +31,10 @@ Editor
 
       activeIndex = Observable(1)
 
-      pixelExtent = Observable Size(32, 32)
-      pixelSize = Observable 16
-      canvasSize = Observable ->
-        pixelExtent().scale(pixelSize())
+      pixelExtent = Observable Size(256, 256)
+      pixelSize = Observable 2
+      viewSize = Observable ->
+        pixelExtent().scale pixelSize()
 
       positionDisplay = Observable("")
 
@@ -286,7 +286,7 @@ Editor
           else
             color = self.palette()[index]
 
-          drawPixel(canvas, x, y, color, pixelSize())
+          drawPixel(canvas, x, y, color, 1)
           drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas
 
         getPixel: ({x, y, layer}) ->
@@ -356,8 +356,8 @@ accidentally setting the pixel values during the preview.
       $selector = $(I.selector)
       $(I.selector).append template self
 
-      canvas = TouchCanvas canvasSize()
-      self.previewCanvas = previewCanvas = TouchCanvas canvasSize()
+      canvas = TouchCanvas pixelExtent()
+      self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
       thumbnailCanvas = TouchCanvas pixelExtent()
 
       $selector.find(".viewport")
@@ -371,20 +371,12 @@ accidentally setting the pixel values during the preview.
       self.TRANSPARENT_FILL = require("./lib/checker")().pattern()
 
       updateViewportCentering = (->
-        size = canvasSize()
+        size = viewSize()
         $selector.find(".viewport").toggleClass "vertical-center", size.height < $selector.find(".main").height()
       ).debounce(15)
       $(window).resize updateViewportCentering
 
-      updateCanvasSize = (size) ->
-
-        [canvas, previewCanvas].forEach (canvas) ->
-          element = canvas.element()
-          element.width = size.width
-          element.height = size.height
-
-          canvas.clear()
-
+      updateViewSize = (size) ->
         $selector.find(".viewport, .overlay").css
           width: size.width
           height: size.height
@@ -406,10 +398,10 @@ accidentally setting the pixel values during the preview.
         self.repaint()
 
       # TODO: Use auto-dependencies
-      updateCanvasSize(canvasSize())
-      canvasSize.observe updateCanvasSize
+      updateViewSize(viewSize())
+      viewSize.observe updateViewSize
       self.grid.observe ->
-        updateCanvasSize canvasSize()
+        updateViewSize viewSize()
 
       updatePixelExtent = (size) ->
         self.layers.forEach (layer) ->

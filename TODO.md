@@ -1,15 +1,53 @@
 TODO
 ====
 
-Transparancy Mode (index 0 or none)
+Full Color Mode
+---------------
+
+32bit Color, Custom Palettes, Color Picker
+
+True replays
+------------
+
+Capture all user input as events, replay entire event stream.
+
+Better Symmetry
+---------------
+
+Multiply events through symmetry so that flood fill and others
+can work better with symmetry modes.
+
+Radial symmetry
+
+Better Circle Tool
+------------------
+
+Calculate midpoint of [start, end], use that as center and radius as length/2
+
+Better Preview
+--------------
+
+Handle transparancy and 
+
+Better performance
+------------------
+
+Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
+let the canvas drawing functions do the work for us. Blit the 'work' canvas onto
+the active layer when the command completes.
+
+Operate directly on imageData arrays where possible.
+
+Vintage Replays
+---------------
+
+Be able to display PixieEngine replays
 
 Bugs
 ----
 
 V2
-----
-
-Selection Tool
+====
 
 Hot reload editor state / initial editor state
 
@@ -18,8 +56,6 @@ Documentation
 Autosave
 
 Analytics
-
-Better Circle/Ellipse Tool
 
 Layers
   Reorder Layers
@@ -50,6 +86,10 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+Selection Tool
+
+Transparancy Mode (index 0 or none)
+
 Prompt unsaved on exit
 
 Palette
