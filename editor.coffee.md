@@ -147,9 +147,8 @@ Editor
 
         repaint: ->
           thumbnailCanvas.clear()
-          
-          self.layers.forEach (layer) ->
-            thumbnailCanvas.context().drawImage(layer.element(), 0, 0)
+          # TODO: Layerz?
+          thumbnailCanvas.context().drawImage(canvas.element(), 0, 0)
 
           return self
 
@@ -321,6 +320,11 @@ accidentally setting the pixel values during the preview.
       self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
       thumbnailCanvas = TouchCanvas pixelExtent()
 
+      do (ctx=self.canvas.context()) ->
+        ctx.imageSmoothingEnabled = false
+        ctx.webkitImageSmoothingEnabled = false
+        ctx.mozImageSmoothingEnabled = false
+
       $selector.find(".viewport")
       .append(canvas.element())
       .append($(previewCanvas.element()).addClass("preview"))
@@ -456,6 +460,7 @@ accidentally setting the pixel values during the preview.
 
         self[method] = ->
           oldMethod.apply(self, arguments)
+          self.repaint()
           self.trigger "change"
 
       self.include require "./dirty"

@@ -3,18 +3,7 @@ Selection Tool
 
     Rectangle = require "../lib/rectangle"
 
-    endDeltoid = (start, end) ->
-      if end.x < start.x
-        x = 0
-      else
-        x = 1
-
-      if end.y < start.y
-        y = 0
-      else
-        y = 1
-
-      end.add(Point(x, y))
+    {endDeltoid} = require "../util"
 
     drawOutline = (canvas, scale, rectangle) ->
       canvas.drawRect

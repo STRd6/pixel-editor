@@ -2,7 +2,7 @@ Tools
 =====
 
     Brushes = require "./brushes"
-    {line, rect, rectOutline} = require "./util"
+    {line, rect, rectOutline, endDeltoid} = require "./util"
 
     line2 = (start, end, fn) ->
       fn start
@@ -16,8 +16,9 @@ Tools
         Point(point.x, point.y+1)
       ]
 
-    shapeTool = (fn, hotkey, offsetX, offsetY, icon) ->
+    shapeTool = (hotkey, offsetX, offsetY, icon, fn) ->
       start = null
+      end = null
 
       hotkeys: hotkey
       iconUrl: icon
@@ -27,12 +28,19 @@ Tools
       touch: ({position}) ->
         start = position
 
-      move: ({editor, position})->
-        editor.preview ->
-          fn start, position, editor.draw
+      move: ({editor, position}) ->
+        #if position.x >= start.x
+        position.x += 1
+        #if position.y >= start.y
+        position.y += 1
+
+        end = position
+
+        editor.previewCanvas.clear()
+        fn(editor, editor.previewCanvas, start, end)
 
       release: ({position, editor}) ->
-        fn start, position, editor.draw
+        fn(editor, editor.canvas, start, end)
 
     brushTool = (brushName, hotkey, offsetX, offsetY, icon, options) ->
       previousPosition = null
@@ -139,14 +147,69 @@ Fill a connected area.
 Shapes
 ------
 
-      rect: shapeTool rect, "r", 1, 4,
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
+      rect: do ->
+        start = null
+        end = null
+        
+        draw = (canvas, color) ->
+          delta = end.subtract(start)
 
-      rectOutline: shapeTool rectOutline, "shift+r", 1, 4,
+          canvas.drawRect
+            x: start.x
+            y: start.y
+            width: delta.x
+            height: delta.y
+            color: color
+
+        hotkeys: "r"
+        iconOffset:
+          x: 1
+          y: 4
+        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
+        touch: ({position, editor}) ->
+          start = position
+        move: ({position, editor}) ->
+          if position.x >= start.x
+            position.x += 1
+          if position.y >= start.y
+            position.y += 1
+
+          end = position
+          color = editor.color editor.activeIndex()
+
+          editor.previewCanvas.clear()
+          draw(editor.previewCanvas, color)
+
+        release: ->
+          color = editor.color editor.activeIndex()
+          draw(editor.canvas, color)
+
+      rectOutline: shapeTool "shift+r", 1, 4,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="
+        (editor, canvas, start, end) ->
+          delta = end.subtract(start)
+          color = editor.color editor.activeIndex()
+          
+          canvas.drawRect
+            x: start.x - 0.5
+            y: start.y - 0.5
+            width: delta.x
+            height: delta.y
+            stroke: 
+              color: color
+              width: 1
 
-      line2: shapeTool line2, "l", 0, 0,
+      line2: shapeTool "l", 0, 0,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"
+        (editor, canvas, start, end) ->
+          color = editor.color editor.activeIndex()
+          # TODO: Need to draw our own lines if we want them crisp ;_;
+
+          canvas.drawLine
+            start: start.subtract(Point(0.5, 0.5))
+            end: end.subtract(Point(0.5, 0.5))
+            color: color
+            width: 1
 
     module.exports = (I={}, self=Core(I)) ->
       self.extend

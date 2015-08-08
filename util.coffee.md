@@ -26,6 +26,19 @@ Point Extensions
 Extra utilities that may be broken out into separate libraries.
 
     module.exports =
+      endDeltoid: (start, end) ->
+        if end.x < start.x
+          x = 0
+        else
+          x = 1
+  
+        if end.y < start.y
+          y = 0
+        else
+          y = 1
+  
+        end.add(Point(x, y))
+
       Grid: require "grid"
 
 Call an iterator for each integer point on a line between two integer points.
