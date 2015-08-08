@@ -134,22 +134,11 @@ Editor
 
         symmetryMode: symmetryMode
 
-        outputCanvas: (scale=1)->
-          outputCanvas = TouchCanvas pixelExtent().scale(scale)
+        outputCanvas: ()->
+          outputCanvas = TouchCanvas pixelExtent()
 
           self.layers.forEach (layer) ->
-            # TODO: Only paint once per pixel, rather than once per pixel per layer
-            # by being smarter about transparency
-            layer.each (index, x, y) ->
-              unless isTransparent(index)
-                # TODO: Is there a way we can keep color with transparent pixels
-                # Does it matter for loading?
-                outputCanvas.drawRect
-                  x: x * scale
-                  y: y * scale
-                  width: scale
-                  height: scale
-                  color: self.palette()[index]
+            outputCanvas.context().drawImage(layer.element(), 0, 0)
 
           outputCanvas.element()
 
@@ -157,8 +146,10 @@ Editor
           pixelExtent Size(size)
 
         repaint: ->
-          self.layers().first()?.each (_, x, y) ->
-            self.repaintPixel {x, y}
+          thumbnailCanvas.clear()
+          
+          self.layers.forEach (layer) ->
+            thumbnailCanvas.context().drawImage(layer.element(), 0, 0)
 
           return self
 
@@ -236,20 +227,16 @@ Editor
           {index, layer} = options
           index ?= activeIndex()
           layer ?= self.activeLayerIndex()
+          color = self.color(index)
 
           Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
-            lastCommand.push self.Command.ChangePixel
+            # TODO: Be sure to draw to "preview/work" layer
+            canvas.drawRect
               x: x
               y: y
-              index: index
-              layer: layer
-
-        changePixel: (params) ->
-          {x, y, index, layer} = params
-
-          self.layer(layer).set(x, y, index) unless canvas is previewCanvas
-
-          self.repaintPixel(params)
+              width: 1
+              height: 1
+              color: color
 
         layers: Observable []
 
@@ -258,40 +245,6 @@ Editor
             self.layers()[index]
           else
             self.activeLayer()
-
-        repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) ->
-          if canvas is previewCanvas
-            # Need to get clever to handle the layers and transparancy, so it gets a little nuts
-
-            index = self.layers.map (layer, i) ->
-              if i is layerIndex # Replace the layer's pixel with our preview pixel
-                if isTransparent(colorIndex)
-                  self.layers.map (layer, i) ->
-                    layer.get(x, y)
-                  .filter (index, i) ->
-                    !isTransparent(index) and !self.layers()[i].hidden() and (i < layerIndex)
-                  .last() or self.backgroundIndex()
-                else
-                  colorIndex
-              else
-                layer.get(x, y)
-            .filter (index, i) ->
-              !isTransparent(index) and !self.layers()[i].hidden()
-            .last() or self.backgroundIndex()
-          else
-            index = self.layers.map (layer) ->
-              layer.get(x, y)
-            .filter (index, i) ->
-              !isTransparent(index) and !self.layers()[i].hidden()
-            .last() or self.backgroundIndex()
-
-          if isTransparent(index)
-            color = "transparent"
-          else
-            color = self.palette()[index]
-
-          drawPixel(canvas, x, y, color, 1)
-          drawPixel(thumbnailCanvas, x, y, color, 1) unless canvas is previewCanvas
 
         getPixel: ({x, y, layer}) ->
           x: x
@@ -309,6 +262,9 @@ Editor
             self.palette()[index]
 
         palette: Observable(Palette.dawnBringer16)
+
+        putImageData: (imageData, x, y) ->
+          canvas.context().putImageData(imageData, x, y)
 
         selection: (rectangle) ->
           each: (iterator) ->
@@ -414,9 +370,6 @@ accidentally setting the pixel values during the preview.
         element.width = size.width
         element.height = size.height
 
-        thumbnailCanvas.clear()
-
-        # TODO: Change this to use imageData
         self.repaint()
 
       pixelExtent.observe updatePixelExtent
@@ -430,10 +383,11 @@ accidentally setting the pixel values during the preview.
       canvasPosition = (position) ->
         Point(position).scale(pixelExtent()).floor()
 
+      snapshot = null
       previewCanvas.on "touch", (position) ->
-        unless lastCommand?.empty?()
-          lastCommand = self.Command.Composite()
-          self.execute lastCommand
+        # Snapshot canvas/current layer
+        size = pixelExtent()
+        snapshot = canvas.context().getImageData(0, 0, size.width, size.height)
 
         activeTool().touch
           position: canvasPosition position
@@ -449,7 +403,19 @@ accidentally setting the pixel values during the preview.
           position: canvasPosition position
           editor: self
 
+        size = pixelExtent()
+        diffSnapshot(snapshot, canvas.context().getImageData(0, 0, size.width, size.height))
+
         self.trigger "release"
+
+      diffSnapshot = (previous, current) ->
+        # TODO: Diff snapshot, only create command if changed
+        # TODO: Optimize to not store unchanged chunks
+        self.execute self.Command.PutImageData
+          imageData: current
+          imageDataPrevious: previous
+          x: 0
+          y: 0
 
       $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
         {left, top} = currentTarget.getBoundingClientRect()

@@ -27,39 +27,12 @@ versions.
 
           return command
 
-      C "ChangePalette", (data) ->
-        data.previous ?= self.palette()
-
-        execute: ->
-          self.palette data.palette
-
-        undo: ->
-          self.palette data.previous
-
-      C "ChangePixel", (data) ->
-        data.previous ?= self.getPixel(data).index
-
-        execute: ->
-          self.changePixel(data)
-
-        undo: ->
-          self.changePixel extend {}, data, index: data.previous
-
-      C "ChangeTransparencyMode", (data) ->
-        data.previous ?= self.paletteZeroTransparent()
-
-        execute: ->
-          self.paletteZeroTransparent !data.previous
-
-        undo: ->
-          self.paletteZeroTransparent data.previous
-
       C "Resize", (data) ->
         {width, height, state} = data
 
         data.previous ?= self.pixelExtent()
 
-        state ?= self.layerState()
+        data.state ?= self.layerState()
 
         execute: ->
           self.resize(data)
@@ -84,6 +57,13 @@ versions.
 
         undo: ->
           self.newLayer(data.previous)
+
+      C "PutImageData", (data) ->
+        # TODO: Layers?
+        execute: ->
+          self.putImageData(data.imageData, data.x, data.y)
+        undo: ->
+          self.putImageData(data.imageDataPrevious, data.x, data.y)
 
       C "Composite", (data) ->
         if data.commands
