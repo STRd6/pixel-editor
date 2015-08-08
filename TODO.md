@@ -6,11 +6,6 @@ Full Color Mode
 
 32bit Color, Custom Palettes, Color Picker
 
-True replays
-------------
-
-Capture all user input as events, replay entire event stream.
-
 Better Symmetry
 ---------------
 
@@ -27,7 +22,7 @@ Calculate midpoint of [start, end], use that as center and radius as length/2
 Better Preview
 --------------
 
-Handle transparancy and 
+Handle transparancy
 
 Better performance
 ------------------
@@ -36,12 +31,22 @@ Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
 let the canvas drawing functions do the work for us. Blit the 'work' canvas onto
 the active layer when the command completes.
 
+Never call `repaint` on the whole editor, all the layers should always paint
+themselves, and only the regions necessary should be repainted.
+
 Operate directly on imageData arrays where possible.
+
+Colors as ints?
 
 Vintage Replays
 ---------------
 
 Be able to display PixieEngine replays
+
+True replays
+------------
+
+Capture all user input as events, replay entire event stream.
 
 Bugs
 ----

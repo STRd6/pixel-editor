@@ -178,8 +178,12 @@ Editor
 
             # TODO: initial state if not blank
             self.layers []
+            
+            # TODO: The initial size should come from commands
             self.resize initialSize
             makeLayer()
+            
+            # TODO: Should never need to call repaint!
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
@@ -349,8 +353,6 @@ accidentally setting the pixel values during the preview.
           data: data
           palette: self.palette
 
-        layer.hidden.observe self.repaint
-
         self.layers.push layer
         self.activeLayer layer
 
@@ -398,8 +400,6 @@ accidentally setting the pixel values during the preview.
 
         updateViewportCentering()
 
-        self.repaint()
-
       # TODO: Use auto-dependencies
       updateViewSize(viewSize())
       viewSize.observe updateViewSize
@@ -416,6 +416,7 @@ accidentally setting the pixel values during the preview.
 
         thumbnailCanvas.clear()
 
+        # TODO: Change this to use imageData
         self.repaint()
 
       pixelExtent.observe updatePixelExtent
