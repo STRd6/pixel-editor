@@ -361,7 +361,7 @@ accidentally setting the pixel values during the preview.
       $selector = $(I.selector)
       $(I.selector).append template self
 
-      canvas = TouchCanvas pixelExtent()
+      self.canvas = canvas = TouchCanvas pixelExtent()
       self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
       thumbnailCanvas = TouchCanvas pixelExtent()
 

@@ -6,14 +6,6 @@ Full Color Mode
 
 32bit Color, Custom Palettes, Color Picker
 
-Better Symmetry
----------------
-
-Multiply events through symmetry so that flood fill and others
-can work better with symmetry modes.
-
-Radial symmetry
-
 Better Circle Tool
 ------------------
 
@@ -47,6 +39,14 @@ True replays
 ------------
 
 Capture all user input as events, replay entire event stream.
+
+Better Symmetry
+---------------
+
+Multiply events through symmetry so that flood fill and others
+can work better with symmetry modes.
+
+Radial symmetry
 
 Bugs
 ----

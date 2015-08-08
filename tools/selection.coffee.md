@@ -18,13 +18,13 @@ Selection Tool
 
     drawOutline = (canvas, scale, rectangle) ->
       canvas.drawRect
-        x: rectangle.position.x * scale
-        y: rectangle.position.y * scale
+        x: (rectangle.position.x - 0.5) * scale
+        y: (rectangle.position.y - 0.5) * scale
         width: rectangle.size.width * scale
         height: rectangle.size.height * scale
         color: "transparent"
         stroke:
-          width: 2
+          width: 1
           color: "green"
 
 Select a region, then move it.
@@ -52,8 +52,7 @@ Select a region, then move it.
         y: 2
 
       move: ({position, editor}) ->
-        scale = editor.pixelSize()
-
+        scale = 1
         canvas = editor.previewCanvas
         canvas.clear()
 
@@ -88,24 +87,21 @@ Select a region, then move it.
               color: color
 
           # Draw Floating pixels
-          editor.selection(selection).each (index, x, y) ->
-            editor.previewCanvas.drawRect
-              x: (x + delta.x) * scale
-              y: (y + delta.y) * scale
-              width: scale
-              height: scale
-              color: editor.color(index)
+          editor.previewCanvas.drawImage editor.canvas.element(),
+            selection.position.x,
+            selection.position.y,
+            selection.size.width,
+            selection.size.height,
+            selection.position.x + delta.x,
+            selection.position.y + delta.y,
+            selection.size.width,
+            selection.size.height
 
           # Draw selection area
-          editor.previewCanvas.drawRect
-            x: (selection.position.x + delta.x) * scale
-            y: (selection.position.y + delta.y) * scale
-            width: selection.size.width * scale
-            height: selection.size.height * scale
-            color: "transparent"
-            stroke:
-              width: 2
-              color: "green"
+          outlineRect = Rectangle(selection)
+          outlineRect.position.x += delta.x
+          outlineRect.position.y += delta.y
+          drawOutline(editor.previewCanvas, scale, outlineRect)
 
       release: ({editor}) ->
         if selecting
@@ -114,7 +110,7 @@ Select a region, then move it.
           # cleared from the release event
           setTimeout ->
             canvas = editor.previewCanvas
-            scale = editor.pixelSize()
+            scale = 1
             drawOutline(canvas, scale, selection)
         else if moving
           {Command} = editor
