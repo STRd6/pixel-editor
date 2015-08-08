@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>palette</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="palette">Palette</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"cornerstone"</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">JASC_HEADER = <span class="string">"""
+  JASC-PAL
+  0100
+  256
+"""</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>A liberal regex for matching the header in a JASC PAL file.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">JASC_REGEX = <span class="regexp">///
+  JASC-PAL\n
+  \d+\n
+  \d+\n
+///</span>
+
+<span class="function"><span class="title">fromStrings</span></span> = (lines) -&gt;
+  lines.split(<span class="string">"\n"</span>).map (line) -&gt;
+    <span class="string">"#"</span> + line.split(<span class="string">" "</span>).map (string) -&gt;
+      numberToHex parseInt(string, <span class="number">10</span>)
+    .join(<span class="string">""</span>)
+
+<span class="function"><span class="title">numberToHex</span></span> = (n) -&gt;
+  <span class="string">"0<span class="subst">#{n.toString(<span class="number">0x10</span>)}</span>"</span>.slice(-<span class="number">2</span>).toUpperCase()
+
+TRANSPARENT = [<span class="number">0xff</span>, <span class="number">0</span>, <span class="number">0xff</span>]
+<span class="function"><span class="title">colorToRGB</span></span> = (colorString) -&gt;
+  <span class="comment"># HACK: Use crazy magenta for transparent in palette export.</span>
+  <span class="keyword">if</span> colorString <span class="keyword">is</span> <span class="string">"transparent"</span>
+    TRANSPARENT
+  <span class="keyword">else</span>
+    colorString.match(<span class="regexp">/([0-9A-F]{2})/g</span>).map (part) -&gt;
+      parseInt part, <span class="number">0x10</span>
+
+<span class="function"><span class="title">loadJASC</span></span> = (lines) -&gt;
+  <span class="keyword">if</span> lines.match JASC_REGEX
+    colors = fromStrings(lines.replace(JASC_REGEX, <span class="string">""</span>)).unique()
+
+    <span class="keyword">if</span> colors.length &gt; <span class="number">32</span>
+      <span class="comment"># TODO: Notify on screen</span>
+      console.warn <span class="string">"Dropped excess colors (<span class="subst">#{colors.length - <span class="number">32</span>}</span>), kept first 32"</span>
+      colors[<span class="number">0.</span>.<span class="number">.32</span>]
+    <span class="keyword">else</span>
+      colors
+  <span class="keyword">else</span>
+    alert <span class="string">"unknown file format, currently only support JASC PAL"</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h2 id="export-to-formats">Export to Formats</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">exportJASC</span></span> = (array) -&gt;
+  entries = array
+  .map (entry) -&gt;
+    colorToRGB(entry).join(<span class="string">" "</span>)
+  .join(<span class="string">"\n"</span>)
+
+  padding = Math.max(<span class="number">0</span>, <span class="number">256</span> - array.length)
+
+  zeroes = [<span class="number">0.</span>..padding].map -&gt;
+    <span class="string">"0 0 0"</span>
+  .join(<span class="string">"\n"</span>)
+
+  <span class="string">"""
+    <span class="subst">#{JASC_HEADER}</span>
+    <span class="subst">#{entries}</span>
+    <span class="subst">#{zeroes}</span>
+  """</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <h2 id="palettes">Palettes</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">Palette =
+
+  defaults:
+    [
+      <span class="string">"transparent"</span>
+      <span class="string">"#05050D"</span>
+      <span class="string">"#666666"</span>
+      <span class="string">"#DCDCDC"</span>
+      <span class="string">"#FFFFFF"</span>
+      <span class="string">"#EB070E"</span>
+      <span class="string">"#F69508"</span>
+      <span class="string">"#FFDE49"</span>
+      <span class="string">"#388326"</span>
+      <span class="string">"#0246E3"</span>
+      <span class="string">"#563495"</span>
+      <span class="string">"#58C4F5"</span>
+      <span class="string">"#F82481"</span>
+      <span class="string">"#E5AC99"</span>
+      <span class="string">"#5B4635"</span>
+      <span class="string">"#FFFEE9"</span>
+    ]</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p><a href="http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795">http://www.pixeljoint.com/forum/forum_posts.asp?TID=12795</a></p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  dawnBringer16: fromStrings <span class="string">"""
+    20 12 28
+    68 36 52
+    48 52 109
+    78 74 78
+    133 76 48
+    52 101 36
+    208 70 72
+    117 113 97
+    89 125 206
+    210 125 44
+    133 149 161
+    109 170 44
+    210 170 153
+    109 194 202
+    218 212 94
+    222 238 214
+  """</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p><a href="http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247">http://www.pixeljoint.com/forum/forum_posts.asp?TID=16247</a></p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  dawnBringer32: fromStrings <span class="string">"""
+    0 0 0
+    34 32 52
+    69 40 60
+    102 57 49
+    143 86 59
+    223 113 38
+    217 160 102
+    238 195 154
+    251 242 54
+    153 229 80
+    106 190 48
+    55 148 110
+    75 105 47
+    82 75 36
+    50 60 57
+    63 63 116
+    48 96 130
+    91 110 225
+    99 155 255
+    95 205 228
+    203 219 252
+    255 255 255
+    155 173 183
+    132 126 135
+    105 106 106
+    89 86 82
+    118 66 138
+    172 50 50
+    217 87 99
+    215 123 186
+    143 151 74
+    138 111 48
+  """</span>
+
+  load: loadJASC
+  <span class="reserved">export</span>: exportJASC
+  fromStrings: fromStrings
+
+module.exports = Palette</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
+</script><script src="package.js"></script>
+</body>
+</html>
