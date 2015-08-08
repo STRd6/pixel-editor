@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1439072579642
+
+CACHE:
+index.html
+../bitblat.json.js
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
