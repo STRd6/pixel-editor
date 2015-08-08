@@ -21,10 +21,14 @@ html, body
     .thumbnail
       background-color: white
       border: 1px solid rgba(0, 0, 0, 0.5)
-      position: absolute
-      top: 0
-      left: 0
+      position: fixed
+      top: 4px
+      left: 40px
       z-index: 2
+
+      &.right
+        right: 44px
+        left: auto
 
   .position
     position: absolute

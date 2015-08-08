@@ -29,8 +29,7 @@ Our layers and preview canvases are placed in the viewport.
       .main
         .viewport
           .overlay
-        - swap = (e) -> if ($t = $(e.currentTarget)).css("left") is "auto" then $t.css(left: 0, right: "auto") else $t.css(left: "auto", right: 0)
-        .thumbnail(click=swap)
+        .thumbnail(click=@thumbnailClick)
 
       .position
         = @positionDisplay
