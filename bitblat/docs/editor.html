@@ -180,9 +180,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     repaint: -&gt;
       thumbnailCanvas.clear()
-
-      self.layers.forEach (layer) -&gt;
-        thumbnailCanvas.context().drawImage(layer.element(), <span class="number">0</span>, <span class="number">0</span>)
+      <span class="comment"># TODO: Layerz?</span>
+      thumbnailCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
 
       <span class="keyword">return</span> self
 
@@ -361,6 +360,11 @@ accidentally setting the pixel values during the preview.</p>
   self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
   thumbnailCanvas = TouchCanvas pixelExtent()
 
+  <span class="keyword">do</span> (ctx=self.canvas.context()) -&gt;
+    ctx.imageSmoothingEnabled = <span class="literal">false</span>
+    ctx.webkitImageSmoothingEnabled = <span class="literal">false</span>
+    ctx.mozImageSmoothingEnabled = <span class="literal">false</span>
+
   $selector.find(<span class="string">".viewport"</span>)
   .append(canvas.element())
   .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
@@ -496,6 +500,7 @@ accidentally setting the pixel values during the preview.</p>
 
     self[method] = -&gt;
       oldMethod.apply(self, arguments)
+      self.repaint()
       self.trigger <span class="string">"change"</span>
 
   self.include require <span class="string">"./dirty"</span>

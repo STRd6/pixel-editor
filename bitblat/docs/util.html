@@ -120,6 +120,19 @@
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">module.exports =
+  endDeltoid: (start, end) -&gt;
+    <span class="keyword">if</span> end.x &lt; start.x
+      x = <span class="number">0</span>
+    <span class="keyword">else</span>
+      x = <span class="number">1</span>
+
+    <span class="keyword">if</span> end.y &lt; start.y
+      y = <span class="number">0</span>
+    <span class="keyword">else</span>
+      y = <span class="number">1</span>
+
+    end.add(Point(x, y))
+
   Grid: require <span class="string">"grid"</span></code></pre>
 </div>
         </li>
