@@ -211,8 +211,12 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         <span class="comment"># TODO: initial state if not blank</span>
         self.layers []
+
+        <span class="comment"># TODO: The initial size should come from commands</span>
         self.resize initialSize
         makeLayer()
+
+        <span class="comment"># TODO: Should never need to call repaint!</span>
         self.repaint()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
@@ -389,8 +393,6 @@ accidentally setting the pixel values during the preview.</p>
       data: data
       palette: self.palette
 
-    layer.hidden.observe self.repaint
-
     self.layers.push layer
     self.activeLayer layer
 
@@ -438,8 +440,6 @@ accidentally setting the pixel values during the preview.</p>
 
     updateViewportCentering()
 
-    self.repaint()
-
   <span class="comment"># TODO: Use auto-dependencies</span>
   updateViewSize(viewSize())
   viewSize.observe updateViewSize
@@ -456,6 +456,7 @@ accidentally setting the pixel values during the preview.</p>
 
     thumbnailCanvas.clear()
 
+    <span class="comment"># TODO: Change this to use imageData</span>
     self.repaint()
 
   pixelExtent.observe updatePixelExtent
