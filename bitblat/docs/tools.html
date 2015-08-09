@@ -35,7 +35,7 @@
               
             </div>
             <div class="content"><pre><code class="lang-coffeescript">Brushes = require <span class="string">"./brushes"</span>
-{line, rect, rectOutline, endDeltoid} = require <span class="string">"./util"</span>
+{circle, line, rect, rectOutline, endDeltoid} = require <span class="string">"./util"</span>
 
 <span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
   fn start
@@ -276,6 +276,13 @@
         stroke: 
           color: color
           width: <span class="number">1</span>
+
+  circle: shapeTool <span class="string">"c"</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment"># TODO: Real offset</span>
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
+    (editor, canvas, start, end) -&gt;
+      <span class="keyword">debugger</span>
+      circle start, end, (x, y) -&gt;
+        editor.draw({x, y})
 
   line2: shapeTool <span class="string">"l"</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>

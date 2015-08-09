@@ -208,12 +208,7 @@
     {x:x0, y:y0} = center
     {x:x1, y:y1} = endPoint
 
-    extent = endPoint.subtract(start).scale(<span class="number">0.5</span>).abs().floor()
-
-    radius = Math.min(
-      extent.x
-      extent.y
-    )
+    radius = endPoint.subtract(start).magnitude() / <span class="number">0.5</span>
 
     f = <span class="number">1</span> - radius
     ddFx = <span class="number">1</span>

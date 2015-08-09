@@ -98,12 +98,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     <span class="keyword">if</span> self.layers.indexOf(self.activeLayer()) <span class="keyword">is</span> -<span class="number">1</span>
       self.activeLayer self.layers().last()
 
-  <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size) -&gt;
-    <span class="comment"># HACK for previewCanvas</span>
-    <span class="keyword">if</span> canvas <span class="keyword">is</span> previewCanvas <span class="keyword">and</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
-      <span class="comment"># TODO: Background color for the canvas area</span>
-      color = <span class="string">"white"</span>
-
+  <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size=<span class="number">1</span>) -&gt;
     <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
       canvas.clear
         x: x * size
@@ -262,19 +257,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       color = self.color(index)
 
       Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) -&gt;
-        canvas.drawRect
-          x: x
-          y: y
-          width: <span class="number">1</span>
-          height: <span class="number">1</span>
-          color: color
-
-        thumbnailCanvas.drawRect
-          x: x
-          y: y
-          width: <span class="number">1</span>
-          height: <span class="number">1</span>
-          color: color
+        drawPixel(canvas, x, y, color)
+        drawPixel(thumbnailCanvas, x, y, color)
 
     layers: Observable []
 
