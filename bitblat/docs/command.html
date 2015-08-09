@@ -78,35 +78,11 @@ versions.</p>
       <span class="keyword">return</span> command
 
   C <span class="string">"Resize"</span>, (data) -&gt;
-    {width, height, state} = data
-
-    data.previous ?= self.pixelExtent()
-
-    data.state ?= self.layerState()
-
     execute: -&gt;
-      self.resize(data)
+      self.resize(data.size, data.imageData)
 
     undo: -&gt;
-      self.restoreLayerState state
-
-  C <span class="string">"NewLayer"</span>, (data) -&gt;
-    execute: -&gt;
-      self.newLayer(data)
-
-    undo: -&gt;
-      <span class="comment"># TODO: May need to know layer index and previously active layer</span>
-      <span class="comment"># index</span>
-      self.removeLayer(data)
-
-  C <span class="string">"RemoveLayer"</span>, (data) -&gt;
-    data.previous ?= self.layer().toJSON()
-
-    execute: -&gt;
-      self.removeLayer()
-
-    undo: -&gt;
-      self.newLayer(data.previous)
+      self.resize(data.sizePrevious, data.imageDataPrevious)
 
   C <span class="string">"PutImageData"</span>, (data) -&gt;
     <span class="comment"># TODO: Layers?</span>
