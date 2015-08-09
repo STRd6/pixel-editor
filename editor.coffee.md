@@ -14,7 +14,6 @@ Editor
     Command = require "./command"
     Drop = require "./drop"
     Eval = require "eval"
-    Layer = require "./layer"
     Notifications = require "./notifications"
     Postmaster = require "postmaster"
     Tools = require "./tools"
@@ -33,8 +32,8 @@ Editor
 
       activeIndex = Observable(1)
 
-      pixelExtent = Observable Size(256, 256)
-      pixelSize = Observable 2
+      pixelExtent = Observable Size(128, 128)
+      pixelSize = Observable 4
       viewSize = Observable ->
         pixelExtent().scale pixelSize()
 
@@ -62,11 +61,6 @@ Editor
 
       activeTool = self.activeTool
 
-      updateActiveLayer = ->
-        # TODO: This may need to have consideration for undo-ability.
-        if self.layers.indexOf(self.activeLayer()) is -1
-          self.activeLayer self.layers().last()
-
       drawPixel = (canvas, x, y, color, size=1) ->
         if color is "transparent"
           canvas.clear
@@ -88,9 +82,6 @@ Editor
 
       self.extend
         activeIndex: activeIndex
-        activeLayer: Observable()
-        activeLayerIndex: ->
-          self.layers.indexOf(self.activeLayer())
 
         backgroundIndex: Observable 0
 
@@ -113,44 +104,39 @@ Editor
           # TODO: Currently paste replaces entire image
           {width, height} = data
           command.push self.Command.Resize({width, height})
-          command.push self.Command.RemoveLayer()
-          command.push self.Command.NewLayer(data)
 
           self.trigger "change"
 
-        newLayer: (data) ->
-          makeLayer(data?.data)
-
-          self.repaint()
-
-        removeLayer: ->
-          self.layers.pop()
-          updateActiveLayer()
-
-          self.repaint()
-
         symmetryMode: symmetryMode
 
-        outputCanvas: ()->
+        outputCanvas: () ->
           outputCanvas = TouchCanvas pixelExtent()
-
-          self.layers.forEach (layer) ->
-            outputCanvas.context().drawImage(layer.element(), 0, 0)
-
+          outputCanvas.context().drawImage(canvas.element(), 0, 0)
           outputCanvas.element()
 
-        resize: (size) ->
-          pixelExtent Size(size)
+        resize: (size, data) ->
+          debugger
+          data ?= self.getSnapshot()
+
+          pixelExtent(Size(size))
+          {width, height} = pixelExtent()
+          
+          canvasElement = canvas.element()
+          thumbnailCanvasElement = thumbnailCanvas.element()
+
+          thumbnailCanvasElement.width = canvasElement.width = width
+          thumbnailCanvasElement.height = canvasElement.height = height
+
+          self.putImageData(data)
+
+          self.repaint()
 
         repaint: ->
+          {width, height} = pixelExtent()
           thumbnailCanvas.clear()
-          # TODO: Layerz?
           thumbnailCanvas.context().drawImage(canvas.element(), 0, 0)
 
           return self
-
-        getColorAsInt: ->
-          
 
         getSnapshot: ->
           size = pixelExtent()
@@ -159,7 +145,24 @@ Editor
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then (imageData) ->
-            editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
+            {width, height} = size = pixelExtent()
+            
+            debugger
+
+            if (width != imageData.width) or (height != imageData.height)
+              self.execute self.Command.Resize
+                size: 
+                  width: imageData.width
+                  height: imageData.height
+                sizePrevious: size
+                imageData: imageData
+                imageDataPrevious: editor.getSnapshot()
+            else
+              self.execute self.Command.PutImageData
+                imageData: imageData
+                imageDataPrevious: self.getSnapshot()
+                x: 0
+                y: 0
 
         replay: ->
           # TODO: May want to prevent adding new commands while replaying!
@@ -169,13 +172,9 @@ Editor
             # Copy and clear history
             steps = self.history()
             self.history([])
-
-            # TODO: initial state if not blank
-            self.layers []
             
             # TODO: The initial size should come from commands
             self.resize initialSize
-            makeLayer()
             
             # TODO: Should never need to call repaint!
             self.repaint()
@@ -197,61 +196,21 @@ Editor
 
         restoreState: (state) ->
           self.palette state.palette
-          self.restoreLayerState(state.layers)
-
-          self.activeLayer self.layers()[state.activeLayerIndex]
 
           self.history state.history?.map self.Command.parse
 
         saveState: ->
           palette: self.palette()
-          layers: self.layerState()
-          activeLayerIndex: self.activeLayerIndex()
           history: self.history().invoke "toJSON"
 
-        layerState: ->
-          self.layers().invoke "toJSON"
-
-        restoreLayerState: (layerData) ->
-          self.pixelExtent Size layerData.first()
-
-          index = self.activeLayerIndex()
-
-          self.layers []
-
-          layerData.forEach (layerData) ->
-            makeLayer layerData.data
-
-          self.activeLayer self.layer(index)
-
-          self.repaint()
-
         draw: (point, options={}) ->
-          {index, layer} = options
+          {index} = options
           index ?= activeIndex()
-          layer ?= self.activeLayerIndex()
           color = self.color(index)
 
           Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
             drawPixel(canvas, x, y, color)
             drawPixel(thumbnailCanvas, x, y, color)
-
-        layers: Observable []
-
-        layer: (index) ->
-          if index?
-            self.layers()[index]
-          else
-            self.activeLayer()
-
-        getPixel: ({x, y, layer}) ->
-          x: x
-          y: y
-          index: self.layer(layer).get(x, y)
-          layer: layer ? self.activeLayerIndex()
-
-        getIndex: (x, y) ->
-          self.layer().get(x, y)
 
         color: (index) ->
           if isTransparent(index)
@@ -285,27 +244,6 @@ Editor
               index = self.getIndex(x, y)
               iterator(index, x, y)
 
-This preview function is a little nuts, but I'm not sure how to clean it up.
-
-It makes a copy of the current command chunk for undoing, sets the canvas
-equal to the preview canvas, then executes the passed in function.
-
-We'll probably want to use a whole preview layer, so we don't need to worry about
-accidentally setting the pixel values during the preview.
-
-        preview: (fn) ->
-          realCommand = lastCommand
-          lastCommand = self.Command.Composite()
-          realCanvas = canvas
-          canvas = previewCanvas
-
-          canvas.clear()
-
-          fn()
-
-          canvas = realCanvas
-          lastCommand = realCommand
-
         thumbnailClick: (e) -> 
           $(e.currentTarget).toggleClass("right")
 
@@ -314,18 +252,6 @@ accidentally setting the pixel values during the preview.
 
       self.activeColorStyle = Observable ->
         "background-color: #{self.activeColor()}"
-
-      makeLayer = (data) ->
-        layer = Layer
-          width: pixelExtent().width
-          height: pixelExtent().height
-          data: data
-          palette: self.palette
-
-        self.layers.push layer
-        self.activeLayer layer
-
-      makeLayer()
 
       $selector = $(I.selector)
       $(I.selector).append template self
@@ -380,18 +306,6 @@ accidentally setting the pixel values during the preview.
       self.grid.observe ->
         updateViewSize viewSize()
 
-      updatePixelExtent = (size) ->
-        self.layers.forEach (layer) ->
-          layer.resize size
-
-        element = thumbnailCanvas.element()
-        element.width = size.width
-        element.height = size.height
-
-        self.repaint()
-
-      pixelExtent.observe updatePixelExtent
-
       self.paletteZeroTransparent.observe ->
         self.repaint()
 
@@ -409,7 +323,7 @@ accidentally setting the pixel values during the preview.
           self.repaint()
 
       previewCanvas.on "touch", (position) ->
-        # Snapshot canvas/current layer
+        # Snapshot canvas
         snapshot = self.getSnapshot()
 
         activeTool().touch
@@ -501,6 +415,6 @@ accidentally setting the pixel values during the preview.
 
       self.include require "./dirty"
 
-      self.include require("./plugins/save_to_s3")
+      # self.include require("./plugins/save_to_s3")
 
       return self

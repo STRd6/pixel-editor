@@ -28,35 +28,11 @@ versions.
           return command
 
       C "Resize", (data) ->
-        {width, height, state} = data
-
-        data.previous ?= self.pixelExtent()
-
-        data.state ?= self.layerState()
-
         execute: ->
-          self.resize(data)
+          self.resize(data.size, data.imageData)
 
         undo: ->
-          self.restoreLayerState state
-
-      C "NewLayer", (data) ->
-        execute: ->
-          self.newLayer(data)
-
-        undo: ->
-          # TODO: May need to know layer index and previously active layer
-          # index
-          self.removeLayer(data)
-
-      C "RemoveLayer", (data) ->
-        data.previous ?= self.layer().toJSON()
-
-        execute: ->
-          self.removeLayer()
-
-        undo: ->
-          self.newLayer(data.previous)
+          self.resize(data.sizePrevious, data.imageDataPrevious)
 
       C "PutImageData", (data) ->
         # TODO: Layers?

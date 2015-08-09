@@ -85,12 +85,17 @@ Actions
           Resize
         """
         method: ({editor}) ->
-          {width, height} = editor.pixelExtent()
+          {width, height} = size = editor.pixelExtent()
 
           if newSize = prompt("New Size (WxH)", "#{width}x#{height}")
             [width, height] = newSize.split("x").map (v) -> parseInt v, 10
 
-            editor.execute editor.Command.Resize({width, height})
+            command = editor.Command.Resize
+              size: {width, height}
+              sizePrevious: size
+              imageDataPrevious: editor.getSnapshot()
+
+            editor.execute command
 
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACLElEQVQ4T91Tz2sTQRR+05hmTTeB0iS7h8ZjLyEKgoVehCLWFG0g0ahrMEpp6rH++EMUFH8UUbRIq7ZZ21qoh14UjfQiQkXpQWKSJmlcyzZmY3fj7DhjGklK+g/4YBjmzX7fvve9+dC15CUCNIhJgBC66H7j8H3EcjsjvhAlJr03TRNMXNsRIzjU2UcPGJaV5K5gRibNSoKjzVrwu/cDQgiSqXeArr4dJQc7e6FS1UDRFchpWflW/8Pwzr8zsI2QVS/vdXIWDuxWHpYz7wFdeRMnFmQFgRNBtImQKqcg/zMr3x543ERyQT6reB3dXZ4OAVIb3yC3uVZrYez1CNEMTeQQt9rN73Pqhg758tqru4MTgcYqzk9H5oUO8YSJTciVcvLUOTl86tEQ+SfWCC3Rutf6iYqUvBeYGGolojQVXqQiVxi4ft9S7Vbg3XL/G0FsJpLA2LQ/OT3TNIF6/8HxwXmCcV9Fx76ly0vrLI+G5yTyIDiJGNjFeUJstvlS/uXT6IumSQTHA4tu3nPMgiyQVjKlKiY9FiAFdFE+8/d9uzg3CHYRiloR0hvpH89js65G5Y/fGUi4HZ6Q6KTfbBZhXS2AXjUAxaYjxNflB/WXCjrWIatmSltbWs9cvFZiYwRuHknQKkLt7XuAtzlhJbUCKPrsJPG7DoDx24Av3z9DuaKKrcB1oqPX+4nP64M2aqYPXz8CkibDtAVmT7q2rSoPL7R8HwzM7G5u257Z/w969A/vqEbP0wAAAABJRU5ErkJggg=="
 
@@ -100,12 +105,15 @@ Actions
           Clear image
         """
         method: ({editor}) ->
-          command = editor.Command.Composite()
-          editor.execute command
+          previous = editor.getSnapshot()
+          editor.canvas.clear()
 
-          # Kind of a hack, just removing the top layer and adding a new one
-          command.push editor.Command.RemoveLayer()
-          command.push editor.Command.NewLayer()
+          editor.execute editor.Command.PutImageData
+            imageData: editor.getSnapshot()
+            imageDataPrevious: previous
+            x: 0
+            y: 0
+
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAC4SURBVCjPdZFbDsIgEEWnrsMm7oGGfZrohxvU+Iq1TyjU60Bf1pac4Yc5YS4ZAtGWBMk/drQBOVwJlZrWYkLhsB8UV9K0BUrPGy9cWbng2CtEEUmLGppPjRwpbixUKHBiZRS0p+ZGhvs4irNEvWD8heHpbsyDXznPhYFOyTjJc13olIqzZCHBouE0FRMUjA+s1gTjaRgVFpqRwC8mfoXPPEVPS7LbRaJL2y7bOifRCTEli3U7BMWgLzKlW/CuebZPAAAAAElFTkSuQmCC"
 
       "+":
@@ -138,52 +146,6 @@ Actions
         method: ({editor}) ->
           editor.grid.toggle()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
-
-      "t":
-        name: "Transparency Mode"
-        description: """
-          Toggle palette 0 transparent
-        """
-        method: ({editor}) ->
-          editor.execute editor.Command.ChangeTransparencyMode()
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA2ElEQVQ4T2NkAIKs6cejGZkY6qamW6pnzzjWxsDIED813UoaFztr5rEKoDauaelWdYxZM45mMTIy5ROrGWTofwbGmGkZlnKZ0454MmbPPPYQaJs8MTYjq8maebwF6AojRpAXSNWMrJ6REs0gV4C88BRfgBGyYGC9AHLdqBcY4imPhcwZR8uZGBmzyEnOmTOOVTJmTT+aOi3TejY4VTH8TyQ2UQFzZO3///9/Qb1wxIuBgalmaoaVFWbKY4wF5lTZ7BlHaxgYGcOAFuhlzTxazPifSXRqhmUFAKiWXyIxiUtgAAAAAElFTkSuQmCC"
-
-      "ctrl+shift+p":
-        name: "Load Palette"
-        description: """
-          Load a JASC-PAL palette file (max 32 colors)
-        """
-        method: ({editor}) ->
-          Modal.show FileReading.readerInput
-            accept: "*/*"
-            image: (dataURL) ->
-              # TODO: Load palette from image
-            json: (data) ->
-              # TODO: Load json palette
-              alert "Unknown palette type"
-            text: (text) ->
-              if palette = Palette.load(text)
-                # TODO: Check if palette is different from current palette
-                editor.execute editor.Command.ChangePalette
-                  palette: palette
-              else
-                # TODO: Unknown palette type
-
-            chose: ->
-              Modal.hide()
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC/UlEQVQ4T4WTW0gUYRTH/98s4+66umYGdjHSXLesyMi18qEg7EHKsB6kIunBHoJuFBj4YNBDBEFBUUmUQS1FpaRlCEEldiEybdcSzLVMLc3bquvsdcaZ+Tq70eXBapgzhxm+8/v+3/+cYfjPdbhobVZ6WsqBOckJBeCaNioFnnweGrtWVe/6EC1l/6o/sWdjWVZa6nH7Ult66nwOcCu8I2H09XqGOvqGTje0N1f9DSBcPFLsXLYoaeeKhUbD7EwNhhQPdMWEqa+l0ONEfOpq1eqaWnfOCDh3cHP1Bkf+3uVzfWCyGxoXIGYbEJzWUT3AYTaYsU0vRFPri0czAmorS4JbwsnxPCCBFcrgphTIYj4GfR14au1A3DRDiboJ7n7PF+Z5uLrdaF2+jDHhlx3vngligV+EHg4hWFyArs4WyWoxipibbT78LQkWTcHtWR64vcOTrLvBEbEVtRgZIzHkU/TRcGovVq1bjwRRx4RPQpurUY8XBBafU8IqxtJgUQO4P9sN99iIn3Xfy/XZil8mKcNV0BQDIFjR3PgWSkCBqEewMicXfp8XokGASYng9aAX6fPSkJpowKN3rjvMczdPsm1/khgZcILrHLo8gfBoL4Kj41BHh//a5TYp403N444dBMhVFm9tFCddlyCP9FCrQjAYkzCv6AwNCcPAx3aYtBDMogmqNg1ZsEB6Wo6K+mB6XdOHfua5mafYd7eQYwrtppMFnJT4oUqvoEd6IctBjA/5ACrmLIRk+zF4a0thP9QW6yDzXHfIWaXP4/TQe5pUH4WfCvsIpNMdIWaYcoC+R4OUZJxHz9WtvwHdlx2RzLImo+ZvBlenaBGFSjtylYJmQAv+gKpSLFvsTvRcKfoDcMERtu17bJqefBArjEUM8hPmp/doMYFIkWXJLfTe2B+hI5hjR+g6u/rb4rKaeGWiJZG0C5xHZVNQ5ppMWSFbKEc94hqMC3bxfudRaUm5a1YM0Hky+wgThDWMs01gPPGff3d00BgUarczu7LzUHTtd5jOkNp6KQ05AAAAAElFTkSuQmCC"
-
-      "ctrl+shift+e":
-        name: "Edit Palette"
-        description: """
-          Edit the color palette
-        """
-        method: ({editor}) ->
-          # Show palette editor text
-          # Live update palette in image
-
-          $(".palette-editor").removeClass("hide").find("textarea").val editor.palette().join("\n")
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADlElEQVQ4T1WTDWyTRRjH/9e3b/t27fr9sWqXNtRUKZDsgy3tCGY6cHVEqQnoxqZBFxUN6FA0JmiCSiAYFseysAwxI0jQqCSiRgMMMzUsBYENhmHTObdpG5d268fWdf16z2sjJF7y3JPcXX733P+5P8F/Y9vnk7UcuC6nTuFdyoooRFYUkcrm45SQBUJphB3NUyDK8hwF/eR2NHKe3AG0np7YVWFVd++pN91ZKuZkhsFYRJfzyGSBRDqPqcgivptIzlMx33EX0HJybH+dPr13dSqA6MzvAKFQlLngrNkAS7kDMgnASSTgOWA5RxH4cwnHAqHwXcCudw4MeIRQg6tcC8s9rFCqRmQ2heDsLHjXw3DXPQ4Jx+FeDYeOE9P4oM2OzoEpFACSno7NJ9127bbV5TKid+bBGcYhZgTE/2qDKOMxOX4dc7ZHcV/FQ1hh4vD6x6Pwr7ehZ3A6RLp2Nh1/cK23fVVZDCQ9zFRiZa7kkGQiHv+bPYNTwC/6cCUUh+ORPVhj5dHWdRUpqZgQRbqFfPH21uSmlK6ELiZAfGlQwYA070UwNoqL6lHIsgRbcxswEo6gdONBVNukaD16GfG5mOHcPt88+fr9Z2nDAg8xtYTk5gaMTdyEWi4FzE68EtJAmc/gU+04huMJqBo/RCUDNHf9iEQ4qx04tDFOzu7fTis866HiRczHEvj51ymo6CJ0qzx4K2yDMreIr/TDGI7GoW7qhttC4D94PndhX5OM6UdJ987G02ql4NWoVI7q6hosxCKsVRIImWUEghE4rDZYSjkMxRVY49sNtSyD7Z0Xgj8c8NsK/6TYRt/z79UYjaYrzdoheKvqkJoeZc1egkpvxjzbv55gwModcK8oRzQexe7egV9+6myuLQKqX+gzyuUlvU/UV225P3URDgRhVunZD0zin2gYf3B2mKpaYDJb4dBxuDYexLsnBr8d6n7msSLA8+JHT4FI+h02s8JuMcIZ/xJ6aQo3F6yYog8go1oJkVLoNRq81FiGkduTOHrmUv/lvvbnioC17b2H/PUVb+5t8/zPAwXXZNmUyRWkAnq+D+HJdWacG7qF/m8Ch6/1v/xGEVD59JEd66pcvbVuO7QqBbQaATqlHBoWpSUyyJkJ5FIJZuZyLAN9Zy7h7OCNjpFTrx4pAlwth40COOYqaieEGCilBgKiY9fqQIhGkPG8IPBQKxlcXYIbYzO/scJab3322tUC4F+pz2ZaFmudeAAAAABJRU5ErkJggg=="
 
       "f5":
         name: "Replay"
