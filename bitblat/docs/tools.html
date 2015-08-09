@@ -64,12 +64,11 @@
   move: ({editor, position}) -&gt;
     end = position
 
-    <span class="comment"># TODO: Don't clear and draw on preview, instead restore snapshot on</span>
-    <span class="comment"># main canvas and draw</span>
-    editor.previewCanvas.clear()
-    fn(editor, editor.previewCanvas, start, end)
+    editor.restore()
+    fn(editor, editor.canvas, start, end)
 
   release: ({position, editor}) -&gt;
+    editor.restore()
     fn(editor, editor.canvas, start, end)
 
 <span class="function"><span class="title">brushTool</span></span> = (brushName, hotkey, offsetX, offsetY, icon, options) -&gt;

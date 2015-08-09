@@ -418,6 +418,12 @@ accidentally setting the pixel values during the preview.</p>
     Point(position).scale(pixelExtent()).floor()
 
   snapshot = <span class="literal">null</span>
+
+  self.<span class="function"><span class="title">restore</span></span> = -&gt;
+    <span class="keyword">if</span> snapshot
+      canvas.context().putImageData(snapshot, <span class="number">0</span>, <span class="number">0</span>)
+      self.repaint()
+
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     <span class="comment"># Snapshot canvas/current layer</span>
     size = pixelExtent()

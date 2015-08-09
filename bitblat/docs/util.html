@@ -208,7 +208,7 @@
     {x:x0, y:y0} = center
     {x:x1, y:y1} = endPoint
 
-    radius = endPoint.subtract(start).magnitude() / <span class="number">0.5</span>
+    radius = (endPoint.subtract(start).magnitude() / <span class="number">2</span>) | <span class="number">0</span>
 
     f = <span class="number">1</span> - radius
     ddFx = <span class="number">1</span>
@@ -217,10 +217,10 @@
     x = <span class="number">0</span>
     y = radius
 
-    iterator Point(x0, y0 + radius)
-    iterator Point(x0, y0 - radius)
-    iterator Point(x0 + radius, y0)
-    iterator Point(x0 - radius, y0)
+    iterator x0, y0 + radius
+    iterator x0, y0 - radius
+    iterator x0 + radius, y0
+    iterator x0 - radius, y0
 
     <span class="keyword">while</span> x &lt; y
       <span class="keyword">if</span> f &gt; <span class="number">0</span>
@@ -232,14 +232,14 @@
       ddFx += <span class="number">2</span>
       f += ddFx
 
-      iterator Point(x0 + x, y0 + y)
-      iterator Point(x0 - x, y0 + y)
-      iterator Point(x0 + x, y0 - y)
-      iterator Point(x0 - x, y0 - y)
-      iterator Point(x0 + y, y0 + x)
-      iterator Point(x0 - y, y0 + x)
-      iterator Point(x0 + y, y0 - x)
-      iterator Point(x0 - y, y0 - x)</code></pre>
+      iterator x0 + x, y0 + y
+      iterator x0 - x, y0 + y
+      iterator x0 + x, y0 - y
+      iterator x0 - x, y0 - y
+      iterator x0 + y, y0 + x
+      iterator x0 - y, y0 + x
+      iterator x0 + y, y0 - x
+      iterator x0 - y, y0 - x</code></pre>
 </div>
         </li>
         
