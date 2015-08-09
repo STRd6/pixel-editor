@@ -16,6 +16,18 @@ Selection Tool
           width: 1
           color: "green"
 
+    paint = (editor, selection, delta) ->
+      editor.restore()
+      editor.canvas.drawImage editor.canvas.element(),
+        selection.position.x,
+        selection.position.y,
+        selection.size.width,
+        selection.size.height,
+        selection.position.x + delta.x,
+        selection.position.y + delta.y,
+        selection.size.width,
+        selection.size.height
+
 Select a region, then move it.
 
     module.exports = ->
@@ -56,35 +68,7 @@ Select a region, then move it.
           # Update selection position
           delta = position.subtract(startPosition)
 
-          # Draw background area
-          color = editor.activeColor()
-
-          # TODO: Is it possible to avoid this transparent hack?
-          if color is "transparent"
-            editor.previewCanvas.drawRect
-              x: (selection.position.x) * scale
-              y: (selection.position.y) * scale
-              width: selection.size.width * scale
-              height: selection.size.height * scale
-              color: editor.TRANSPARENT_FILL
-          else
-            editor.previewCanvas.drawRect
-              x: (selection.position.x) * scale
-              y: (selection.position.y) * scale
-              width: selection.size.width * scale
-              height: selection.size.height * scale
-              color: color
-
-          # Draw Floating pixels
-          editor.previewCanvas.drawImage editor.canvas.element(),
-            selection.position.x,
-            selection.position.y,
-            selection.size.width,
-            selection.size.height,
-            selection.position.x + delta.x,
-            selection.position.y + delta.y,
-            selection.size.width,
-            selection.size.height
+          paint(editor, selection, delta)
 
           # Draw selection area
           outlineRect = Rectangle(selection)
@@ -102,32 +86,7 @@ Select a region, then move it.
             scale = 1
             drawOutline(canvas, scale, selection)
         else if moving
-          {Command} = editor
-
-          command = Command.Composite()
-
-          # Paint the source region
-          selection.each (x, y) ->
-            data = editor.getPixel({x, y})
-            data.index = editor.activeIndex()
-
-            command.push Command.ChangePixel(data), true
-
-          # Paint the target region
-          editor.selection(selection).each (index, x, y) ->
-
-            # TODO: This depends on current transparancy mode of editor
-            # not sure if there is a way to make it independent easily
-            unless editor.color(index) is "transparent"
-              data =
-                x: x + delta.x
-                y: y + delta.y
-                index: index
-                layer: editor.activeLayerIndex()
-
-              command.push Command.ChangePixel(data), true
-
-          editor.execute command
+          paint(editor, selection, delta)
 
           moving = false
           selecting = true

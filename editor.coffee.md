@@ -431,14 +431,31 @@ accidentally setting the pixel values during the preview.
 
         self.trigger "release"
 
+      compareImageData = (previous, current) ->
+        # TODO: store a dirty region
+
+        previousData = new Uint32Array(previous.data.buffer)
+        currentData = new Uint32Array(current.data.buffer)
+        length = currentData.length
+        i = 0
+        different = false
+
+        while i < length
+          if previousData[i] != currentData[i]
+            different = true
+            break
+
+          i += 1
+
+        return different
+
       diffSnapshot = (previous, current) ->
-        # TODO: Diff snapshot, only create command if changed
-        # TODO: Optimize to not store unchanged chunks
-        self.execute self.Command.PutImageData
-          imageData: current
-          imageDataPrevious: previous
-          x: 0
-          y: 0
+        if compareImageData(previous, current)
+          self.execute self.Command.PutImageData
+            imageData: current
+            imageDataPrevious: previous
+            x: 0
+            y: 0
 
       $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
         {left, top} = currentTarget.getBoundingClientRect()
