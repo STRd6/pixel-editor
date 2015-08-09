@@ -43,10 +43,10 @@
 
 <span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
   [
-    Point(point.x, point.y-<span class="number">1</span>)
-    Point(point.x-<span class="number">1</span>, point.y)
-    Point(point.x+<span class="number">1</span>, point.y)
-    Point(point.x, point.y+<span class="number">1</span>)
+    {x: point.x, y: point.y-<span class="number">1</span>}
+    {x: point.x-<span class="number">1</span>, y: point.y}
+    {x: point.x+<span class="number">1</span>, y: point.y}
+    {x: point.x, y: point.y+<span class="number">1</span>}
   ]
 
 <span class="function"><span class="title">shapeTool</span></span> = (hotkey, offsetX, offsetY, icon, fn) -&gt;
