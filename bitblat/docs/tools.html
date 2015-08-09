@@ -62,13 +62,10 @@
     start = position
 
   move: ({editor, position}) -&gt;
-    <span class="comment">#if position.x &gt;= start.x</span>
-    position.x += <span class="number">1</span>
-    <span class="comment">#if position.y &gt;= start.y</span>
-    position.y += <span class="number">1</span>
-
     end = position
 
+    <span class="comment"># TODO: Don't clear and draw on preview, instead restore snapshot on</span>
+    <span class="comment"># main canvas and draw</span>
     editor.previewCanvas.clear()
     fn(editor, editor.previewCanvas, start, end)
 
@@ -84,8 +81,8 @@
       out(p, options)
 
   <span class="function"><span class="title">paint</span></span> = (out) -&gt;
-    (point) -&gt;
-      brush(point).forEach OP out
+    (x, y) -&gt;
+      brush({x, y}).forEach OP out
 
   hotkeys: hotkey
   iconUrl: icon
@@ -284,13 +281,15 @@
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
     (editor, canvas, start, end) -&gt;
       color = editor.color editor.activeIndex()
-      <span class="comment"># TODO: Need to draw our own lines if we want them crisp ;_;</span>
 
-      canvas.drawLine
-        start: start.subtract(Point(<span class="number">0.5</span>, <span class="number">0.5</span>))
-        end: end.subtract(Point(<span class="number">0.5</span>, <span class="number">0.5</span>))
-        color: color
-        width: <span class="number">1</span>
+      <span class="comment"># Have to draw our own lines if we want them crisp ;_;</span>
+      line start, end, (x, y) -&gt;
+        canvas.drawRect
+          x: x
+          y: y
+          width: <span class="number">1</span>
+          height: <span class="number">1</span>
+          color: color
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend

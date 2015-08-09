@@ -262,8 +262,14 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       color = self.color(index)
 
       Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) -&gt;
-        <span class="comment"># TODO: Be sure to draw to "preview/work" layer</span>
         canvas.drawRect
+          x: x
+          y: y
+          width: <span class="number">1</span>
+          height: <span class="number">1</span>
+          color: color
+
+        thumbnailCanvas.drawRect
           x: x
           y: y
           width: <span class="number">1</span>
