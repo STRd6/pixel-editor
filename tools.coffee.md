@@ -2,7 +2,7 @@ Tools
 =====
 
     Brushes = require "./brushes"
-    {line, rect, rectOutline, endDeltoid} = require "./util"
+    {circle, line, rect, rectOutline, endDeltoid} = require "./util"
 
     line2 = (start, end, fn) ->
       fn start
@@ -195,6 +195,13 @@ Shapes
             stroke: 
               color: color
               width: 1
+
+      circle: shapeTool "c", 0, 0, # TODO: Real offset
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
+        (editor, canvas, start, end) ->
+          debugger
+          circle start, end, (x, y) ->
+            editor.draw({x, y})
 
       line2: shapeTool "l", 0, 0,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"

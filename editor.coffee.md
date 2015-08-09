@@ -65,12 +65,7 @@ Editor
         if self.layers.indexOf(self.activeLayer()) is -1
           self.activeLayer self.layers().last()
 
-      drawPixel = (canvas, x, y, color, size) ->
-        # HACK for previewCanvas
-        if canvas is previewCanvas and color is "transparent"
-          # TODO: Background color for the canvas area
-          color = "white"
-
+      drawPixel = (canvas, x, y, color, size=1) ->
         if color is "transparent"
           canvas.clear
             x: x * size
@@ -229,19 +224,8 @@ Editor
           color = self.color(index)
 
           Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
-            canvas.drawRect
-              x: x
-              y: y
-              width: 1
-              height: 1
-              color: color
-
-            thumbnailCanvas.drawRect
-              x: x
-              y: y
-              width: 1
-              height: 1
-              color: color
+            drawPixel(canvas, x, y, color)
+            drawPixel(thumbnailCanvas, x, y, color)
 
         layers: Observable []
 

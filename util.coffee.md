@@ -96,12 +96,7 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
         {x:x0, y:y0} = center
         {x:x1, y:y1} = endPoint
 
-        extent = endPoint.subtract(start).scale(0.5).abs().floor()
-
-        radius = Math.min(
-          extent.x
-          extent.y
-        )
+        radius = endPoint.subtract(start).magnitude() / 0.5
 
         f = 1 - radius
         ddFx = 1
