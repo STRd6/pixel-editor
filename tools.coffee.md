@@ -10,10 +10,10 @@ Tools
 
     neighbors = (point) ->
       [
-        Point(point.x, point.y-1)
-        Point(point.x-1, point.y)
-        Point(point.x+1, point.y)
-        Point(point.x, point.y+1)
+        {x: point.x, y: point.y-1}
+        {x: point.x-1, y: point.y}
+        {x: point.x+1, y: point.y}
+        {x: point.x, y: point.y+1}
       ]
 
     shapeTool = (hotkey, offsetX, offsetY, icon, fn) ->
