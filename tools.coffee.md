@@ -29,13 +29,10 @@ Tools
         start = position
 
       move: ({editor, position}) ->
-        #if position.x >= start.x
-        position.x += 1
-        #if position.y >= start.y
-        position.y += 1
-
         end = position
 
+        # TODO: Don't clear and draw on preview, instead restore snapshot on
+        # main canvas and draw
         editor.previewCanvas.clear()
         fn(editor, editor.previewCanvas, start, end)
 
@@ -51,8 +48,8 @@ Tools
           out(p, options)
 
       paint = (out) ->
-        (point) ->
-          brush(point).forEach OP out
+        (x, y) ->
+          brush({x, y}).forEach OP out
 
       hotkeys: hotkey
       iconUrl: icon
@@ -203,13 +200,15 @@ Shapes
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"
         (editor, canvas, start, end) ->
           color = editor.color editor.activeIndex()
-          # TODO: Need to draw our own lines if we want them crisp ;_;
 
-          canvas.drawLine
-            start: start.subtract(Point(0.5, 0.5))
-            end: end.subtract(Point(0.5, 0.5))
-            color: color
-            width: 1
+          # Have to draw our own lines if we want them crisp ;_;
+          line start, end, (x, y) ->
+            canvas.drawRect
+              x: x
+              y: y
+              width: 1
+              height: 1
+              color: color
 
     module.exports = (I={}, self=Core(I)) ->
       self.extend

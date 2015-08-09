@@ -229,8 +229,14 @@ Editor
           color = self.color(index)
 
           Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
-            # TODO: Be sure to draw to "preview/work" layer
             canvas.drawRect
+              x: x
+              y: y
+              width: 1
+              height: 1
+              color: color
+
+            thumbnailCanvas.drawRect
               x: x
               y: y
               width: 1
