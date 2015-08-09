@@ -471,14 +471,31 @@ accidentally setting the pixel values during the preview.</p>
 
     self.trigger <span class="string">"release"</span>
 
+  <span class="function"><span class="title">compareImageData</span></span> = (previous, current) -&gt;
+    <span class="comment"># TODO: store a dirty region</span>
+
+    previousData = <span class="keyword">new</span> Uint32Array(previous.data.buffer)
+    currentData = <span class="keyword">new</span> Uint32Array(current.data.buffer)
+    length = currentData.length
+    i = <span class="number">0</span>
+    different = <span class="literal">false</span>
+
+    <span class="keyword">while</span> i &lt; length
+      <span class="keyword">if</span> previousData[i] != currentData[i]
+        different = <span class="literal">true</span>
+        <span class="keyword">break</span>
+
+      i += <span class="number">1</span>
+
+    <span class="keyword">return</span> different
+
   <span class="function"><span class="title">diffSnapshot</span></span> = (previous, current) -&gt;
-    <span class="comment"># TODO: Diff snapshot, only create command if changed</span>
-    <span class="comment"># TODO: Optimize to not store unchanged chunks</span>
-    self.execute self.Command.PutImageData
-      imageData: current
-      imageDataPrevious: previous
-      x: <span class="number">0</span>
-      y: <span class="number">0</span>
+    <span class="keyword">if</span> compareImageData(previous, current)
+      self.execute self.Command.PutImageData
+        imageData: current
+        imageDataPrevious: previous
+        x: <span class="number">0</span>
+        y: <span class="number">0</span>
 
   $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
     {left, top} = currentTarget.getBoundingClientRect()
