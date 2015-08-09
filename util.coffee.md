@@ -96,7 +96,7 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
         {x:x0, y:y0} = center
         {x:x1, y:y1} = endPoint
 
-        radius = endPoint.subtract(start).magnitude() / 0.5
+        radius = (endPoint.subtract(start).magnitude() / 2) | 0
 
         f = 1 - radius
         ddFx = 1
@@ -105,10 +105,10 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
         x = 0
         y = radius
 
-        iterator Point(x0, y0 + radius)
-        iterator Point(x0, y0 - radius)
-        iterator Point(x0 + radius, y0)
-        iterator Point(x0 - radius, y0)
+        iterator x0, y0 + radius
+        iterator x0, y0 - radius
+        iterator x0 + radius, y0
+        iterator x0 - radius, y0
 
         while x < y
           if f > 0
@@ -120,11 +120,11 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
           ddFx += 2
           f += ddFx
 
-          iterator Point(x0 + x, y0 + y)
-          iterator Point(x0 - x, y0 + y)
-          iterator Point(x0 + x, y0 - y)
-          iterator Point(x0 - x, y0 - y)
-          iterator Point(x0 + y, y0 + x)
-          iterator Point(x0 - y, y0 + x)
-          iterator Point(x0 + y, y0 - x)
-          iterator Point(x0 - y, y0 - x)
+          iterator x0 + x, y0 + y
+          iterator x0 - x, y0 + y
+          iterator x0 + x, y0 - y
+          iterator x0 - x, y0 - y
+          iterator x0 + y, y0 + x
+          iterator x0 - y, y0 + x
+          iterator x0 + y, y0 - x
+          iterator x0 - y, y0 - x

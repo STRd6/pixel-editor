@@ -378,6 +378,12 @@ accidentally setting the pixel values during the preview.
         Point(position).scale(pixelExtent()).floor()
 
       snapshot = null
+
+      self.restore = ->
+        if snapshot
+          canvas.context().putImageData(snapshot, 0, 0)
+          self.repaint()
+
       previewCanvas.on "touch", (position) ->
         # Snapshot canvas/current layer
         size = pixelExtent()

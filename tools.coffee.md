@@ -31,12 +31,11 @@ Tools
       move: ({editor, position}) ->
         end = position
 
-        # TODO: Don't clear and draw on preview, instead restore snapshot on
-        # main canvas and draw
-        editor.previewCanvas.clear()
-        fn(editor, editor.previewCanvas, start, end)
+        editor.restore()
+        fn(editor, editor.canvas, start, end)
 
       release: ({position, editor}) ->
+        editor.restore()
         fn(editor, editor.canvas, start, end)
 
     brushTool = (brushName, hotkey, offsetX, offsetY, icon, options) ->
