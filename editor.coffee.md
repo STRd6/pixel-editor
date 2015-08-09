@@ -1,6 +1,8 @@
 Editor
 ======
 
+    LITTLE_ENDIAN = require "./endianness"
+
     require "cornerstone"
 
     loader = require("./loader")()
@@ -267,8 +269,10 @@ Editor
           if color is "transparent"
             0
           else
-            # TODO: May need to check endianness
-            parseInt("ff#{color[4..5]}#{color[2..3]}#{color[0..1]}", 16)
+            if LITTLE_ENDIAN
+              parseInt("ff#{color[4..5]}#{color[2..3]}#{color[0..1]}", 16)
+            else
+              parseInt("#{color}ff")
 
         palette: Observable(Palette.dawnBringer16)
 
