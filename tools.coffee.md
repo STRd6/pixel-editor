@@ -109,14 +109,27 @@ Fill a connected area.
           x: 12
           y: 13
         touch: ({position, editor}) ->
-          index = editor.activeIndex()
-          targetIndex = editor.getPixel(position).index
+          color = editor.colorAsInt()
 
-          return unless targetIndex?
-          return if index is targetIndex
+          imageData = editor.getSnapshot()
+          width = imageData.width
+
+          data = new Uint32Array(imageData.data.buffer)
+
+          set = ({x, y}, color) ->
+            data[y * width + x] = color
+
+          get = ({x, y}) ->
+            data[y * width + x]
+
+          target = get(position)
+
+          return unless target?
+          return if color is target
 
           queue = [position]
-          editor.draw position
+
+          set(position, color)
 
           # TODO: Allow for interrupts if it takes too long
           {width, height} = editor.pixelExtent()
@@ -126,14 +139,17 @@ Fill a connected area.
             position = queue.pop()
 
             neighbors(position).forEach (position) ->
-              if editor.getPixel(position)?.index is targetIndex
+              pixelColor = get(position)
+              if pixelColor is target
                 # This is here because I HAVE been burned
                 # Later I should fix the underlying cause, but it seems handy to keep
                 # a hatch on any while loops.
                 safetyHatch -= 1
 
-                editor.draw position
+                set position, color
                 queue.push(position)
+
+          editor.putImageData(imageData)
 
           return
 
@@ -198,7 +214,6 @@ Shapes
       circle: shapeTool "c", 0, 0, # TODO: Real offset
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
         (editor, canvas, start, end) ->
-          debugger
           circle start, end, (x, y) ->
             editor.draw({x, y})
 

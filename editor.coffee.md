@@ -147,6 +147,13 @@ Editor
 
           return self
 
+        getColorAsInt: ->
+          
+
+        getSnapshot: ->
+          size = pixelExtent()
+          canvas.context().getImageData(0, 0, size.width, size.height)
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then (imageData) ->
@@ -249,10 +256,23 @@ Editor
             "transparent"
           else
             self.palette()[index]
+        
+        colorAsInt: ->
+          color = self.color self.activeIndex()
+
+          console.log color
+
+          color = color.substring(color.indexOf("#") + 1)
+
+          if color is "transparent"
+            0
+          else
+            # TODO: May need to check endianness
+            parseInt("ff#{color[4..5]}#{color[2..3]}#{color[0..1]}", 16)
 
         palette: Observable(Palette.dawnBringer16)
 
-        putImageData: (imageData, x, y) ->
+        putImageData: (imageData, x=0, y=0) ->
           canvas.context().putImageData(imageData, x, y)
 
         selection: (rectangle) ->
@@ -381,13 +401,12 @@ accidentally setting the pixel values during the preview.
 
       self.restore = ->
         if snapshot
-          canvas.context().putImageData(snapshot, 0, 0)
+          self.putImageData(snapshot)
           self.repaint()
 
       previewCanvas.on "touch", (position) ->
         # Snapshot canvas/current layer
-        size = pixelExtent()
-        snapshot = canvas.context().getImageData(0, 0, size.width, size.height)
+        snapshot = self.getSnapshot()
 
         activeTool().touch
           position: canvasPosition position
