@@ -169,14 +169,27 @@
       x: <span class="number">12</span>
       y: <span class="number">13</span>
     touch: ({position, editor}) -&gt;
-      index = editor.activeIndex()
-      targetIndex = editor.getPixel(position).index
+      color = editor.colorAsInt()
 
-      <span class="keyword">return</span> <span class="keyword">unless</span> targetIndex?
-      <span class="keyword">return</span> <span class="keyword">if</span> index <span class="keyword">is</span> targetIndex
+      imageData = editor.getSnapshot()
+      width = imageData.width
+
+      data = <span class="keyword">new</span> Uint32Array(imageData.data.buffer)
+
+      <span class="function"><span class="title">set</span></span> = ({x, y}, color) -&gt;
+        data[y * width + x] = color
+
+      <span class="function"><span class="title">get</span></span> = ({x, y}) -&gt;
+        data[y * width + x]
+
+      target = get(position)
+
+      <span class="keyword">return</span> <span class="keyword">unless</span> target?
+      <span class="keyword">return</span> <span class="keyword">if</span> color <span class="keyword">is</span> target
 
       queue = [position]
-      editor.draw position
+
+      set(position, color)
 
       <span class="comment"># TODO: Allow for interrupts if it takes too long</span>
       {width, height} = editor.pixelExtent()
@@ -186,14 +199,17 @@
         position = queue.pop()
 
         neighbors(position).forEach (position) -&gt;
-          <span class="keyword">if</span> editor.getPixel(position)?.index <span class="keyword">is</span> targetIndex
+          pixelColor = get(position)
+          <span class="keyword">if</span> pixelColor <span class="keyword">is</span> target
             <span class="comment"># This is here because I HAVE been burned</span>
             <span class="comment"># Later I should fix the underlying cause, but it seems handy to keep</span>
             <span class="comment"># a hatch on any while loops.</span>
             safetyHatch -= <span class="number">1</span>
 
-            editor.draw position
+            set position, color
             queue.push(position)
+
+      editor.putImageData(imageData)
 
       <span class="keyword">return</span>
 
@@ -279,7 +295,6 @@
   circle: shapeTool <span class="string">"c"</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment"># TODO: Real offset</span>
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
     (editor, canvas, start, end) -&gt;
-      <span class="keyword">debugger</span>
       circle start, end, (x, y) -&gt;
         editor.draw({x, y})
 

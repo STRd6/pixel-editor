@@ -180,6 +180,13 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       <span class="keyword">return</span> self
 
+    getColorAsInt: -&gt;
+
+
+    getSnapshot: -&gt;
+      size = pixelExtent()
+      canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height)
+
     fromDataURL: (dataURL) -&gt;
       loader.load(dataURL)
       .<span class="keyword">then</span> (imageData) -&gt;
@@ -283,9 +290,22 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       <span class="keyword">else</span>
         self.palette()[index]
 
+    colorAsInt: -&gt;
+      color = self.color self.activeIndex()
+
+      console.log color
+
+      color = color.substring(color.indexOf(<span class="string">"#"</span>) + <span class="number">1</span>)
+
+      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+        <span class="number">0</span>
+      <span class="keyword">else</span>
+        <span class="comment"># TODO: May need to check endianness</span>
+        parseInt(<span class="string">"ff<span class="subst">#{color[<span class="number">4.</span><span class="number">.5</span>]}</span><span class="subst">#{color[<span class="number">2.</span><span class="number">.3</span>]}</span><span class="subst">#{color[<span class="number">0.</span><span class="number">.1</span>]}</span>"</span>, <span class="number">16</span>)
+
     palette: Observable(Palette.dawnBringer16)
 
-    putImageData: (imageData, x, y) -&gt;
+    putImageData: (imageData, x=<span class="number">0</span>, y=<span class="number">0</span>) -&gt;
       canvas.context().putImageData(imageData, x, y)
 
     selection: (rectangle) -&gt;
@@ -421,13 +441,12 @@ accidentally setting the pixel values during the preview.</p>
 
   self.<span class="function"><span class="title">restore</span></span> = -&gt;
     <span class="keyword">if</span> snapshot
-      canvas.context().putImageData(snapshot, <span class="number">0</span>, <span class="number">0</span>)
+      self.putImageData(snapshot)
       self.repaint()
 
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
     <span class="comment"># Snapshot canvas/current layer</span>
-    size = pixelExtent()
-    snapshot = canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height)
+    snapshot = self.getSnapshot()
 
     activeTool().touch
       position: canvasPosition position
