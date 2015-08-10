@@ -180,8 +180,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       .<span class="keyword">then</span> (imageData) -&gt;
         {width, height} = size = pixelExtent()
 
-        <span class="keyword">debugger</span>
-
         <span class="keyword">if</span> (width != imageData.width) <span class="keyword">or</span> (height != imageData.height)
           self.execute self.Command.Resize
             size: 
