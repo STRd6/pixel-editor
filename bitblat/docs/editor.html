@@ -148,7 +148,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       outputCanvas.element()
 
     resize: (size, data) -&gt;
-      <span class="keyword">debugger</span>
       data ?= self.getSnapshot()
 
       pixelExtent(Size(size))
@@ -182,7 +181,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         <span class="keyword">if</span> (width != imageData.width) <span class="keyword">or</span> (height != imageData.height)
           self.execute self.Command.Resize
-            size: 
+            size:
               width: imageData.width
               height: imageData.height
             sizePrevious: size
@@ -275,7 +274,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
           index = self.getIndex(x, y)
           iterator(index, x, y)
 
-    thumbnailClick: (e) -&gt; 
+    thumbnailClick: (e) -&gt;
       $(e.currentTarget).toggleClass(<span class="string">"right"</span>)
 
   self.activeColor = Observable -&gt;
