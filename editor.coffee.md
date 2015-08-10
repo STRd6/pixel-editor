@@ -146,8 +146,6 @@ Editor
           loader.load(dataURL)
           .then (imageData) ->
             {width, height} = size = pixelExtent()
-            
-            debugger
 
             if (width != imageData.width) or (height != imageData.height)
               self.execute self.Command.Resize
