@@ -32,7 +32,8 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <h2 id="full-color-mode">Full Color Mode</h2>
+              <p>Color Picker</p>
+<h2 id="polishing">Polishing</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -46,8 +47,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>32bit Color, Custom Palettes, Color Picker</p>
-<h2 id="better-circle-tool">Better Circle Tool</h2>
+              <p>Icons, Icon offsets for tools</p>
+<p>Palette styling, editing palette colors</p>
+<p>Preview window on large images</p>
+<h2 id="better-symmetry-multi-modes">Better Symmetry/Multi Modes</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -61,8 +64,10 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>Calculate midpoint of [start, end], use that as center and radius as length/2</p>
-<h2 id="better-preview">Better Preview</h2>
+              <p>Multiply events through symmetry so that flood fill and others
+can work better with symmetry modes.</p>
+<p>Radial symmetry</p>
+<h2 id="vintage-replays">Vintage Replays</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -76,8 +81,8 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>Handle transparancy</p>
-<h2 id="better-performance">Better performance</h2>
+              <p>Be able to display PixieEngine replays</p>
+<h2 id="bugs">Bugs</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -91,14 +96,7 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
-              <p>Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
-let the canvas drawing functions do the work for us. Blit the &#39;work&#39; canvas onto
-the active layer when the command completes.</p>
-<p>Never call <code>repaint</code> on the whole editor, all the layers should always paint
-themselves, and only the regions necessary should be repainted.</p>
-<p>Operate directly on imageData arrays where possible.</p>
-<p>Colors as ints?</p>
-<h2 id="vintage-replays">Vintage Replays</h2>
+              <h1 id="v2">V2</h1>
 
             </div>
             <div class="content"><pre><code>
@@ -112,8 +110,7 @@ themselves, and only the regions necessary should be repainted.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
-              <p>Be able to display PixieEngine replays</p>
-<h2 id="true-replays">True replays</h2>
+              <h2 id="true-replays">True replays</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -128,7 +125,7 @@ themselves, and only the regions necessary should be repainted.</p>
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>Capture all user input as events, replay entire event stream.</p>
-<h2 id="better-symmetry">Better Symmetry</h2>
+<h2 id="minimize-memory-footprint">Minimize Memory Footprint</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -142,38 +139,8 @@ themselves, and only the regions necessary should be repainted.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>Multiply events through symmetry so that flood fill and others
-can work better with symmetry modes.</p>
-<p>Radial symmetry</p>
-<h2 id="bugs">Bugs</h2>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-10">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-10">&#182;</a>
-              </div>
-              <h1 id="v2">V2</h1>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-11">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-11">&#182;</a>
-              </div>
-              <p>Hot reload editor state / initial editor state</p>
+              <p>Use quadtrees for diffing regions in undo stack.</p>
+<p>Hot reload editor state / initial editor state</p>
 <p>Documentation</p>
 <p>Autosave</p>
 <p>Analytics</p>
@@ -200,13 +167,47 @@ can work better with symmetry modes.</p>
         </li>
         
         
+        <li id="section-10">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Display transparent preview as transparent instead of white</p>
+<h1 id="done">Done</h1>
+
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <h2 id="better-performance">Better performance</h2>
+
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
         <li id="section-12">
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
-              <p>Display transparent preview as transparent instead of white</p>
-<h1 id="done">Done</h1>
+              <p>Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
+let the canvas drawing functions do the work for us. Blit the &#39;work&#39; canvas onto
+the active layer when the command completes.</p>
+<p>Never call <code>repaint</code> on the whole editor, all the layers should always paint
+themselves, and only the regions necessary should be repainted.</p>
+<p>Operate directly on imageData arrays where possible.</p>
+<h2 id="better-circle-tool">Better Circle Tool</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -220,7 +221,8 @@ can work better with symmetry modes.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
-              <p>Selection Tool</p>
+              <p>Calculate midpoint of [start, end], use that as center and radius as length/2</p>
+<p>Selection Tool</p>
 <p>Transparancy Mode (index 0 or none)</p>
 <p>Prompt unsaved on exit</p>
 <p>Palette
