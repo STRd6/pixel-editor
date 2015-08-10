@@ -115,12 +115,11 @@ Editor
           outputCanvas.element()
 
         resize: (size, data) ->
-          debugger
           data ?= self.getSnapshot()
 
           pixelExtent(Size(size))
           {width, height} = pixelExtent()
-          
+
           canvasElement = canvas.element()
           thumbnailCanvasElement = thumbnailCanvas.element()
 
@@ -149,7 +148,7 @@ Editor
 
             if (width != imageData.width) or (height != imageData.height)
               self.execute self.Command.Resize
-                size: 
+                size:
                   width: imageData.width
                   height: imageData.height
                 sizePrevious: size
@@ -170,10 +169,10 @@ Editor
             # Copy and clear history
             steps = self.history()
             self.history([])
-            
+
             # TODO: The initial size should come from commands
             self.resize initialSize
-            
+
             # TODO: Should never need to call repaint!
             self.repaint()
 
@@ -215,7 +214,7 @@ Editor
             "transparent"
           else
             self.palette()[index]
-        
+
         colorAsInt: ->
           color = self.color self.activeIndex()
 
@@ -242,7 +241,7 @@ Editor
               index = self.getIndex(x, y)
               iterator(index, x, y)
 
-        thumbnailClick: (e) -> 
+        thumbnailClick: (e) ->
           $(e.currentTarget).toggleClass("right")
 
       self.activeColor = Observable ->

@@ -6,12 +6,15 @@ Loader
         load: (dataURL) ->
           deferred = Deferred()
 
-          context = document.createElement('canvas').getContext('2d')
+          canvas = document.createElement('canvas')
+          context = canvas.getContext('2d')
           image = document.createElement("img")
 
           image.onload = ->
             {width, height} = image
 
+            canvas.width = width
+            canvas.height = height
             context.drawImage(image, 0, 0)
             imageData = context.getImageData(0, 0, width, height)
 
