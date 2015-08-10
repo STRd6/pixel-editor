@@ -76,10 +76,6 @@ Editor
             height: size
             color: color
 
-      isTransparent = (index) ->
-        (self.palette()[index] is "transparent") or
-        (self.paletteZeroTransparent() and index is 0)
-
       self.extend
         activeIndex: activeIndex
 
@@ -90,8 +86,6 @@ Editor
         positionDisplay: positionDisplay
 
         grid: Observable false
-
-        paletteZeroTransparent: Observable(true)
 
         applyPalette: (text) ->
           self.execute self.Command.ChangePalette
@@ -210,10 +204,7 @@ Editor
             drawPixel(thumbnailCanvas, x, y, color)
 
         color: (index) ->
-          if isTransparent(index)
-            "transparent"
-          else
-            self.palette()[index]
+          self.palette()[index]()
 
         colorAsInt: ->
           color = self.color self.activeIndex()
@@ -230,7 +221,7 @@ Editor
             else
               parseInt("#{color}ff")
 
-        palette: Observable(Palette.dawnBringer16)
+        palette: Observable(Palette.dawnBringer16.map Observable)
 
         putImageData: (imageData, x=0, y=0) ->
           canvas.context().putImageData(imageData, x, y)
@@ -302,12 +293,6 @@ Editor
       viewSize.observe updateViewSize
       self.grid.observe ->
         updateViewSize viewSize()
-
-      self.paletteZeroTransparent.observe ->
-        self.repaint()
-
-      self.palette.observe ->
-        self.repaint()
 
       canvasPosition = (position) ->
         Point(position).scale(pixelExtent()).floor()

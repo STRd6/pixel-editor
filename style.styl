@@ -58,26 +58,6 @@ html, body
     &:last-child
       margin-bottom: 0
 
-.palette-editor
-  background-color: white
-  position: absolute
-  right: 40px
-  top: 40px
-  width: 120px
-
-  &.hide
-    left: 100%
-
-  textarea
-    box-sizing: border-box
-    border: none
-    display: block
-    height: 512px
-    line-height: 16px
-    padding: 1px 2px 0 0
-    text-align: right
-    width: 100%
-
 .toolbar
   box-sizing: border-box
   height: 100%
@@ -148,25 +128,44 @@ html, body
 .palette
   box-sizing: border-box
   height: 100%
-  width: 40px
+  width: 80px
   position: absolute
   top: 0
   right: 0
   font-size: 0
 
-  .color
+  & > label
     box-sizing: border-box
     border: 2px solid rgba(0, 0, 0, 0)
-    width: 40px
-    height: 16px
-    margin: 0px
+    border-radius: 2px
+    display: inline-block
+    float: right
+    width: 32px
+    height: 32px
+    margin: 0 4px 4px 0
+    padding: 0
+
+    & > input[type=color]
+      opacity: 0
+      width: 100%
+      height: 100%
+      box-sizing: border-box
+      margin: 0
+      padding: 0
 
     &.active
       border: 2px solid rgba(255, 255, 255, 0.5)
 
-    &.current
-      width: 40px
-      height: 40px
+    &:nth-child(2), &:nth-child(1)
+      border-top-right-radius: 0
+      border-top-left-radius: 0
+      border-top: 0
+
+    &:nth-child(odd)
+      border-top-right-radius: 0
+      border-bottom-right-radius: 0
+      border-right: 0
+      margin-right: 0
 
 .vertical-center
   position: absolute

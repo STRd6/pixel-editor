@@ -5,6 +5,7 @@ Editor template
     - previousTool = @previousTool
     - editor = this
     - Symmetry = require "../symmetry"
+    - Palette = require "./palette"
 
     .editor
 
@@ -41,20 +42,7 @@ Our layers and preview canvases are placed in the viewport.
 
 The palette holds our colors.
 
-      .palette
-        .color.current(style=@activeColorStyle)
-        - @palette.forEach (color, index) ->
-          - activeClass = -> "active" if index is activeIndex()
-          - activate = -> activeIndex index
-          - style = -> if editor.paletteZeroTransparent() and index is 0 then "background-color: transparent" else "background-color: #{color}"
-          .color(class=activeClass click=activate touchstart=activate style=style)
-
-      .palette-editor.hide
-        - close = -> $(".palette-editor").addClass("hide")
-        - applyPalette = -> editor.applyPalette $(".palette-editor textarea").val(); close()
-        %textarea
-        %button(click=applyPalette) Apply
-        %button(click=close) Close
+      = Palette(this)
 
       .actions
         - @actions.each (action) ->

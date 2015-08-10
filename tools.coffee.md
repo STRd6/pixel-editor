@@ -162,7 +162,7 @@ Shapes
       rect: do ->
         start = null
         end = null
-        
+
         draw = (canvas, color) ->
           delta = end.subtract(start)
 
@@ -201,13 +201,13 @@ Shapes
         (editor, canvas, start, end) ->
           delta = end.subtract(start)
           color = editor.color editor.activeIndex()
-          
+
           canvas.drawRect
             x: start.x - 0.5
             y: start.y - 0.5
             width: delta.x
             height: delta.y
-            stroke: 
+            stroke:
               color: color
               width: 1
 

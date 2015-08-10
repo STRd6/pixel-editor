@@ -1,7 +1,12 @@
 TODO
 ====
 
+Palette
+-------
+
 Color Picker
+
+Alpha
 
 Polishing
 ---------
@@ -19,6 +24,11 @@ Multiply events through symmetry so that flood fill and others
 can work better with symmetry modes.
 
 Radial symmetry
+
+Simple Replays
+--------------
+
+Make sure replays can be saved and loaded
 
 Vintage Replays
 ---------------
