@@ -18,5 +18,5 @@
       - e.preventDefault() if delta < 350
     - style = ->
       - "background-color: #{color()};"
-    %label(style=style class=activeClass mousedown=mousedown click=click mouseup=mouseup touchstart=activate)
-      %input(type="color" value=color)
+    %div(style=style class=activeClass)
+      %input(type="color" value=color mousedown=mousedown click=click mouseup=mouseup touchstart=activate)
