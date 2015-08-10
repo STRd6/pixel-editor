@@ -109,10 +109,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         height: size
         color: color
 
-  <span class="function"><span class="title">isTransparent</span></span> = (index) -&gt;
-    (self.palette()[index] <span class="keyword">is</span> <span class="string">"transparent"</span>) <span class="keyword">or</span>
-    (self.paletteZeroTransparent() <span class="keyword">and</span> index <span class="keyword">is</span> <span class="number">0</span>)
-
   self.extend
     activeIndex: activeIndex
 
@@ -123,8 +119,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     positionDisplay: positionDisplay
 
     grid: Observable <span class="literal">false</span>
-
-    paletteZeroTransparent: Observable(<span class="literal">true</span>)
 
     applyPalette: (text) -&gt;
       self.execute self.Command.ChangePalette
@@ -243,10 +237,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         drawPixel(thumbnailCanvas, x, y, color)
 
     color: (index) -&gt;
-      <span class="keyword">if</span> isTransparent(index)
-        <span class="string">"transparent"</span>
-      <span class="keyword">else</span>
-        self.palette()[index]
+      self.palette()[index]()
 
     colorAsInt: -&gt;
       color = self.color self.activeIndex()
@@ -263,7 +254,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         <span class="keyword">else</span>
           parseInt(<span class="string">"<span class="subst">#{color}</span>ff"</span>)
 
-    palette: Observable(Palette.dawnBringer16)
+    palette: Observable(Palette.dawnBringer16.map Observable)
 
     putImageData: (imageData, x=<span class="number">0</span>, y=<span class="number">0</span>) -&gt;
       canvas.context().putImageData(imageData, x, y)
@@ -335,12 +326,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   viewSize.observe updateViewSize
   self.grid.observe -&gt;
     updateViewSize viewSize()
-
-  self.paletteZeroTransparent.observe -&gt;
-    self.repaint()
-
-  self.palette.observe -&gt;
-    self.repaint()
 
   <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
     Point(position).scale(pixelExtent()).floor()
