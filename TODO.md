@@ -1,58 +1,46 @@
 TODO
 ====
 
-Full Color Mode
----------------
+Color Picker
 
-32bit Color, Custom Palettes, Color Picker
+Polishing
+---------
 
-Better Circle Tool
-------------------
+Icons, Icon offsets for tools
 
-Calculate midpoint of [start, end], use that as center and radius as length/2
+Palette styling, editing palette colors
 
-Better Preview
---------------
+Preview window on large images
 
-Handle transparancy
-
-Better performance
-------------------
-
-Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
-let the canvas drawing functions do the work for us. Blit the 'work' canvas onto
-the active layer when the command completes.
-
-Never call `repaint` on the whole editor, all the layers should always paint
-themselves, and only the regions necessary should be repainted.
-
-Operate directly on imageData arrays where possible.
-
-Colors as ints?
-
-Vintage Replays
----------------
-
-Be able to display PixieEngine replays
-
-True replays
-------------
-
-Capture all user input as events, replay entire event stream.
-
-Better Symmetry
----------------
+Better Symmetry/Multi Modes
+---------------------------
 
 Multiply events through symmetry so that flood fill and others
 can work better with symmetry modes.
 
 Radial symmetry
 
+Vintage Replays
+---------------
+
+Be able to display PixieEngine replays
+
 Bugs
 ----
 
 V2
 ====
+
+True replays
+------------
+
+Capture all user input as events, replay entire event stream.
+
+Minimize Memory Footprint
+-------------------------
+
+Use quadtrees for diffing regions in undo stack.
+
 
 Hot reload editor state / initial editor state
 
@@ -91,6 +79,24 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+
+Better performance
+------------------
+
+Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
+let the canvas drawing functions do the work for us. Blit the 'work' canvas onto
+the active layer when the command completes.
+
+Never call `repaint` on the whole editor, all the layers should always paint
+themselves, and only the regions necessary should be repainted.
+
+Operate directly on imageData arrays where possible.
+
+Better Circle Tool
+------------------
+
+Calculate midpoint of [start, end], use that as center and radius as length/2
+
 Selection Tool
 
 Transparancy Mode (index 0 or none)
