@@ -17,6 +17,8 @@ Palette styling, editing palette colors
 
 Preview window on large images
 
+Thumbnail viewing rectangle
+
 Better Symmetry/Multi Modes
 ---------------------------
 

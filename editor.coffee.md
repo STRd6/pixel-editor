@@ -221,7 +221,7 @@ Editor
             else
               parseInt("#{color}ff")
 
-        palette: Observable(Palette.dawnBringer16.map Observable)
+        palette: Observable(Palette.dawnBringer32.map Observable)
 
         putImageData: (imageData, x=0, y=0) ->
           canvas.context().putImageData(imageData, x, y)
@@ -328,6 +328,7 @@ Editor
         self.trigger "release"
 
       compareImageData = (previous, current) ->
+        return unless previous and current
         # TODO: store a dirty region
 
         previousData = new Uint32Array(previous.data.buffer)
@@ -361,6 +362,7 @@ Editor
 
       # TODO: Move this into template?
       $viewport = $selector.find(".viewport")
+      
       setCursor = ({iconUrl, iconOffset}) ->
         {x, y} = Point(iconOffset)
 

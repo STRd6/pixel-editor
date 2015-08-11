@@ -10,13 +10,10 @@
       - e.preventDefault()
       - pressedAt = +new Date
       - activate()
-    - mouseup = (e) ->
-      - e.preventDefault()
     - click = (e) ->
       - delta = +new Date - pressedAt
       - console.log delta
       - e.preventDefault() if delta < 350
-    - style = ->
-      - "background-color: #{color()};"
-    %div(style=style class=activeClass)
-      %input(type="color" value=color mousedown=mousedown click=click mouseup=mouseup touchstart=activate)
+    %div(class=activeClass click=activate touchstart=activate)
+      - console.log "wat"
+      %input(type="color" value=color mousedown=mousedown click=click)
