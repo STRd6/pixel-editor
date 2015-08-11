@@ -242,9 +242,14 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       self.palette()[index]()
 
     setColor: (color) -&gt;
-      index = activeIndex()
+      colors =  self.palette().map (o) -&gt; o().toLowerCase()
+      index = colors.indexOf(color.toLowerCase())
 
-      self.palette()[index](color)
+      <span class="keyword">if</span> index != -<span class="number">1</span>
+        activeIndex(index)
+      <span class="keyword">else</span>
+        self.palette.push Observable(color)
+        self.activeIndex self.palette().length - <span class="number">1</span>
 
     getColor: (position) -&gt;
       {x, y} = position
