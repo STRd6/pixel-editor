@@ -1,12 +1,7 @@
 TODO
 ====
 
-Palette
--------
-
-Color Picker
-
-Alpha
+Opacity/Alpha
 
 Polishing
 ---------
@@ -47,8 +42,35 @@ Brush Options
 
 Should symmetry be a per-brush option, along with brush sizes, etc?
 
+Memory Usage
+------------
+
+Reduce memory usage in undo using dirty regions.
+
+Platforms
+---------
+
+Chrome Web Store
+Downloadable
+Others?
+
+Promotional Media
+-----------------
+
+Screenshots
+Promo images
+
+Documentation
+-------------
+
+Manual
+Tutorials
+Plugins
+
 Bugs
 ----
+
+Eraser
 
 V2
 ====
@@ -101,6 +123,8 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+
+Color Picker
 
 Better performance
 ------------------
