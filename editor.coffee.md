@@ -209,9 +209,14 @@ Editor
           self.palette()[index]()
 
         setColor: (color) ->
-          index = activeIndex()
+          colors =  self.palette().map (o) -> o().toLowerCase()
+          index = colors.indexOf(color.toLowerCase())
 
-          self.palette()[index](color)
+          if index != -1
+            activeIndex(index)
+          else
+            self.palette.push Observable(color)
+            self.activeIndex self.palette().length - 1
 
         getColor: (position) ->
           {x, y} = position

@@ -17,7 +17,12 @@ Palette styling, editing palette colors
 
 Preview window on large images
 
-Thumbnail viewing rectangle
+Thumbnail viewing mini-map rectangle
+
+Responsive Design
+-----------------
+
+Styling for mobile viewports.
 
 Better Symmetry/Multi Modes
 ---------------------------
@@ -36,6 +41,11 @@ Vintage Replays
 ---------------
 
 Be able to display PixieEngine replays
+
+Brush Options
+-------------
+
+Should symmetry be a per-brush option, along with brush sizes, etc?
 
 Bugs
 ----
