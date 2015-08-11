@@ -24,6 +24,8 @@ Editor
     template = require "./templates/editor"
     debugTemplate = require "./templates/debug"
 
+    {rgb2Hex} = require "./util"
+
     Symmetry = require "./symmetry"
 
     module.exports = (I={}, self) ->
@@ -205,6 +207,17 @@ Editor
 
         color: (index) ->
           self.palette()[index]()
+
+        setColor: (color) ->
+          index = activeIndex()
+
+          self.palette()[index](color)
+
+        getColor: (position) ->
+          {x, y} = position
+          data = canvas.context().getImageData(x, y, 1, 1).data
+
+          rgb2Hex data[0], data[1], data[2]
 
         colorAsInt: ->
           color = self.color self.activeIndex()

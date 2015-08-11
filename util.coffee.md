@@ -11,6 +11,14 @@ Use jQuery deferred
 Helpers
 -------
 
+    componentToHex = (c) ->
+      hex = c.toString(16)
+      
+      if hex.length is 1
+        "0" + hex
+      else 
+        hex
+
     isObject = (object) ->
       Object::toString.call(object) is "[object Object]"
 
@@ -31,12 +39,12 @@ Extra utilities that may be broken out into separate libraries.
           x = 0
         else
           x = 1
-  
+
         if end.y < start.y
           y = 0
         else
           y = 1
-  
+
         end.add(Point(x, y))
 
       Grid: require "grid"
@@ -128,3 +136,6 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
           iterator x0 - y, y0 + x
           iterator x0 + y, y0 - x
           iterator x0 - y, y0 - x
+
+      rgb2Hex: (r, g, b) ->
+        return "#" + [r, g, b].map(componentToHex).join("")

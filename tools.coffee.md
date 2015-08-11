@@ -87,13 +87,9 @@ Draw a line when moving while touching.
           x: 13
           y: 13
         touch: ({position, editor}) ->
-          {x, y} = position
-          index = editor.layer().get(x, y)
-          editor.activeIndex index
+          editor.setColor(editor.getColor(position))
         move: ({position, editor}) ->
-          {x, y} = position
-          index = editor.layer().get(x, y)
-          editor.activeIndex index
+          editor.setColor(editor.getColor(position))
         release: ->
           # Return to the previous tool
           editor.activeTool editor.previousTool()
