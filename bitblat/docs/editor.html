@@ -254,7 +254,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         <span class="keyword">else</span>
           parseInt(<span class="string">"<span class="subst">#{color}</span>ff"</span>)
 
-    palette: Observable(Palette.dawnBringer16.map Observable)
+    palette: Observable(Palette.dawnBringer32.map Observable)
 
     putImageData: (imageData, x=<span class="number">0</span>, y=<span class="number">0</span>) -&gt;
       canvas.context().putImageData(imageData, x, y)
@@ -361,6 +361,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     self.trigger <span class="string">"release"</span>
 
   <span class="function"><span class="title">compareImageData</span></span> = (previous, current) -&gt;
+    <span class="keyword">return</span> <span class="keyword">unless</span> previous <span class="keyword">and</span> current
     <span class="comment"># TODO: store a dirty region</span>
 
     previousData = <span class="keyword">new</span> Uint32Array(previous.data.buffer)
@@ -394,6 +395,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   <span class="comment"># TODO: Move this into template?</span>
   $viewport = $selector.find(<span class="string">".viewport"</span>)
+
   <span class="function"><span class="title">setCursor</span></span> = ({iconUrl, iconOffset}) -&gt;
     {x, y} = Point(iconOffset)
 
