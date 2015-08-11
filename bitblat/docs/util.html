@@ -75,7 +75,15 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">isObject</span></span> = (object) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">componentToHex</span></span> = (c) -&gt;
+  hex = c.toString(<span class="number">16</span>)
+
+  <span class="keyword">if</span> hex.length <span class="keyword">is</span> <span class="number">1</span>
+    <span class="string">"0"</span> + hex
+  <span class="keyword">else</span> 
+    hex
+
+<span class="function"><span class="title">isObject</span></span> = (object) -&gt;
   Object::toString.call(object) <span class="keyword">is</span> <span class="string">"[object Object]"</span></code></pre>
 </div>
         </li>
@@ -239,7 +247,10 @@
       iterator x0 + y, y0 + x
       iterator x0 - y, y0 + x
       iterator x0 + y, y0 - x
-      iterator x0 - y, y0 - x</code></pre>
+      iterator x0 - y, y0 - x
+
+  rgb2Hex: (r, g, b) -&gt;
+    <span class="keyword">return</span> <span class="string">"#"</span> + [r, g, b].map(componentToHex).join(<span class="string">""</span>)</code></pre>
 </div>
         </li>
         

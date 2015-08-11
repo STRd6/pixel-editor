@@ -138,13 +138,9 @@
       x: <span class="number">13</span>
       y: <span class="number">13</span>
     touch: ({position, editor}) -&gt;
-      {x, y} = position
-      index = editor.layer().get(x, y)
-      editor.activeIndex index
+      editor.setColor(editor.getColor(position))
     move: ({position, editor}) -&gt;
-      {x, y} = position
-      index = editor.layer().get(x, y)
-      editor.activeIndex index
+      editor.setColor(editor.getColor(position))
     release: -&gt;
       <span class="comment"># Return to the previous tool</span>
       editor.activeTool editor.previousTool()

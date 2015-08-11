@@ -57,6 +57,8 @@ Palette = require(<span class="string">"./palette"</span>)
 template = require <span class="string">"./templates/editor"</span>
 debugTemplate = require <span class="string">"./templates/debug"</span>
 
+{rgb2Hex} = require <span class="string">"./util"</span>
+
 Symmetry = require <span class="string">"./symmetry"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
@@ -238,6 +240,17 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     color: (index) -&gt;
       self.palette()[index]()
+
+    setColor: (color) -&gt;
+      index = activeIndex()
+
+      self.palette()[index](color)
+
+    getColor: (position) -&gt;
+      {x, y} = position
+      data = canvas.context().getImageData(x, y, <span class="number">1</span>, <span class="number">1</span>).data
+
+      rgb2Hex data[<span class="number">0</span>], data[<span class="number">1</span>], data[<span class="number">2</span>]
 
     colorAsInt: -&gt;
       color = self.color self.activeIndex()
