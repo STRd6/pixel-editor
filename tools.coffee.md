@@ -56,7 +56,7 @@ Tools
         x: offsetX
         y: offsetY
       touch: ({position, editor})->
-        paint(editor.draw) position
+        paint(editor.draw) position.x, position.y
         previousPosition = position
       move: ({editor, position})->
         line previousPosition, position, paint(editor.draw)
