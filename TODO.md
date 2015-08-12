@@ -1,15 +1,90 @@
 TODO
 ====
 
-Transparancy Mode (index 0 or none)
+Opacity/Alpha
+
+Polishing
+---------
+
+Icons, Icon offsets for tools
+
+Palette styling, editing palette colors
+
+Preview window on large images
+
+Thumbnail viewing mini-map rectangle
+
+Responsive Design
+-----------------
+
+Styling for mobile viewports.
+
+Better Symmetry/Multi Modes
+---------------------------
+
+Multiply events through symmetry so that flood fill and others
+can work better with symmetry modes.
+
+Radial symmetry
+
+Simple Replays
+--------------
+
+Make sure replays can be saved and loaded
+
+Vintage Replays
+---------------
+
+Be able to display PixieEngine replays
+
+Brush Options
+-------------
+
+Should symmetry be a per-brush option, along with brush sizes, etc?
+
+Memory Usage
+------------
+
+Reduce memory usage in undo using dirty regions.
+
+Platforms
+---------
+
+Chrome Web Store
+Downloadable
+Others?
+
+Promotional Media
+-----------------
+
+Screenshots
+Promo images
+
+Documentation
+-------------
+
+Manual
+Tutorials
+Plugins
 
 Bugs
 ----
 
-V2
-----
+Eraser
 
-Selection Tool
+V2
+====
+
+True replays
+------------
+
+Capture all user input as events, replay entire event stream.
+
+Minimize Memory Footprint
+-------------------------
+
+Use quadtrees for diffing regions in undo stack.
+
 
 Hot reload editor state / initial editor state
 
@@ -18,8 +93,6 @@ Documentation
 Autosave
 
 Analytics
-
-Better Circle/Ellipse Tool
 
 Layers
   Reorder Layers
@@ -50,6 +123,30 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+
+Color Picker
+
+Better performance
+------------------
+
+Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
+let the canvas drawing functions do the work for us. Blit the 'work' canvas onto
+the active layer when the command completes.
+
+Never call `repaint` on the whole editor, all the layers should always paint
+themselves, and only the regions necessary should be repainted.
+
+Operate directly on imageData arrays where possible.
+
+Better Circle Tool
+------------------
+
+Calculate midpoint of [start, end], use that as center and radius as length/2
+
+Selection Tool
+
+Transparancy Mode (index 0 or none)
+
 Prompt unsaved on exit
 
 Palette

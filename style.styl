@@ -3,11 +3,14 @@ html, body
   height: 100%
   font-family: helvetica
 
+body
+  color: #222
+
 .editor
-  background-color: lightgray
+  background-color: #AAA
   box-sizing: border-box
   height: 100%
-  padding: 0px 40px 64px 40px
+  padding: 0px 72px 64px 35px
   position: relative
   user-select: none
   overflow: hidden
@@ -21,21 +24,26 @@ html, body
     .thumbnail
       background-color: white
       border: 1px solid rgba(0, 0, 0, 0.5)
-      position: absolute
-      top: 0
-      left: 0
+      position: fixed
+      top: 4px
+      left: 40px
       z-index: 2
+
+      &.right
+        right: 44px
+        left: auto
 
   .position
     position: absolute
     bottom:0
     right: 0.25em
+    z-index: 2
 
 .notifications
   background-color: rgba(0, 0, 0, 0.5)
   border: 1px solid black
-  border-bottom-left-radius: 4px
-  border-bottom-right-radius: 4px
+  border-bottom-left-radius: 2px
+  border-bottom-right-radius: 2px
   color: white
   left: 40px
   padding: 4px
@@ -54,26 +62,6 @@ html, body
     &:last-child
       margin-bottom: 0
 
-.palette-editor
-  background-color: white
-  position: absolute
-  right: 40px
-  top: 40px
-  width: 120px
-
-  &.hide
-    left: 100%
-
-  textarea
-    box-sizing: border-box
-    border: none
-    display: block
-    height: 512px
-    line-height: 16px
-    padding: 1px 2px 0 0
-    text-align: right
-    width: 100%
-
 .toolbar
   box-sizing: border-box
   height: 100%
@@ -86,83 +74,72 @@ html, body
     font-size: 12px
 
   .tool
+    background-color: #CCC
     background-position: center
     background-repeat: no-repeat
     width: 36px
     height: 36px
     box-sizing: border-box
     border: 1px solid rgba(0, 0, 0, 0.5)
-    border-top: none
+    border-top: 1px solid rgba(255, 255, 255, 0.5)
+    border-left: 1px solid rgba(255, 255, 255, 0.5)
     cursor: pointer
 
     &:last-child
-      border-bottom-right-radius: 4px
+      border-bottom-right-radius: 2px
 
     &.active
-      background-color: #FFF
+      background-color: #EEE
 
   .tools:not(:first-child)
     .tool
       &:first-child
-        border-top: 1px solid rgba(0, 0, 0, 0.5)
-        border-top-right-radius: 4px
-
-.layers
-  box-sizing: border-box
-  font-size: 14px
-  height: 100%
-  width: 40px
-  position: absolute
-  top: 0
-  right: 0
-
-  .layer
-    padding: 8px 0 2px
-    position: relative
-
-    &.active
-      canvas
-        border-color: green
-
-    &.hidden
-      opacity: 0.5
-
-    .eye
-      position: absolute
-      top: 0
-      right: 0
-      width: 16px
-      height: 16px
-      //background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACnElEQVQ4T6WT30uTYRTHv8/27n33y/ljaptLzGpEoEZBQRKYBBFdREUXQhFddRNdRBF2ZX9BVJDQpRddRaQhWlBkISoqU2ammWtzzl85N51u757nffa8vZskSHd54Fye7/mcc76HYI9B9liPXQKhUOiMbNIeEXWtmbCMjQgO5IwUOYCYKezuUa3I11pTU9P/t/GOQDQa7TCrqy1mFpdlkwSNZbGeSIIzBsUMVLgcyDEKLnRd+E50e/z1l/IiBQGj+IO0ETovQ0NsYRHRpQSyxAlN8UDLETAu4OArqMIi6qvdMBlEoqp+ovzYuQYSDoefKOrCPVlLIfgjAvnAWcSoF5pBTjUdWSOpJqAygbpqGUdT3XCkwnBazEgdbO4gsdngMknO7NvQS+A/3oSeQAbraVEofni9AQYwHrSPG0ICVgtB69UyxKeGICZ6sbrJOQkPdwqbp44UV/ggSRLeDqWxtsVBDYK2W9sCd56NgVIBu2JCW0s5OOdIL/xE5N0LkFgkxO2uUrMsy7BYLOifVjEepsgayPmulOVHyI8icMpvx40mFzRNAzOWm/z6SifR4JeE4qosVUq8BYLldYFPwTTmfmvI8u3583vwFEu41lgEv9dSIFANAnXkDSNzM99eKonp2yaHG2Z3LUy2YkRXGcZ+ZfF9nhoX0HHYI+Ok34Yj+60QNAMtEgAd7UJU8g0WzjgdGBhwrE2etkkEelltUndUZom9lOmSLP4aRtd1IB6xitCgl81PYirrWLpw/6lvx0jDfe+76PLMxSqSkpx2K6C4ICx2Y4mGWQxH8q0ksDKLcHxT3yw5NDry+nPj474+vsvKPc/vKiylXmaMXjFgmmUQp5lwomtCZKgaUFXaqeu892b7x6l/rPy/T7Xnb/wDHedWhDseHEQAAAAASUVORK5CYII=)
-
-  canvas
-    box-sizing: border-box
-    border: 1px solid lightgray
-    display: block
-    margin: auto
+        border-top-right-radius: 2px
 
 .palette
+  background-color: #CCC
   box-sizing: border-box
+  border-left: 1px solid rgba(255, 255, 255, 0.5)
   height: 100%
-  width: 40px
+  width: 72px
   position: absolute
   top: 0
   right: 0
   font-size: 0
 
-  .color
+  & > *
     box-sizing: border-box
-    border: 2px solid rgba(0, 0, 0, 0)
-    width: 40px
-    height: 16px
-    margin: 0px
+    border: 1px solid rgba(255, 255, 255, 0.5)
+    border-top: 1px solid rgba(0, 0, 0, 0.5)
+    border-left: 1px solid rgba(0, 0, 0, 0.5)
+    border-radius: 2px
+    display: inline-block
+    float: right
+    width: 32px
+    height: 32px
+    overflow: hidden
+    margin: 0 4px 4px 0
+    padding: 0
+
+    & > input[type=color]
+      width: 64px
+      height: 64px
+      margin: -8px 0 0 -8px
+      padding: 0
 
     &.active
-      border: 2px solid rgba(255, 255, 255, 0.5)
+      border: 1px solid rgba(255, 255, 255, 0.875)
 
-    &.current
-      width: 40px
-      height: 40px
+    &:nth-child(2), &:nth-child(1)
+      border-top-right-radius: 0
+      border-top-left-radius: 0
+      border-top: 0
+
+    &:nth-child(odd)
+      border-top-right-radius: 0
+      border-bottom-right-radius: 0
+      border-right: 0
+      margin-right: 0
 
 .vertical-center
   position: absolute
@@ -176,10 +153,23 @@ html, body
   background-color: white
   border: 1px solid gray
   margin: auto
+  position: relative
 
-  canvas
+  &.vertical-center
+    position: absolute
+
+  & > canvas
+    image-rendering: optimizeSpeed
+    image-rendering: -moz-crisp-edges
+    image-rendering: -webkit-optimize-contrast
+    image-rendering: optimize-contrast
+    image-rendering: pixelated
+    -ms-interpolation-mode: nearest-neighbor
+
     background-color: transparent
     position: absolute
+    width: 100%
+    height: 100%
 
   .overlay
     pointer-events: none
@@ -209,19 +199,22 @@ html, body
     width: 64px
     height: 64px
 
-    background-color: #EEE
+    background-color: #CCC
     background-position: 50% 25%
     background-repeat: no-repeat
     box-sizing: border-box
     border: 1px solid rgba(0, 0, 0, 0.5)
     border-left: none
+    border: 1px solid rgba(0, 0, 0, 0.5)
+    border-left: 1px solid rgba(255, 255, 255, 0.5)
+    border-top: 1px solid rgba(255, 255, 255, 0.5)
     display: inline-block
     font-size: 12px
     position: relative
     vertical-align: top
 
     &:last-child
-      border-top-right-radius: 4px
+      border-top-right-radius: 2px
 
     .text
       text-align: center

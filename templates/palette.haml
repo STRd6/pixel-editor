@@ -1,0 +1,19 @@
+.palette
+  - editor = this
+  - activeIndex = @activeIndex
+
+  - @palette.forEach (color, index) ->
+    - activeClass = -> "active" if index is activeIndex()
+    - activate = -> activeIndex index
+    - pressedAt = null
+    - mousedown = (e) ->
+      - e.preventDefault()
+      - pressedAt = +new Date
+      - activate()
+    - click = (e) ->
+      - delta = +new Date - pressedAt
+      - console.log delta
+      - e.preventDefault() if delta < 350
+    %div(class=activeClass click=activate touchstart=activate)
+      - console.log "wat"
+      %input(type="color" value=color mousedown=mousedown click=click)

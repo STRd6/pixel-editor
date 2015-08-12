@@ -34,10 +34,7 @@ about others later.
 
           switch detectType(file)
             when "image"
-              reader.onload = (evt) ->
-                image? evt.target.result
-
-              reader.readAsDataURL(file)
+              image? URL.createObjectURL(file)
             when "json"
               reader.onload = (evt) ->
                 json? JSON.parse evt.target.result

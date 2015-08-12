@@ -11,6 +11,14 @@ Use jQuery deferred
 Helpers
 -------
 
+    componentToHex = (c) ->
+      hex = c.toString(16)
+      
+      if hex.length is 1
+        "0" + hex
+      else 
+        hex
+
     isObject = (object) ->
       Object::toString.call(object) is "[object Object]"
 
@@ -26,6 +34,19 @@ Point Extensions
 Extra utilities that may be broken out into separate libraries.
 
     module.exports =
+      endDeltoid: (start, end) ->
+        if end.x < start.x
+          x = 0
+        else
+          x = 1
+
+        if end.y < start.y
+          y = 0
+        else
+          y = 1
+
+        end.add(Point(x, y))
+
       Grid: require "grid"
 
 Call an iterator for each integer point on a line between two integer points.
@@ -51,9 +72,7 @@ Call an iterator for each integer point on a line between two integer points.
             err += dx
             y0 += sy
 
-          iterator
-            x: x0
-            y: y0
+          iterator x0, y0
 
       rect: (start, end, iterator) ->
         [start.y..end.y].forEach (y) ->
@@ -85,12 +104,7 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
         {x:x0, y:y0} = center
         {x:x1, y:y1} = endPoint
 
-        extent = endPoint.subtract(start).scale(0.5).abs().floor()
-
-        radius = Math.min(
-          extent.x
-          extent.y
-        )
+        radius = (endPoint.subtract(start).magnitude() / 2) | 0
 
         f = 1 - radius
         ddFx = 1
@@ -99,10 +113,10 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
         x = 0
         y = radius
 
-        iterator Point(x0, y0 + radius)
-        iterator Point(x0, y0 - radius)
-        iterator Point(x0 + radius, y0)
-        iterator Point(x0 - radius, y0)
+        iterator x0, y0 + radius
+        iterator x0, y0 - radius
+        iterator x0 + radius, y0
+        iterator x0 - radius, y0
 
         while x < y
           if f > 0
@@ -114,11 +128,14 @@ gross code courtesy of http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
           ddFx += 2
           f += ddFx
 
-          iterator Point(x0 + x, y0 + y)
-          iterator Point(x0 - x, y0 + y)
-          iterator Point(x0 + x, y0 - y)
-          iterator Point(x0 - x, y0 - y)
-          iterator Point(x0 + y, y0 + x)
-          iterator Point(x0 - y, y0 + x)
-          iterator Point(x0 + y, y0 - x)
-          iterator Point(x0 - y, y0 - x)
+          iterator x0 + x, y0 + y
+          iterator x0 - x, y0 + y
+          iterator x0 + x, y0 - y
+          iterator x0 - x, y0 - y
+          iterator x0 + y, y0 + x
+          iterator x0 - y, y0 + x
+          iterator x0 + y, y0 - x
+          iterator x0 - y, y0 - x
+
+      rgb2Hex: (r, g, b) ->
+        return "#" + [r, g, b].map(componentToHex).join("")
