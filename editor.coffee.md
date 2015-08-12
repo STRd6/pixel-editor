@@ -197,9 +197,9 @@ Editor
           history: self.history().invoke "toJSON"
 
         draw: (point, options={}) ->
-          {index} = options
+          {index, color} = options
           index ?= activeIndex()
-          color = self.color(index)
+          color ?= self.color(index)
 
           Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
             drawPixel(canvas, x, y, color)
@@ -380,7 +380,7 @@ Editor
 
       # TODO: Move this into template?
       $viewport = $selector.find(".viewport")
-      
+
       setCursor = ({iconUrl, iconOffset}) ->
         {x, y} = Point(iconOffset)
 

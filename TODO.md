@@ -8,10 +8,6 @@ Polishing
 
 Icons, Icon offsets for tools
 
-Palette styling, editing palette colors
-
-Preview window on large images
-
 Thumbnail viewing mini-map rectangle
 
 Responsive Design
@@ -124,7 +120,11 @@ Display transparent preview as transparent instead of white
 Done
 ====
 
-Color Picker
+Palette styling, editing palette colors
+
+Preview window on large images
+
+Eye dropper
 
 Better performance
 ------------------

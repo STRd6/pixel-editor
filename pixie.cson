@@ -7,8 +7,6 @@ dependencies:
   byte_array: "distri/byte_array:v0.1.1"
   cornerstone: "distri/cornerstone:v0.2.8"
   eval: "distri/eval:v0.1.0"
-  facebook: "distri/facebook:v0.1.1"
-  grid: "distri/grid:v0.1.0"
   "grid-gen": "distri/grid-gen:v0.2.0"
   "hotkeys": "distri/hotkeys:v0.2.0"
   "jquery-utils": "distri/jquery-utils:v0.2.0"

@@ -2,7 +2,6 @@ Actions
 =======
 
     ByteArray = require "byte_array"
-    Facebook = require "facebook"
     FileReading = require("./file_reading")
     Hotkeys = require "hotkeys"
     Modal = require("./modal")

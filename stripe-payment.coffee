@@ -29,7 +29,7 @@ process = (selector) ->
       name: 'Pixi Paint'
       description: description
       amount: amount
-  
+
     e.preventDefault()
 
 module.exports = (selector) ->
