@@ -34,7 +34,9 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"cornerstone"</span>
+            <div class="content"><pre><code class="lang-coffeescript">LITTLE_ENDIAN = require <span class="string">"./endianness"</span>
+
+require <span class="string">"cornerstone"</span>
 
 loader = require(<span class="string">"./loader"</span>)()
 
@@ -45,7 +47,6 @@ Actions = require <span class="string">"./actions"</span>
 Command = require <span class="string">"./command"</span>
 Drop = require <span class="string">"./drop"</span>
 Eval = require <span class="string">"eval"</span>
-Layer = require <span class="string">"./layer"</span>
 Notifications = require <span class="string">"./notifications"</span>
 Postmaster = require <span class="string">"postmaster"</span>
 Tools = require <span class="string">"./tools"</span>
@@ -56,6 +57,8 @@ Palette = require(<span class="string">"./palette"</span>)
 template = require <span class="string">"./templates/editor"</span>
 debugTemplate = require <span class="string">"./templates/debug"</span>
 
+{rgb2Hex} = require <span class="string">"./util"</span>
+
 Symmetry = require <span class="string">"./symmetry"</span>
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
@@ -64,10 +67,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   activeIndex = Observable(<span class="number">1</span>)
 
-  pixelExtent = Observable Size(<span class="number">32</span>, <span class="number">32</span>)
-  pixelSize = Observable <span class="number">16</span>
-  canvasSize = Observable -&gt;
-    pixelExtent().scale(pixelSize())
+  pixelExtent = Observable Size(<span class="number">128</span>, <span class="number">128</span>)
+  pixelSize = Observable <span class="number">4</span>
+  viewSize = Observable -&gt;
+    pixelExtent().scale pixelSize()
 
   positionDisplay = Observable(<span class="string">""</span>)
 
@@ -93,17 +96,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   activeTool = self.activeTool
 
-  <span class="function"><span class="title">updateActiveLayer</span></span> = -&gt;
-    <span class="comment"># TODO: This may need to have consideration for undo-ability.</span>
-    <span class="keyword">if</span> self.layers.indexOf(self.activeLayer()) <span class="keyword">is</span> -<span class="number">1</span>
-      self.activeLayer self.layers().last()
-
-  <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size) -&gt;
-    <span class="comment"># HACK for previewCanvas</span>
-    <span class="keyword">if</span> canvas <span class="keyword">is</span> previewCanvas <span class="keyword">and</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
-      <span class="comment"># TODO: Background color for the canvas area</span>
-      color = <span class="string">"white"</span>
-
+  <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size=<span class="number">1</span>) -&gt;
     <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
       canvas.clear
         x: x * size
@@ -118,15 +111,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         height: size
         color: color
 
-  <span class="function"><span class="title">isTransparent</span></span> = (index) -&gt;
-    (self.palette()[index] <span class="keyword">is</span> <span class="string">"transparent"</span>) <span class="keyword">or</span>
-    (self.paletteZeroTransparent() <span class="keyword">and</span> index <span class="keyword">is</span> <span class="number">0</span>)
-
   self.extend
     activeIndex: activeIndex
-    activeLayer: Observable()
-    activeLayerIndex: -&gt;
-      self.layers.indexOf(self.activeLayer())
 
     backgroundIndex: Observable <span class="number">0</span>
 
@@ -135,8 +121,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     positionDisplay: positionDisplay
 
     grid: Observable <span class="literal">false</span>
-
-    paletteZeroTransparent: Observable(<span class="literal">true</span>)
 
     applyPalette: (text) -&gt;
       self.execute self.Command.ChangePalette
@@ -149,56 +133,62 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       <span class="comment"># TODO: Currently paste replaces entire image</span>
       {width, height} = data
       command.push self.Command.Resize({width, height})
-      command.push self.Command.RemoveLayer()
-      command.push self.Command.NewLayer(data)
 
       self.trigger <span class="string">"change"</span>
 
-    newLayer: (data) -&gt;
-      makeLayer(data?.data)
-
-      self.repaint()
-
-    removeLayer: -&gt;
-      self.layers.pop()
-      updateActiveLayer()
-
-      self.repaint()
-
     symmetryMode: symmetryMode
 
-    outputCanvas: (scale=<span class="number">1</span>)-&gt;
-      outputCanvas = TouchCanvas pixelExtent().scale(scale)
-
-      self.layers.forEach (layer) -&gt;
-        <span class="comment"># TODO: Only paint once per pixel, rather than once per pixel per layer</span>
-        <span class="comment"># by being smarter about transparency</span>
-        layer.each (index, x, y) -&gt;
-          <span class="keyword">unless</span> isTransparent(index)
-            <span class="comment"># TODO: Is there a way we can keep color with transparent pixels</span>
-            <span class="comment"># Does it matter for loading?</span>
-            outputCanvas.drawRect
-              x: x * scale
-              y: y * scale
-              width: scale
-              height: scale
-              color: self.palette()[index]
-
+    outputCanvas: () -&gt;
+      outputCanvas = TouchCanvas pixelExtent()
+      outputCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
       outputCanvas.element()
 
-    resize: (size) -&gt;
-      pixelExtent Size(size)
+    resize: (size, data) -&gt;
+      data ?= self.getSnapshot()
+
+      pixelExtent(Size(size))
+      {width, height} = pixelExtent()
+
+      canvasElement = canvas.element()
+      thumbnailCanvasElement = thumbnailCanvas.element()
+
+      thumbnailCanvasElement.width = canvasElement.width = width
+      thumbnailCanvasElement.height = canvasElement.height = height
+
+      self.putImageData(data)
+
+      self.repaint()
 
     repaint: -&gt;
-      self.layers().first()?.each (_, x, y) -&gt;
-        self.repaintPixel {x, y}
+      {width, height} = pixelExtent()
+      thumbnailCanvas.clear()
+      thumbnailCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
 
       <span class="keyword">return</span> self
+
+    getSnapshot: -&gt;
+      size = pixelExtent()
+      canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height)
 
     fromDataURL: (dataURL) -&gt;
       loader.load(dataURL)
       .<span class="keyword">then</span> (imageData) -&gt;
-        editor.handlePaste loader.fromImageDataWithPalette(imageData, editor.palette())
+        {width, height} = size = pixelExtent()
+
+        <span class="keyword">if</span> (width != imageData.width) <span class="keyword">or</span> (height != imageData.height)
+          self.execute self.Command.Resize
+            size:
+              width: imageData.width
+              height: imageData.height
+            sizePrevious: size
+            imageData: imageData
+            imageDataPrevious: editor.getSnapshot()
+        <span class="keyword">else</span>
+          self.execute self.Command.PutImageData
+            imageData: imageData
+            imageDataPrevious: self.getSnapshot()
+            x: <span class="number">0</span>
+            y: <span class="number">0</span>
 
     replay: -&gt;
       <span class="comment"># TODO: May want to prevent adding new commands while replaying!</span>
@@ -209,10 +199,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         steps = self.history()
         self.history([])
 
-        <span class="comment"># TODO: initial state if not blank</span>
-        self.layers []
+        <span class="comment"># TODO: The initial size should come from commands</span>
         self.resize initialSize
-        makeLayer()
+
+        <span class="comment"># TODO: Should never need to call repaint!</span>
         self.repaint()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
@@ -232,146 +222,69 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     restoreState: (state) -&gt;
       self.palette state.palette
-      self.restoreLayerState(state.layers)
-
-      self.activeLayer self.layers()[state.activeLayerIndex]
 
       self.history state.history?.map self.Command.parse
 
     saveState: -&gt;
       palette: self.palette()
-      layers: self.layerState()
-      activeLayerIndex: self.activeLayerIndex()
       history: self.history().invoke <span class="string">"toJSON"</span>
 
-    layerState: -&gt;
-      self.layers().invoke <span class="string">"toJSON"</span>
-
-    restoreLayerState: (layerData) -&gt;
-      self.pixelExtent Size layerData.first()
-
-      index = self.activeLayerIndex()
-
-      self.layers []
-
-      layerData.forEach (layerData) -&gt;
-        makeLayer layerData.data
-
-      self.activeLayer self.layer(index)
-
-      self.repaint()
-
     draw: (point, options={}) -&gt;
-      {index, layer} = options
+      {index} = options
       index ?= activeIndex()
-      layer ?= self.activeLayerIndex()
+      color = self.color(index)
 
       Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) -&gt;
-        lastCommand.push self.Command.ChangePixel
-          x: x
-          y: y
-          index: index
-          layer: layer
-
-    changePixel: (params) -&gt;
-      {x, y, index, layer} = params
-
-      self.layer(layer).set(x, y, index) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
-
-      self.repaintPixel(params)
-
-    layers: Observable []
-
-    layer: (index) -&gt;
-      <span class="keyword">if</span> index?
-        self.layers()[index]
-      <span class="keyword">else</span>
-        self.activeLayer()
-
-    repaintPixel: ({x, y, index:colorIndex, layer:layerIndex}) -&gt;
-      <span class="keyword">if</span> canvas <span class="keyword">is</span> previewCanvas
-        <span class="comment"># Need to get clever to handle the layers and transparancy, so it gets a little nuts</span>
-
-        index = self.layers.map (layer, i) -&gt;
-          <span class="keyword">if</span> i <span class="keyword">is</span> layerIndex <span class="comment"># Replace the layer's pixel with our preview pixel</span>
-            <span class="keyword">if</span> isTransparent(colorIndex)
-              self.layers.map (layer, i) -&gt;
-                layer.get(x, y)
-              .filter (index, i) -&gt;
-                !isTransparent(index) <span class="keyword">and</span> !self.layers()[i].hidden() <span class="keyword">and</span> (i &lt; layerIndex)
-              .last() <span class="keyword">or</span> self.backgroundIndex()
-            <span class="keyword">else</span>
-              colorIndex
-          <span class="keyword">else</span>
-            layer.get(x, y)
-        .filter (index, i) -&gt;
-          !isTransparent(index) <span class="keyword">and</span> !self.layers()[i].hidden()
-        .last() <span class="keyword">or</span> self.backgroundIndex()
-      <span class="keyword">else</span>
-        index = self.layers.map (layer) -&gt;
-          layer.get(x, y)
-        .filter (index, i) -&gt;
-          !isTransparent(index) <span class="keyword">and</span> !self.layers()[i].hidden()
-        .last() <span class="keyword">or</span> self.backgroundIndex()
-
-      <span class="keyword">if</span> isTransparent(index)
-        color = <span class="string">"transparent"</span>
-      <span class="keyword">else</span>
-        color = self.palette()[index]
-
-      drawPixel(canvas, x, y, color, pixelSize())
-      drawPixel(thumbnailCanvas, x, y, color, <span class="number">1</span>) <span class="keyword">unless</span> canvas <span class="keyword">is</span> previewCanvas
-
-    getPixel: ({x, y, layer}) -&gt;
-      x: x
-      y: y
-      index: self.layer(layer).get(x, y)
-      layer: layer ? self.activeLayerIndex()
-
-    getIndex: (x, y) -&gt;
-      self.layer().get(x, y)
+        drawPixel(canvas, x, y, color)
+        drawPixel(thumbnailCanvas, x, y, color)
 
     color: (index) -&gt;
-      <span class="keyword">if</span> isTransparent(index)
-        <span class="string">"transparent"</span>
-      <span class="keyword">else</span>
-        self.palette()[index]
+      self.palette()[index]()
 
-    palette: Observable(Palette.dawnBringer16)
+    setColor: (color) -&gt;
+      colors =  self.palette().map (o) -&gt; o().toLowerCase()
+      index = colors.indexOf(color.toLowerCase())
+
+      <span class="keyword">if</span> index != -<span class="number">1</span>
+        activeIndex(index)
+      <span class="keyword">else</span>
+        self.palette.push Observable(color)
+        self.activeIndex self.palette().length - <span class="number">1</span>
+
+    getColor: (position) -&gt;
+      {x, y} = position
+      data = canvas.context().getImageData(x, y, <span class="number">1</span>, <span class="number">1</span>).data
+
+      rgb2Hex data[<span class="number">0</span>], data[<span class="number">1</span>], data[<span class="number">2</span>]
+
+    colorAsInt: -&gt;
+      color = self.color self.activeIndex()
+
+      console.log color
+
+      color = color.substring(color.indexOf(<span class="string">"#"</span>) + <span class="number">1</span>)
+
+      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+        <span class="number">0</span>
+      <span class="keyword">else</span>
+        <span class="keyword">if</span> LITTLE_ENDIAN
+          parseInt(<span class="string">"ff<span class="subst">#{color[<span class="number">4.</span><span class="number">.5</span>]}</span><span class="subst">#{color[<span class="number">2.</span><span class="number">.3</span>]}</span><span class="subst">#{color[<span class="number">0.</span><span class="number">.1</span>]}</span>"</span>, <span class="number">16</span>)
+        <span class="keyword">else</span>
+          parseInt(<span class="string">"<span class="subst">#{color}</span>ff"</span>)
+
+    palette: Observable(Palette.dawnBringer32.map Observable)
+
+    putImageData: (imageData, x=<span class="number">0</span>, y=<span class="number">0</span>) -&gt;
+      canvas.context().putImageData(imageData, x, y)
 
     selection: (rectangle) -&gt;
       each: (iterator) -&gt;
         rectangle.each (x, y) -&gt;
           index = self.getIndex(x, y)
-          iterator(index, x, y)</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>This preview function is a little nuts, but I&#39;m not sure how to clean it up.</p>
-<p>It makes a copy of the current command chunk for undoing, sets the canvas
-equal to the preview canvas, then executes the passed in function.</p>
-<p>We&#39;ll probably want to use a whole preview layer, so we don&#39;t need to worry about
-accidentally setting the pixel values during the preview.</p>
+          iterator(index, x, y)
 
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">    preview: (fn) -&gt;
-      realCommand = lastCommand
-      lastCommand = self.Command.Composite()
-      realCanvas = canvas
-      canvas = previewCanvas
-
-      canvas.clear()
-
-      fn()
-
-      canvas = realCanvas
-      lastCommand = realCommand
+    thumbnailClick: (e) -&gt;
+      $(e.currentTarget).toggleClass(<span class="string">"right"</span>)
 
   self.activeColor = Observable -&gt;
     self.color(self.activeIndex())
@@ -379,26 +292,17 @@ accidentally setting the pixel values during the preview.</p>
   self.activeColorStyle = Observable -&gt;
     <span class="string">"background-color: <span class="subst">#{self.activeColor()}</span>"</span>
 
-  <span class="function"><span class="title">makeLayer</span></span> = (data) -&gt;
-    layer = Layer
-      width: pixelExtent().width
-      height: pixelExtent().height
-      data: data
-      palette: self.palette
-
-    layer.hidden.observe self.repaint
-
-    self.layers.push layer
-    self.activeLayer layer
-
-  makeLayer()
-
   $selector = $(I.selector)
   $(I.selector).append template self
 
-  canvas = TouchCanvas canvasSize()
-  self.previewCanvas = previewCanvas = TouchCanvas canvasSize()
+  self.canvas = canvas = TouchCanvas pixelExtent()
+  self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
   thumbnailCanvas = TouchCanvas pixelExtent()
+
+  <span class="keyword">do</span> (ctx=self.canvas.context()) -&gt;
+    ctx.imageSmoothingEnabled = <span class="literal">false</span>
+    ctx.webkitImageSmoothingEnabled = <span class="literal">false</span>
+    ctx.mozImageSmoothingEnabled = <span class="literal">false</span>
 
   $selector.find(<span class="string">".viewport"</span>)
   .append(canvas.element())
@@ -411,20 +315,12 @@ accidentally setting the pixel values during the preview.</p>
   self.TRANSPARENT_FILL = require(<span class="string">"./lib/checker"</span>)().pattern()
 
   updateViewportCentering = (-&gt;
-    size = canvasSize()
+    size = viewSize()
     $selector.find(<span class="string">".viewport"</span>).toggleClass <span class="string">"vertical-center"</span>, size.height &lt; $selector.find(<span class="string">".main"</span>).height()
   ).debounce(<span class="number">15</span>)
   $(window).resize updateViewportCentering
 
-  <span class="function"><span class="title">updateCanvasSize</span></span> = (size) -&gt;
-
-    [canvas, previewCanvas].forEach (canvas) -&gt;
-      element = canvas.element()
-      element.width = size.width
-      element.height = size.height
-
-      canvas.clear()
-
+  <span class="function"><span class="title">updateViewSize</span></span> = (size) -&gt;
     $selector.find(<span class="string">".viewport, .overlay"</span>).css
       width: size.width
       height: size.height
@@ -443,41 +339,25 @@ accidentally setting the pixel values during the preview.</p>
 
     updateViewportCentering()
 
-    self.repaint()
-
   <span class="comment"># TODO: Use auto-dependencies</span>
-  updateCanvasSize(canvasSize())
-  canvasSize.observe updateCanvasSize
+  updateViewSize(viewSize())
+  viewSize.observe updateViewSize
   self.grid.observe -&gt;
-    updateCanvasSize canvasSize()
-
-  <span class="function"><span class="title">updatePixelExtent</span></span> = (size) -&gt;
-    self.layers.forEach (layer) -&gt;
-      layer.resize size
-
-    element = thumbnailCanvas.element()
-    element.width = size.width
-    element.height = size.height
-
-    thumbnailCanvas.clear()
-
-    self.repaint()
-
-  pixelExtent.observe updatePixelExtent
-
-  self.paletteZeroTransparent.observe -&gt;
-    self.repaint()
-
-  self.palette.observe -&gt;
-    self.repaint()
+    updateViewSize viewSize()
 
   <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
     Point(position).scale(pixelExtent()).floor()
 
+  snapshot = <span class="literal">null</span>
+
+  self.<span class="function"><span class="title">restore</span></span> = -&gt;
+    <span class="keyword">if</span> snapshot
+      self.putImageData(snapshot)
+      self.repaint()
+
   previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
-    <span class="keyword">unless</span> lastCommand?.empty?()
-      lastCommand = self.Command.Composite()
-      self.execute lastCommand
+    <span class="comment"># Snapshot canvas</span>
+    snapshot = self.getSnapshot()
 
     activeTool().touch
       position: canvasPosition position
@@ -493,7 +373,37 @@ accidentally setting the pixel values during the preview.</p>
       position: canvasPosition position
       editor: self
 
+    size = pixelExtent()
+    diffSnapshot(snapshot, canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height))
+
     self.trigger <span class="string">"release"</span>
+
+  <span class="function"><span class="title">compareImageData</span></span> = (previous, current) -&gt;
+    <span class="keyword">return</span> <span class="keyword">unless</span> previous <span class="keyword">and</span> current
+    <span class="comment"># TODO: store a dirty region</span>
+
+    previousData = <span class="keyword">new</span> Uint32Array(previous.data.buffer)
+    currentData = <span class="keyword">new</span> Uint32Array(current.data.buffer)
+    length = currentData.length
+    i = <span class="number">0</span>
+    different = <span class="literal">false</span>
+
+    <span class="keyword">while</span> i &lt; length
+      <span class="keyword">if</span> previousData[i] != currentData[i]
+        different = <span class="literal">true</span>
+        <span class="keyword">break</span>
+
+      i += <span class="number">1</span>
+
+    <span class="keyword">return</span> different
+
+  <span class="function"><span class="title">diffSnapshot</span></span> = (previous, current) -&gt;
+    <span class="keyword">if</span> compareImageData(previous, current)
+      self.execute self.Command.PutImageData
+        imageData: current
+        imageDataPrevious: previous
+        x: <span class="number">0</span>
+        y: <span class="number">0</span>
 
   $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
     {left, top} = currentTarget.getBoundingClientRect()
@@ -503,6 +413,7 @@ accidentally setting the pixel values during the preview.</p>
 
   <span class="comment"># TODO: Move this into template?</span>
   $viewport = $selector.find(<span class="string">".viewport"</span>)
+
   <span class="function"><span class="title">setCursor</span></span> = ({iconUrl, iconOffset}) -&gt;
     {x, y} = Point(iconOffset)
 
@@ -534,11 +445,12 @@ accidentally setting the pixel values during the preview.</p>
 
     self[method] = -&gt;
       oldMethod.apply(self, arguments)
+      self.repaint()
       self.trigger <span class="string">"change"</span>
 
   self.include require <span class="string">"./dirty"</span>
 
-  self.include require(<span class="string">"./plugins/save_to_s3"</span>)
+  <span class="comment"># self.include require("./plugins/save_to_s3")</span>
 
   <span class="keyword">return</span> self</code></pre>
 </div>

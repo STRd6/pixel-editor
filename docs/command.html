@@ -77,63 +77,19 @@ versions.</p>
 
       <span class="keyword">return</span> command
 
-  C <span class="string">"ChangePalette"</span>, (data) -&gt;
-    data.previous ?= self.palette()
-
-    execute: -&gt;
-      self.palette data.palette
-
-    undo: -&gt;
-      self.palette data.previous
-
-  C <span class="string">"ChangePixel"</span>, (data) -&gt;
-    data.previous ?= self.getPixel(data).index
-
-    execute: -&gt;
-      self.changePixel(data)
-
-    undo: -&gt;
-      self.changePixel extend {}, data, index: data.previous
-
-  C <span class="string">"ChangeTransparencyMode"</span>, (data) -&gt;
-    data.previous ?= self.paletteZeroTransparent()
-
-    execute: -&gt;
-      self.paletteZeroTransparent !data.previous
-
-    undo: -&gt;
-      self.paletteZeroTransparent data.previous
-
   C <span class="string">"Resize"</span>, (data) -&gt;
-    {width, height, state} = data
-
-    data.previous ?= self.pixelExtent()
-
-    state ?= self.layerState()
-
     execute: -&gt;
-      self.resize(data)
+      self.resize(data.size, data.imageData)
 
     undo: -&gt;
-      self.restoreLayerState state
+      self.resize(data.sizePrevious, data.imageDataPrevious)
 
-  C <span class="string">"NewLayer"</span>, (data) -&gt;
+  C <span class="string">"PutImageData"</span>, (data) -&gt;
+    <span class="comment"># TODO: Layers?</span>
     execute: -&gt;
-      self.newLayer(data)
-
+      self.putImageData(data.imageData, data.x, data.y)
     undo: -&gt;
-      <span class="comment"># TODO: May need to know layer index and previously active layer</span>
-      <span class="comment"># index</span>
-      self.removeLayer(data)
-
-  C <span class="string">"RemoveLayer"</span>, (data) -&gt;
-    data.previous ?= self.layer().toJSON()
-
-    execute: -&gt;
-      self.removeLayer()
-
-    undo: -&gt;
-      self.newLayer(data.previous)
+      self.putImageData(data.imageDataPrevious, data.x, data.y)
 
   C <span class="string">"Composite"</span>, (data) -&gt;
     <span class="keyword">if</span> data.commands

@@ -65,10 +65,7 @@ module.exports =
 
       <span class="keyword">switch</span> detectType(file)
         <span class="keyword">when</span> <span class="string">"image"</span>
-          reader.<span class="function"><span class="title">onload</span></span> = (evt) -&gt;
-            image? evt.target.result
-
-          reader.readAsDataURL(file)
+          image? URL.createObjectURL(file)
         <span class="keyword">when</span> <span class="string">"json"</span>
           reader.<span class="function"><span class="title">onload</span></span> = (evt) -&gt;
             json? JSON.parse evt.target.result

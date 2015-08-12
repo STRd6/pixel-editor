@@ -36,29 +36,30 @@
             </div>
             <div class="content"><pre><code class="lang-coffeescript">Rectangle = require <span class="string">"../lib/rectangle"</span>
 
-<span class="function"><span class="title">endDeltoid</span></span> = (start, end) -&gt;
-  <span class="keyword">if</span> end.x &lt; start.x
-    x = <span class="number">0</span>
-  <span class="keyword">else</span>
-    x = <span class="number">1</span>
-
-  <span class="keyword">if</span> end.y &lt; start.y
-    y = <span class="number">0</span>
-  <span class="keyword">else</span>
-    y = <span class="number">1</span>
-
-  end.add(Point(x, y))
+{endDeltoid} = require <span class="string">"../util"</span>
 
 <span class="function"><span class="title">drawOutline</span></span> = (canvas, scale, rectangle) -&gt;
   canvas.drawRect
-    x: rectangle.position.x * scale
-    y: rectangle.position.y * scale
+    x: (rectangle.position.x - <span class="number">0.5</span>) * scale
+    y: (rectangle.position.y - <span class="number">0.5</span>) * scale
     width: rectangle.size.width * scale
     height: rectangle.size.height * scale
     color: <span class="string">"transparent"</span>
     stroke:
-      width: <span class="number">2</span>
-      color: <span class="string">"green"</span></code></pre>
+      width: <span class="number">1</span>
+      color: <span class="string">"green"</span>
+
+<span class="function"><span class="title">paint</span></span> = (editor, selection, delta) -&gt;
+  editor.restore()
+  editor.canvas.drawImage editor.canvas.element(),
+    selection.position.x,
+    selection.position.y,
+    selection.size.width,
+    selection.size.height,
+    selection.position.x + delta.x,
+    selection.position.y + delta.y,
+    selection.size.width,
+    selection.size.height</code></pre>
 </div>
         </li>
         
@@ -94,8 +95,7 @@
     y: <span class="number">2</span>
 
   move: ({position, editor}) -&gt;
-    scale = editor.pixelSize()
-
+    scale = <span class="number">1</span>
     canvas = editor.previewCanvas
     canvas.clear()
 
@@ -110,44 +110,13 @@
       <span class="comment"># Update selection position</span>
       delta = position.subtract(startPosition)
 
-      <span class="comment"># Draw background area</span>
-      color = editor.activeColor()
-
-      <span class="comment"># TODO: Is it possible to avoid this transparent hack?</span>
-      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
-        editor.previewCanvas.drawRect
-          x: (selection.position.x) * scale
-          y: (selection.position.y) * scale
-          width: selection.size.width * scale
-          height: selection.size.height * scale
-          color: editor.TRANSPARENT_FILL
-      <span class="keyword">else</span>
-        editor.previewCanvas.drawRect
-          x: (selection.position.x) * scale
-          y: (selection.position.y) * scale
-          width: selection.size.width * scale
-          height: selection.size.height * scale
-          color: color
-
-      <span class="comment"># Draw Floating pixels</span>
-      editor.selection(selection).each (index, x, y) -&gt;
-        editor.previewCanvas.drawRect
-          x: (x + delta.x) * scale
-          y: (y + delta.y) * scale
-          width: scale
-          height: scale
-          color: editor.color(index)
+      paint(editor, selection, delta)
 
       <span class="comment"># Draw selection area</span>
-      editor.previewCanvas.drawRect
-        x: (selection.position.x + delta.x) * scale
-        y: (selection.position.y + delta.y) * scale
-        width: selection.size.width * scale
-        height: selection.size.height * scale
-        color: <span class="string">"transparent"</span>
-        stroke:
-          width: <span class="number">2</span>
-          color: <span class="string">"green"</span>
+      outlineRect = Rectangle(selection)
+      outlineRect.position.x += delta.x
+      outlineRect.position.y += delta.y
+      drawOutline(editor.previewCanvas, scale, outlineRect)
 
   release: ({editor}) -&gt;
     <span class="keyword">if</span> selecting
@@ -156,35 +125,10 @@
       <span class="comment"># cleared from the release event</span>
       setTimeout -&gt;
         canvas = editor.previewCanvas
-        scale = editor.pixelSize()
+        scale = <span class="number">1</span>
         drawOutline(canvas, scale, selection)
     <span class="keyword">else</span> <span class="keyword">if</span> moving
-      {Command} = editor
-
-      command = Command.Composite()
-
-      <span class="comment"># Paint the source region</span>
-      selection.each (x, y) -&gt;
-        data = editor.getPixel({x, y})
-        data.index = editor.activeIndex()
-
-        command.push Command.ChangePixel(data), <span class="literal">true</span>
-
-      <span class="comment"># Paint the target region</span>
-      editor.selection(selection).each (index, x, y) -&gt;
-
-        <span class="comment"># TODO: This depends on current transparancy mode of editor</span>
-        <span class="comment"># not sure if there is a way to make it independent easily</span>
-        <span class="keyword">unless</span> editor.color(index) <span class="keyword">is</span> <span class="string">"transparent"</span>
-          data =
-            x: x + delta.x
-            y: y + delta.y
-            index: index
-            layer: editor.activeLayerIndex()
-
-          command.push Command.ChangePixel(data), <span class="literal">true</span>
-
-      editor.execute command
+      paint(editor, selection, delta)
 
       moving = <span class="literal">false</span>
       selecting = <span class="literal">true</span></code></pre>

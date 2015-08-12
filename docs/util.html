@@ -75,7 +75,15 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">isObject</span></span> = (object) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">componentToHex</span></span> = (c) -&gt;
+  hex = c.toString(<span class="number">16</span>)
+
+  <span class="keyword">if</span> hex.length <span class="keyword">is</span> <span class="number">1</span>
+    <span class="string">"0"</span> + hex
+  <span class="keyword">else</span> 
+    hex
+
+<span class="function"><span class="title">isObject</span></span> = (object) -&gt;
   Object::toString.call(object) <span class="keyword">is</span> <span class="string">"[object Object]"</span></code></pre>
 </div>
         </li>
@@ -120,6 +128,19 @@
 
             </div>
             <div class="content"><pre><code class="lang-coffeescript">module.exports =
+  endDeltoid: (start, end) -&gt;
+    <span class="keyword">if</span> end.x &lt; start.x
+      x = <span class="number">0</span>
+    <span class="keyword">else</span>
+      x = <span class="number">1</span>
+
+    <span class="keyword">if</span> end.y &lt; start.y
+      y = <span class="number">0</span>
+    <span class="keyword">else</span>
+      y = <span class="number">1</span>
+
+    end.add(Point(x, y))
+
   Grid: require <span class="string">"grid"</span></code></pre>
 </div>
         </li>
@@ -154,9 +175,7 @@
         err += dx
         y0 += sy
 
-      iterator
-        x: x0
-        y: y0
+      iterator x0, y0
 
   rect: (start, end, iterator) -&gt;
     [start.y..end.y].forEach (y) -&gt;
@@ -197,12 +216,7 @@
     {x:x0, y:y0} = center
     {x:x1, y:y1} = endPoint
 
-    extent = endPoint.subtract(start).scale(<span class="number">0.5</span>).abs().floor()
-
-    radius = Math.min(
-      extent.x
-      extent.y
-    )
+    radius = (endPoint.subtract(start).magnitude() / <span class="number">2</span>) | <span class="number">0</span>
 
     f = <span class="number">1</span> - radius
     ddFx = <span class="number">1</span>
@@ -211,10 +225,10 @@
     x = <span class="number">0</span>
     y = radius
 
-    iterator Point(x0, y0 + radius)
-    iterator Point(x0, y0 - radius)
-    iterator Point(x0 + radius, y0)
-    iterator Point(x0 - radius, y0)
+    iterator x0, y0 + radius
+    iterator x0, y0 - radius
+    iterator x0 + radius, y0
+    iterator x0 - radius, y0
 
     <span class="keyword">while</span> x &lt; y
       <span class="keyword">if</span> f &gt; <span class="number">0</span>
@@ -226,14 +240,17 @@
       ddFx += <span class="number">2</span>
       f += ddFx
 
-      iterator Point(x0 + x, y0 + y)
-      iterator Point(x0 - x, y0 + y)
-      iterator Point(x0 + x, y0 - y)
-      iterator Point(x0 - x, y0 - y)
-      iterator Point(x0 + y, y0 + x)
-      iterator Point(x0 - y, y0 + x)
-      iterator Point(x0 + y, y0 - x)
-      iterator Point(x0 - y, y0 - x)</code></pre>
+      iterator x0 + x, y0 + y
+      iterator x0 - x, y0 + y
+      iterator x0 + x, y0 - y
+      iterator x0 - x, y0 - y
+      iterator x0 + y, y0 + x
+      iterator x0 - y, y0 + x
+      iterator x0 + y, y0 - x
+      iterator x0 - y, y0 - x
+
+  rgb2Hex: (r, g, b) -&gt;
+    <span class="keyword">return</span> <span class="string">"#"</span> + [r, g, b].map(componentToHex).join(<span class="string">""</span>)</code></pre>
 </div>
         </li>
         
