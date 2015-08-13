@@ -126,7 +126,7 @@ can work better with symmetry modes.</p>
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>Should symmetry be a per-brush option, along with brush sizes, etc?</p>
-<h2 id="memory-usage">Memory Usage</h2>
+<h2 id="platforms">Platforms</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -140,8 +140,10 @@ can work better with symmetry modes.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>Reduce memory usage in undo using dirty regions.</p>
-<h2 id="platforms">Platforms</h2>
+              <p>Chrome Web Store
+Downloadable
+Others?</p>
+<h2 id="promotional-media">Promotional Media</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -155,10 +157,9 @@ can work better with symmetry modes.</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
-              <p>Chrome Web Store
-Downloadable
-Others?</p>
-<h2 id="promotional-media">Promotional Media</h2>
+              <p>Screenshots
+Promo images</p>
+<h2 id="documentation">Documentation</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -172,9 +173,10 @@ Others?</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
-              <p>Screenshots
-Promo images</p>
-<h2 id="documentation">Documentation</h2>
+              <p>Manual
+Tutorials
+Plugins</p>
+<h2 id="bugs">Bugs</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -188,10 +190,8 @@ Promo images</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
-              <p>Manual
-Tutorials
-Plugins</p>
-<h2 id="bugs">Bugs</h2>
+              <p>Eraser</p>
+<h1 id="v2">V2</h1>
 
             </div>
             <div class="content"><pre><code>
@@ -205,8 +205,7 @@ Plugins</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
-              <p>Eraser</p>
-<h1 id="v2">V2</h1>
+              <h2 id="true-replays">True replays</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -220,7 +219,8 @@ Plugins</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
-              <h2 id="true-replays">True replays</h2>
+              <p>Capture all user input as events, replay entire event stream.</p>
+<h2 id="minimize-memory-footprint">Minimize Memory Footprint</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -233,21 +233,6 @@ Plugins</p>
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-15">&#182;</a>
-              </div>
-              <p>Capture all user input as events, replay entire event stream.</p>
-<h2 id="minimize-memory-footprint">Minimize Memory Footprint</h2>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-16">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>Use quadtrees for diffing regions in undo stack.</p>
 <p>Hot reload editor state / initial editor state</p>
@@ -277,13 +262,27 @@ Plugins</p>
         </li>
         
         
+        <li id="section-16">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Display transparent preview as transparent instead of white</p>
+<h1 id="done">Done</h1>
+
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
         <li id="section-17">
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
-              <p>Display transparent preview as transparent instead of white</p>
-<h1 id="done">Done</h1>
+              <h2 id="memory-usage">Memory Usage</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -297,10 +296,8 @@ Plugins</p>
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
-              <p>Palette styling, editing palette colors</p>
-<p>Preview window on large images</p>
-<p>Eye dropper</p>
-<h2 id="better-performance">Better performance</h2>
+              <p>Reduce memory usage in undo using dirty regions.</p>
+<h2 id="misc">Misc</h2>
 
             </div>
             <div class="content"><pre><code>
@@ -313,6 +310,23 @@ Plugins</p>
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Palette styling, editing palette colors</p>
+<p>Preview window on large images</p>
+<p>Eye dropper</p>
+<h2 id="better-performance">Better performance</h2>
+
+            </div>
+            <div class="content"><pre><code>
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>Use true size canvas, not enlarged canvas. Avoid lots of pixel manipulation and
 let the canvas drawing functions do the work for us. Blit the &#39;work&#39; canvas onto
@@ -329,10 +343,10 @@ themselves, and only the regions necessary should be repainted.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-21">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p>Calculate midpoint of [start, end], use that as center and radius as length/2</p>
 <p>Selection Tool</p>
@@ -367,10 +381,10 @@ Save Image</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-22">
             <div class="annotation">
               <div class="pilwrap">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>Replay doesn&#39;t reset to initial canvas size</p>
 <p>Opening an images keeps old layer instead of replacing</p>

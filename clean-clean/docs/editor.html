@@ -202,7 +202,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         <span class="comment"># TODO: The initial size should come from commands</span>
         self.resize initialSize
 
-        <span class="comment"># TODO: Should never need to call repaint!</span>
         self.repaint()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
@@ -380,30 +379,56 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   <span class="function"><span class="title">compareImageData</span></span> = (previous, current) -&gt;
     <span class="keyword">return</span> <span class="keyword">unless</span> previous <span class="keyword">and</span> current
-    <span class="comment"># TODO: store a dirty region</span>
+    xMin = Infinity
+    xMax = -Infinity
+    yMin = Infinity
+    yMax = -Infinity
 
     previousData = <span class="keyword">new</span> Uint32Array(previous.data.buffer)
     currentData = <span class="keyword">new</span> Uint32Array(current.data.buffer)
     length = currentData.length
+    width = current.width
+
     i = <span class="number">0</span>
-    different = <span class="literal">false</span>
 
     <span class="keyword">while</span> i &lt; length
+      x = i % width
+      y = (i / width)|<span class="number">0</span>
       <span class="keyword">if</span> previousData[i] != currentData[i]
-        different = <span class="literal">true</span>
-        <span class="keyword">break</span>
+        xMin = x <span class="keyword">if</span> x &lt; xMin
+        xMax = x <span class="keyword">if</span> x &gt; xMax
+        yMin = y <span class="keyword">if</span> y &lt; yMin
+        yMax = y <span class="keyword">if</span> y &gt; yMax
 
       i += <span class="number">1</span>
 
-    <span class="keyword">return</span> different
+    <span class="keyword">if</span> xMin != Infinity
+      <span class="keyword">return</span> [xMin, yMin, xMax - xMin + <span class="number">1</span>, yMax - yMin + <span class="number">1</span>]
+    <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="literal">null</span>
 
   <span class="function"><span class="title">diffSnapshot</span></span> = (previous, current) -&gt;
-    <span class="keyword">if</span> compareImageData(previous, current)
+    region = compareImageData(previous, current)
+
+    <span class="keyword">if</span> region
+      [x, y, width, height] = region
+
+      spareCanvas = document.createElement(<span class="string">"canvas"</span>)
+      spareCanvas.width = width
+      spareCanvas.height = height
+      spareContext = spareCanvas.getContext(<span class="string">"2d"</span>)
+
+      spareContext.putImageData(previous, -x, -y)
+      previous = spareContext.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
+
+      spareContext.putImageData(current, -x, -y)
+      current = spareContext.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
+
       self.execute self.Command.PutImageData
         imageData: current
         imageDataPrevious: previous
-        x: <span class="number">0</span>
-        y: <span class="number">0</span>
+        x: x
+        y: y
 
   $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
     {left, top} = currentTarget.getBoundingClientRect()
