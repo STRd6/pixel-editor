@@ -169,7 +169,6 @@ Editor
             # TODO: The initial size should come from commands
             self.resize initialSize
 
-            # TODO: Should never need to call repaint!
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
@@ -347,30 +346,56 @@ Editor
 
       compareImageData = (previous, current) ->
         return unless previous and current
-        # TODO: store a dirty region
+        xMin = Infinity
+        xMax = -Infinity
+        yMin = Infinity
+        yMax = -Infinity
 
         previousData = new Uint32Array(previous.data.buffer)
         currentData = new Uint32Array(current.data.buffer)
         length = currentData.length
+        width = current.width
+
         i = 0
-        different = false
 
         while i < length
+          x = i % width
+          y = (i / width)|0
           if previousData[i] != currentData[i]
-            different = true
-            break
+            xMin = x if x < xMin
+            xMax = x if x > xMax
+            yMin = y if y < yMin
+            yMax = y if y > yMax
 
           i += 1
 
-        return different
+        if xMin != Infinity
+          return [xMin, yMin, xMax - xMin + 1, yMax - yMin + 1]
+        else
+          return null
 
       diffSnapshot = (previous, current) ->
-        if compareImageData(previous, current)
+        region = compareImageData(previous, current)
+
+        if region
+          [x, y, width, height] = region
+          
+          spareCanvas = document.createElement("canvas")
+          spareCanvas.width = width
+          spareCanvas.height = height
+          spareContext = spareCanvas.getContext("2d")
+
+          spareContext.putImageData(previous, -x, -y)
+          previous = spareContext.getImageData(0, 0, width, height)
+
+          spareContext.putImageData(current, -x, -y)
+          current = spareContext.getImageData(0, 0, width, height)
+
           self.execute self.Command.PutImageData
             imageData: current
             imageDataPrevious: previous
-            x: 0
-            y: 0
+            x: x
+            y: y
 
       $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
         {left, top} = currentTarget.getBoundingClientRect()

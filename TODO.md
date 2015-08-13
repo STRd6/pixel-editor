@@ -38,11 +38,6 @@ Brush Options
 
 Should symmetry be a per-brush option, along with brush sizes, etc?
 
-Memory Usage
-------------
-
-Reduce memory usage in undo using dirty regions.
-
 Platforms
 ---------
 
@@ -119,6 +114,14 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+
+Memory Usage
+------------
+
+Reduce memory usage in undo using dirty regions.
+
+Misc
+----
 
 Palette styling, editing palette colors
 
