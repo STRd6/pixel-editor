@@ -89,16 +89,6 @@ Editor
 
         grid: Observable false
 
-        handlePaste: (data) ->
-          command = self.Command.Composite()
-          self.execute command
-
-          # TODO: Currently paste replaces entire image
-          {width, height} = data
-          command.push self.Command.Resize({width, height})
-
-          self.trigger "change"
-
         symmetryMode: symmetryMode
 
         outputCanvas: () ->
@@ -133,25 +123,20 @@ Editor
           size = pixelExtent()
           canvas.context().getImageData(0, 0, size.width, size.height)
 
+        insertImageData: (imageData) ->
+          size = pixelExtent()
+          
+          self.execute self.Command.Resize
+            size:
+              width: imageData.width
+              height: imageData.height
+            sizePrevious: size
+            imageData: imageData
+            imageDataPrevious: editor.getSnapshot()
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
-          .then (imageData) ->
-            {width, height} = size = pixelExtent()
-
-            if (width != imageData.width) or (height != imageData.height)
-              self.execute self.Command.Resize
-                size:
-                  width: imageData.width
-                  height: imageData.height
-                sizePrevious: size
-                imageData: imageData
-                imageDataPrevious: editor.getSnapshot()
-            else
-              self.execute self.Command.PutImageData
-                imageData: imageData
-                imageDataPrevious: self.getSnapshot()
-                x: 0
-                y: 0
+          .then self.insertImageData
 
         replay: ->
           # TODO: May want to prevent adding new commands while replaying!
@@ -418,7 +403,10 @@ Editor
         self.trigger "change"
 
       # Initial resize command so we start off with the right size for replays
-      self.execute self.Command.Resize(size: initialSize, previousSize: initialSize)
+      self.execute self.Command.Resize
+        size: initialSize
+        previousSize: initialSize
+        imageData: self.getSnapshot()
 
       # Decorate `execute` to soak empty last commands
       # TODO: This seems a little gross
