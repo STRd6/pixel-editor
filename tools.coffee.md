@@ -155,42 +155,19 @@ Fill a connected area.
 Shapes
 ------
 
-      rect: do ->
-        start = null
-        end = null
-
-        draw = (canvas, color) ->
+      rect: shapeTool "r", 1, 4,
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
+        (editor, canvas, start, end) ->
+          color = editor.color editor.activeIndex()
           delta = end.subtract(start)
 
-          canvas.drawRect
-            x: start.x
-            y: start.y
-            width: delta.x
-            height: delta.y
-            color: color
-
-        hotkeys: "r"
-        iconOffset:
-          x: 1
-          y: 4
-        iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
-        touch: ({position, editor}) ->
-          start = position
-        move: ({position, editor}) ->
-          if position.x >= start.x
-            position.x += 1
-          if position.y >= start.y
-            position.y += 1
-
-          end = position
-          color = editor.color editor.activeIndex()
-
-          editor.previewCanvas.clear()
-          draw(editor.previewCanvas, color)
-
-        release: ->
-          color = editor.color editor.activeIndex()
-          draw(editor.canvas, color)
+          editor.withCanvasMods (canvas) ->
+            canvas.drawRect
+              x: start.x
+              y: start.y
+              width: delta.x
+              height: delta.y
+              color: color
 
       rectOutline: shapeTool "shift+r", 1, 4,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="
@@ -198,14 +175,15 @@ Shapes
           delta = end.subtract(start)
           color = editor.color editor.activeIndex()
 
-          canvas.drawRect
-            x: start.x - 0.5
-            y: start.y - 0.5
-            width: delta.x
-            height: delta.y
-            stroke:
-              color: color
-              width: 1
+          editor.withCanvasMods (canvas) ->
+            canvas.drawRect
+              x: start.x - 0.5
+              y: start.y - 0.5
+              width: delta.x
+              height: delta.y
+              stroke:
+                color: color
+                width: 1
 
       circle: shapeTool "c", 0, 0, # TODO: Real offset
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="
@@ -220,12 +198,7 @@ Shapes
 
           # Have to draw our own lines if we want them crisp ;_;
           line start, end, (x, y) ->
-            canvas.drawRect
-              x: x
-              y: y
-              width: 1
-              height: 1
-              color: color
+            editor.draw {x, y}
 
     module.exports = (I={}, self=Core(I)) ->
       self.extend

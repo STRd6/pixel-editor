@@ -43,6 +43,8 @@ Plugins
 Bugs
 ----
 
+Undoing Initial state weirds out editor
+
 V2
 ====
 
