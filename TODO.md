@@ -1,8 +1,6 @@
 TODO
 ====
 
-Opacity/Alpha
-
 Polishing
 ---------
 
@@ -52,9 +50,6 @@ V2
 
 Better Symmetry/Multi Modes
 ---------------------------
-
-Multiply events through symmetry so that flood fill and others
-can work better with symmetry modes.
 
 Radial symmetry
 
@@ -127,11 +122,16 @@ Reduce memory usage in undo using dirty regions.
 Misc
 ----
 
+Opacity/Alpha
+
 Palette styling, editing palette colors
 
 Preview window on large images
 
 Eye dropper
+
+Multiply events through symmetry so that flood fill and others
+can work better with symmetry modes.
 
 Better performance
 ------------------
