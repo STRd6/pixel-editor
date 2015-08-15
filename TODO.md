@@ -45,6 +45,8 @@ Bugs
 
 Undoing Initial state weirds out editor
 
+Flood fill, should it respect opacity?
+
 V2
 ====
 
