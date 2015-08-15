@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1439680095841
+
+CACHE:
+index.html
+../vintage-replay.json.js
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
