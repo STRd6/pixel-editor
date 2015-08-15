@@ -182,7 +182,6 @@ Editor
 
           try
             Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) ->
-              console.log transform
               canvas.withTransform transform, (canvas) ->
                 cb(canvas)
           finally
@@ -218,8 +217,6 @@ Editor
 
         colorAsInt: ->
           color = self.color self.activeIndex()
-
-          console.log color
 
           color = color.substring(color.indexOf("#") + 1)
 
