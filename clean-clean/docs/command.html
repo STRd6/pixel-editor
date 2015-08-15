@@ -34,7 +34,8 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">{extend} = require <span class="string">"util"</span></code></pre>
+            <div class="content"><pre><code class="lang-coffeescript">LZString = require <span class="string">"./lib/lz-string"</span>
+{extend} = require <span class="string">"util"</span></code></pre>
 </div>
         </li>
         
@@ -78,18 +79,46 @@ versions.</p>
       <span class="keyword">return</span> command
 
   C <span class="string">"Resize"</span>, (data) -&gt;
+    <span class="keyword">if</span> <span class="keyword">typeof</span> data.imageData?.data <span class="keyword">is</span> <span class="string">"string"</span>
+      data.imageData = imageDataFromJSON(data.imageData)
+
+    <span class="keyword">if</span> <span class="keyword">typeof</span> data.imageDataPrevious?.data <span class="keyword">is</span> <span class="string">"string"</span>
+      data.imageDataPrevious = imageDataFromJSON(data.imageDataPrevious)
+
     execute: -&gt;
       self.resize(data.size, data.imageData)
 
     undo: -&gt;
       self.resize(data.sizePrevious, data.imageDataPrevious)
 
+    toJSON: -&gt;
+      {imageData, imageDataPrevious, size, sizePrevious} = data
+
+      name: <span class="string">"Resize"</span>
+      size: size
+      sizePrevious: sizePrevious
+      imageData: imageDataToJSON(imageData)
+      imageDataPrevious: imageDataToJSON(imageDataPrevious)
+
   C <span class="string">"PutImageData"</span>, (data) -&gt;
-    <span class="comment"># TODO: Layers?</span>
+    <span class="keyword">if</span> <span class="keyword">typeof</span> data.imageData.data <span class="keyword">is</span> <span class="string">"string"</span>
+      data.imageData = imageDataFromJSON(data.imageData)
+
+    <span class="keyword">if</span> <span class="keyword">typeof</span> data.imageDataPrevious.data <span class="keyword">is</span> <span class="string">"string"</span>
+      data.imageDataPrevious = imageDataFromJSON(data.imageDataPrevious)
+
     execute: -&gt;
       self.putImageData(data.imageData, data.x, data.y)
     undo: -&gt;
       self.putImageData(data.imageDataPrevious, data.x, data.y)
+    toJSON: -&gt;
+      {x, y, imageData, imageDataPrevious} = data
+
+      name: <span class="string">"PutImageData"</span>
+      x: x
+      y: y
+      imageData: imageDataToJSON(imageData)
+      imageDataPrevious: imageDataToJSON(imageDataPrevious)
 
   C <span class="string">"Composite"</span>, (data) -&gt;
     <span class="keyword">if</span> data.commands
@@ -125,6 +154,66 @@ versions.</p>
 
   self.Command.<span class="function"><span class="title">parse</span></span> = (commandData) -&gt;
     self.Command[commandData.name](commandData)</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2 id="helpers">Helpers</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript"><span class="function"><span class="title">imageDataToJSON</span></span> = (imageData) -&gt;
+  <span class="keyword">return</span> <span class="keyword">unless</span> imageData
+
+  data: serialize(imageData.data)
+  width: imageData.width
+  height: imageData.height
+
+<span class="function"><span class="title">imageDataFromJSON</span></span> = ({data, width, height}) -&gt;
+  <span class="keyword">new</span> ImageData deserialize(data), width, height
+
+<span class="function"><span class="title">deserialize</span></span> = (dataURL) -&gt;
+  dataString = dataURL.substring(dataURL.indexOf(<span class="string">';'</span>) + <span class="number">1</span>)
+
+  binaryString = atob(LZString.decompressFromBase64 dataString)
+  length =  binaryString.length
+  buffer = <span class="keyword">new</span> ArrayBuffer length
+  view = <span class="keyword">new</span> Uint8ClampedArray(buffer)
+
+  i = <span class="number">0</span>
+  <span class="keyword">while</span> i &lt; length
+    view[i] = binaryString.charCodeAt(i)
+    i += <span class="number">1</span>
+
+  <span class="keyword">return</span> view
+
+<span class="function"><span class="title">serialize</span></span> = (bytes) -&gt;
+  binary = <span class="string">''</span>
+  length = bytes.byteLength
+
+  i = <span class="number">0</span>
+  <span class="keyword">while</span> i &lt; length
+    binary += String.fromCharCode(bytes[i])
+    i += <span class="number">1</span>
+
+  LZString.compressToBase64 btoa(binary)</code></pre>
 </div>
         </li>
         

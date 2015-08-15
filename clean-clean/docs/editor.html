@@ -122,10 +122,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     grid: Observable <span class="literal">false</span>
 
-    applyPalette: (text) -&gt;
-      self.execute self.Command.ChangePalette
-        palette: text.split(<span class="string">"\n"</span>)
-
     handlePaste: (data) -&gt;
       command = self.Command.Composite()
       self.execute command
@@ -199,9 +195,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         steps = self.history()
         self.history([])
 
-        <span class="comment"># TODO: The initial size should come from commands</span>
-        self.resize initialSize
-
         self.repaint()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
@@ -220,12 +213,16 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         setTimeout runStep, delay
 
     restoreState: (state) -&gt;
-      self.palette state.palette
+      self.palette state.palette.map Observable
 
-      self.history state.history?.map self.Command.parse
+      commands = state.history.map self.Command.parse
+      commands.forEach (command) -&gt; command.execute()
+      self.history commands
+
+      self.repaint()
 
     saveState: -&gt;
-      palette: self.palette()
+      palette: self.palette().map (o) -&gt; o()
       history: self.history().invoke <span class="string">"toJSON"</span>
 
     draw: (point, options={}) -&gt;
@@ -452,6 +449,9 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     <span class="comment"># TODO: Think more about triggering change events</span>
     self.trigger <span class="string">"change"</span>
+
+  <span class="comment"># Initial resize command so we start off with the right size for replays</span>
+  self.execute self.Command.Resize(size: initialSize, previousSize: initialSize)
 
   <span class="comment"># Decorate `execute` to soak empty last commands</span>
   <span class="comment"># TODO: This seems a little gross</span>
