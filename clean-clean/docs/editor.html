@@ -122,16 +122,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     grid: Observable <span class="literal">false</span>
 
-    handlePaste: (data) -&gt;
-      command = self.Command.Composite()
-      self.execute command
-
-      <span class="comment"># TODO: Currently paste replaces entire image</span>
-      {width, height} = data
-      command.push self.Command.Resize({width, height})
-
-      self.trigger <span class="string">"change"</span>
-
     symmetryMode: symmetryMode
 
     outputCanvas: () -&gt;
@@ -166,25 +156,20 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       size = pixelExtent()
       canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height)
 
+    insertImageData: (imageData) -&gt;
+      size = pixelExtent()
+
+      self.execute self.Command.Resize
+        size:
+          width: imageData.width
+          height: imageData.height
+        sizePrevious: size
+        imageData: imageData
+        imageDataPrevious: editor.getSnapshot()
+
     fromDataURL: (dataURL) -&gt;
       loader.load(dataURL)
-      .<span class="keyword">then</span> (imageData) -&gt;
-        {width, height} = size = pixelExtent()
-
-        <span class="keyword">if</span> (width != imageData.width) <span class="keyword">or</span> (height != imageData.height)
-          self.execute self.Command.Resize
-            size:
-              width: imageData.width
-              height: imageData.height
-            sizePrevious: size
-            imageData: imageData
-            imageDataPrevious: editor.getSnapshot()
-        <span class="keyword">else</span>
-          self.execute self.Command.PutImageData
-            imageData: imageData
-            imageDataPrevious: self.getSnapshot()
-            x: <span class="number">0</span>
-            y: <span class="number">0</span>
+      .<span class="keyword">then</span> self.insertImageData
 
     replay: -&gt;
       <span class="comment"># TODO: May want to prevent adding new commands while replaying!</span>
@@ -451,7 +436,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     self.trigger <span class="string">"change"</span>
 
   <span class="comment"># Initial resize command so we start off with the right size for replays</span>
-  self.execute self.Command.Resize(size: initialSize, previousSize: initialSize)
+  self.execute self.Command.Resize
+    size: initialSize
+    previousSize: initialSize
+    imageData: self.getSnapshot()
 
   <span class="comment"># Decorate `execute` to soak empty last commands</span>
   <span class="comment"># TODO: This seems a little gross</span>
