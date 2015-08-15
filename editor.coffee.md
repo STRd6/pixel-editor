@@ -32,7 +32,7 @@ Editor
       defaults I,
         selector: "body"
 
-      activeIndex = Observable(1)
+      activeIndex = Observable 1
 
       pixelExtent = Observable Size(128, 128)
       pixelSize = Observable 4
@@ -64,24 +64,24 @@ Editor
       activeTool = self.activeTool
 
       drawPixel = (canvas, x, y, color, size=1) ->
-        if color is "transparent"
-          canvas.clear
-            x: x * size
-            y: y * size
-            width: size
-            height: size
-        else
-          canvas.drawRect
-            x: x * size
-            y: y * size
-            width: size
-            height: size
-            color: color
+        self.withCanvasMods (canvas) ->
+          if color is "transparent"
+            canvas.clear
+              x: x * size
+              y: y * size
+              width: size
+              height: size
+          else
+            canvas.drawRect
+              x: x * size
+              y: y * size
+              width: size
+              height: size
+              color: color
 
       self.extend
+        alpha: Observable 100
         activeIndex: activeIndex
-
-        backgroundIndex: Observable 0
 
         pixelSize: pixelSize
         pixelExtent: pixelExtent
@@ -125,7 +125,7 @@ Editor
 
         insertImageData: (imageData) ->
           size = pixelExtent()
-          
+
           self.execute self.Command.Resize
             size:
               width: imageData.width
@@ -177,14 +177,24 @@ Editor
           palette: self.palette().map (o) -> o()
           history: self.history().invoke "toJSON"
 
+        withCanvasMods: (cb) ->
+          canvas.context().globalAlpha = self.alpha() / 100
+
+          try
+            Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) ->
+              canvas.withTransform transform, (canvas) ->
+                cb(canvas)
+          finally
+            canvas.context().globalAlpha = 1
+
         draw: (point, options={}) ->
           {index, color} = options
           index ?= activeIndex()
           color ?= self.color(index)
 
-          Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
-            drawPixel(canvas, x, y, color)
-            drawPixel(thumbnailCanvas, x, y, color)
+          {x, y} = point
+          drawPixel(canvas, x, y, color)
+          drawPixel(thumbnailCanvas, x, y, color)
 
         color: (index) ->
           self.palette()[index]()
@@ -207,8 +217,6 @@ Editor
 
         colorAsInt: ->
           color = self.color self.activeIndex()
-
-          console.log color
 
           color = color.substring(color.indexOf("#") + 1)
 
@@ -361,7 +369,7 @@ Editor
 
         if region
           [x, y, width, height] = region
-          
+
           spareCanvas = document.createElement("canvas")
           spareCanvas.width = width
           spareCanvas.height = height

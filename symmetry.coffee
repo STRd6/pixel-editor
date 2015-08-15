@@ -1,34 +1,23 @@
 
 mirror = (size, flip) ->
   midpoint = Point (size.width - 1)/2, (size.height - 1)/2
-  matrix = Matrix.translate(midpoint.x, midpoint.y).concat(flip).concat(Matrix.translate(-midpoint.x, -midpoint.y))
+  
+  Matrix.translate(midpoint.x, midpoint.y).concat(flip).concat(Matrix.translate(-midpoint.x, -midpoint.y))
 
-  (point) ->
-    matrix.transformPoint(point)
+module.exports = Symmetry =
+  normal: (size, transforms) ->
+    transforms
 
-append = (list, transform) ->
-  # TODO: Uniq?
-  list.concat list.map(transform)
+  flip: (size, transforms) ->
+    transforms.concat transforms.map (transform) ->
+      transform.concat(mirror(size, Matrix.HORIZONTAL_FLIP))
 
-module.exports =
-  normal: (points) ->
-    points
+  flop: (size, transforms) ->
+    transforms.concat transforms.map (transform) ->
+      transform.concat(mirror(size, Matrix.VERTICAL_FLIP))
 
-  flip: (points, size) ->
-    t = mirror(size, Matrix.HORIZONTAL_FLIP)
-
-    append(points, t)
-
-  flop: (points, size) ->
-    t = mirror(size, Matrix.VERTICAL_FLIP)
-
-    append(points, t)
-
-  quad: (points, size) ->
-    t1 = mirror(size, Matrix.HORIZONTAL_FLIP)
-    t2 = mirror(size, Matrix.VERTICAL_FLIP)
-
-    append(append(points, t1), t2)
+  quad: (size, transforms) ->
+    Symmetry.flop(size, Symmetry.flip(size, transforms))
 
   icon:
     normal: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVQ4T2NkoBAwwvTfDE/+r75yLpxPrLlgDSDNMA2kGjJqAAMDdWKB2CjDpo7keEc3ZNQApGgkNyYoDkQAREwcEdrwnzgAAAAASUVORK5CYIIA"

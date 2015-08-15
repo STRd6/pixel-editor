@@ -44,6 +44,11 @@ The palette holds our colors.
 
       = Palette(this)
 
+      .opacity
+        %h2 Opacity
+        %input.alphaValue(value=@alpha)
+        %input.alphaSlider(type="range" value=@alpha step="1" min="0" max="100")
+
       .actions
         - @actions.each (action) ->
           .action(click=action.perform touchstart=action.perform title=action.hotkey style="background-image: url(#{action.iconUrl})")
