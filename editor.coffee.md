@@ -63,22 +63,6 @@ Editor
 
       activeTool = self.activeTool
 
-      drawPixel = (canvas, x, y, color, size=1) ->
-        self.withCanvasMods (canvas) ->
-          if color is "transparent"
-            canvas.clear
-              x: x * size
-              y: y * size
-              width: size
-              height: size
-          else
-            canvas.drawRect
-              x: x * size
-              y: y * size
-              width: size
-              height: size
-              color: color
-
       self.extend
         alpha: Observable 100
         activeIndex: activeIndex
@@ -138,7 +122,9 @@ Editor
           loader.load(dataURL)
           .then self.insertImageData
 
-        replay: ->
+        replay: (data) ->
+          # TODO: Check for vintage data
+          # TODO: Generate steps from data
           # TODO: May want to prevent adding new commands while replaying!
           unless replaying
             replaying = true
@@ -188,13 +174,38 @@ Editor
             canvas.context().globalAlpha = 1
 
         draw: (point, options={}) ->
-          {index, color} = options
+          {index, color, size} = options
           index ?= activeIndex()
           color ?= self.color(index)
+          size ?= 1
 
           {x, y} = point
-          drawPixel(canvas, x, y, color)
-          drawPixel(thumbnailCanvas, x, y, color)
+
+          self.withCanvasMods (canvas) ->
+            if color is "transparent"
+              canvas.clear
+                x: x * size
+                y: y * size
+                width: size
+                height: size
+              thumbnailCanvas.clear
+                x: x * size
+                y: y * size
+                width: size
+                height: size
+            else
+              canvas.drawRect
+                x: x * size
+                y: y * size
+                width: size
+                height: size
+                color: color
+              thumbnailCanvas.drawRect
+                x: x * size
+                y: y * size
+                width: size
+                height: size
+                color: color
 
         color: (index) ->
           self.palette()[index]()
