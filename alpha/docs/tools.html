@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>tools</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="tools">Tools</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">Brushes = require <span class="string">"./brushes"</span>
+{circle, line, rect, rectOutline, endDeltoid} = require <span class="string">"./util"</span>
+
+<span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
+  fn start
+  line start, end, fn
+
+<span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
+  [
+    {x: point.x, y: point.y-<span class="number">1</span>}
+    {x: point.x-<span class="number">1</span>, y: point.y}
+    {x: point.x+<span class="number">1</span>, y: point.y}
+    {x: point.x, y: point.y+<span class="number">1</span>}
+  ]
+
+<span class="function"><span class="title">shapeTool</span></span> = (hotkey, offsetX, offsetY, icon, fn) -&gt;
+  start = <span class="literal">null</span>
+  end = <span class="literal">null</span>
+
+  hotkeys: hotkey
+  iconUrl: icon
+  iconOffset:
+    x: offsetX
+    y: offsetY
+  touch: ({position}) -&gt;
+    start = position
+
+  move: ({editor, position}) -&gt;
+    end = position
+
+    editor.restore()
+    fn(editor, editor.canvas, start, end)
+
+  release: ({position, editor}) -&gt;
+    editor.restore()
+    fn(editor, editor.canvas, start, end)
+
+<span class="function"><span class="title">brushTool</span></span> = (brushName, hotkey, offsetX, offsetY, icon, options) -&gt;
+  previousPosition = <span class="literal">null</span>
+  brush = Brushes[brushName]
+
+  <span class="function"><span class="title">OP</span></span> = (out) -&gt;
+    (p) -&gt;
+      out(p, options)
+
+  <span class="function"><span class="title">paint</span></span> = (out) -&gt;
+    (x, y) -&gt;
+      brush({x, y}).forEach OP out
+
+  hotkeys: hotkey
+  iconUrl: icon
+  iconOffset:
+    x: offsetX
+    y: offsetY
+  touch: ({position, editor})-&gt;
+    paint(editor.draw) position.x, position.y
+    previousPosition = position
+  move: ({editor, position})-&gt;
+    line previousPosition, position, paint(editor.draw)
+    previousPosition = position
+  release: -&gt;
+    previousPosition = <span class="literal">null</span></code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Default tools.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">TOOLS =</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Draw a line when moving while touching.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  pencil: brushTool <span class="string">"pencil"</span>, <span class="string">"p"</span>, <span class="number">4</span>, <span class="number">14</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
+
+  brush: brushTool <span class="string">"brush"</span>, <span class="string">"b"</span>, <span class="number">4</span>, <span class="number">14</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="</span>
+
+  eraser: brushTool <span class="string">"pencil"</span>, <span class="string">"e"</span>, <span class="number">4</span>, <span class="number">11</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg=="</span>,
+    color: <span class="string">"transparent"</span>
+
+  dropper:
+    hotkeys: <span class="string">"i"</span>
+    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAH1JREFUeJztjrsNhDAUBIfLTOiYsiClCHdEDUT0Q0rscElY3QkJOD4hI1nye/aOFm5S/Ny1sd/l43AdAqoq6hDWsr8aqIsRgLYsKcbRbzpq4wb0OQPQTJNXh+E18ulilFLyfBopJZmzEn+WhuGy5NvklWxKrgpYgrclFj3DDPqoerGlCYunAAAAAElFTkSuQmCC"</span>
+    iconOffset:
+      x: <span class="number">13</span>
+      y: <span class="number">13</span>
+    touch: ({position, editor}) -&gt;
+      editor.setColor(editor.getColor(position))
+    move: ({position, editor}) -&gt;
+      editor.setColor(editor.getColor(position))
+    release: -&gt;
+      <span class="comment"># Return to the previous tool</span>
+      editor.activeTool editor.previousTool()
+
+  move: require(<span class="string">"./tools/selection"</span>)()</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Fill a connected area.</p>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  fill:
+    hotkeys: <span class="string">"f"</span>
+    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T52TPRKCMBCFX0pbj+HY0tJKY+UB8AqchCuYXofCRs9gy3ADW1rKmLeQTIBEZ0wTwu779idZhfQygUml3FIGikPb8ux5MUDM+S9AWAIjRrNNZYDLdov7MEiqx80G576PQqIAJ75NgJMFXPMc6vlcQZYAI842unq/YQ4HoKrGho1iqLqeQWadZuSyLKG1FmeWwMjY7QDCJlAIcQAj4iyDfr1kp4gggVgb9nsPUkXhs1gBJBpX1wFtC20BrpmSjS0pDbD1h8uJeQu+pKaJAmgfy5icQzH/sani9HgkAWLnLTAi0+YeiFmu+QXwEH5EHpAx7EFwld+GybVjOVTJdzBrYOKwGqoP9IV4EbRDWfEAAAAASUVORK5CYII="</span>
+    iconOffset:
+      x: <span class="number">12</span>
+      y: <span class="number">13</span>
+    touch: ({position, editor}) -&gt;
+      color = editor.colorAsInt()
+
+      imageData = editor.getSnapshot()
+      width = imageData.width
+
+      data = <span class="keyword">new</span> Uint32Array(imageData.data.buffer)
+
+      <span class="function"><span class="title">set</span></span> = ({x, y}, color) -&gt;
+        data[y * width + x] = color
+
+      <span class="function"><span class="title">get</span></span> = ({x, y}) -&gt;
+        data[y * width + x]
+
+      target = get(position)
+
+      <span class="keyword">return</span> <span class="keyword">unless</span> target?
+      <span class="keyword">return</span> <span class="keyword">if</span> color <span class="keyword">is</span> target
+
+      queue = [position]
+
+      set(position, color)
+
+      <span class="comment"># TODO: Allow for interrupts if it takes too long</span>
+      {width, height} = editor.pixelExtent()
+      safetyHatch = width * height
+
+      <span class="keyword">while</span>(queue.length <span class="keyword">and</span> safetyHatch &gt; <span class="number">0</span>)
+        position = queue.pop()
+
+        neighbors(position).forEach (position) -&gt;
+          pixelColor = get(position)
+          <span class="keyword">if</span> pixelColor <span class="keyword">is</span> target
+            <span class="comment"># This is here because I HAVE been burned</span>
+            <span class="comment"># Later I should fix the underlying cause, but it seems handy to keep</span>
+            <span class="comment"># a hatch on any while loops.</span>
+            safetyHatch -= <span class="number">1</span>
+
+            set position, color
+            queue.push(position)
+
+      editor.putImageData(imageData)
+
+      <span class="keyword">return</span>
+
+    move: -&gt;
+    release: -&gt;</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h2 id="shapes">Shapes</h2>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">  rect: shapeTool <span class="string">"r"</span>, <span class="number">1</span>, <span class="number">4</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
+    (editor, canvas, start, end) -&gt;
+      color = editor.color editor.activeIndex()
+      delta = end.subtract(start)
+
+      editor.withCanvasMods (canvas) -&gt;
+        canvas.drawRect
+          x: start.x
+          y: start.y
+          width: delta.x
+          height: delta.y
+          color: color
+
+  rectOutline: shapeTool <span class="string">"shift+r"</span>, <span class="number">1</span>, <span class="number">4</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span>
+    (editor, canvas, start, end) -&gt;
+      delta = end.subtract(start)
+      color = editor.color editor.activeIndex()
+
+      editor.withCanvasMods (canvas) -&gt;
+        canvas.drawRect
+          x: start.x - <span class="number">0.5</span>
+          y: start.y - <span class="number">0.5</span>
+          width: delta.x
+          height: delta.y
+          stroke:
+            color: color
+            width: <span class="number">1</span>
+
+  circle: shapeTool <span class="string">"c"</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment"># TODO: Real offset</span>
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
+    (editor, canvas, start, end) -&gt;
+      circle start, end, (x, y) -&gt;
+        editor.draw({x, y})
+
+  line2: shapeTool <span class="string">"l"</span>, <span class="number">0</span>, <span class="number">0</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
+    (editor, canvas, start, end) -&gt;
+      color = editor.color editor.activeIndex()
+
+      <span class="comment"># Have to draw our own lines if we want them crisp ;_;</span>
+      line start, end, (x, y) -&gt;
+        editor.draw {x, y}
+
+module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
+  self.extend
+    addTool: (tool) -&gt;
+      [].concat(tool.hotkeys <span class="keyword">or</span> []).forEach (hotkey) -&gt;
+        self.addHotkey hotkey, -&gt;
+          self.activeTool tool
+
+      self.tools.push tool
+
+    activeTool: Observable()
+    previousTool: Observable()
+
+    tools: Observable []
+
+  <span class="comment"># TODO: Probably want to let the editor add its own tools so this is more</span>
+  <span class="comment"># reusable</span>
+  Object.keys(TOOLS).forEach (name) -&gt;
+    self.addTool TOOLS[name]
+
+  <span class="function"><span class="title">setNthTool</span></span> = (n) -&gt;
+    -&gt;
+      <span class="keyword">if</span> tool = self.tools.get(n)
+        self.activeTool tool
+
+  [<span class="number">1.</span><span class="number">.9</span>].forEach (n) -&gt;
+    self.addHotkey n.toString(), setNthTool(n-<span class="number">1</span>)
+
+  self.addHotkey <span class="string">"0"</span>, setNthTool(<span class="number">9</span>)
+
+  prevTool = <span class="literal">null</span>
+  self.activeTool.observe (newTool) -&gt;
+    self.previousTool prevTool
+    prevTool = newTool
+
+  self.activeTool(self.tools()[<span class="number">0</span>])
+
+  <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
+</script><script src="package.js"></script>
+</body>
+</html>
