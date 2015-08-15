@@ -2,7 +2,6 @@ Actions
 =======
 
     ByteArray = require "byte_array"
-    Facebook = require "facebook"
     FileReading = require("./file_reading")
     Hotkeys = require "hotkeys"
     Modal = require("./modal")
@@ -156,6 +155,33 @@ Actions
           editor.replay()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZElEQVQ4T6WSX0hTcRTHz9XYTXEPRboC05qilK0N58N8kD1IIstyIHsYhReGrT9j4VOv+lgEQtCkB4ugZ8MSggXtIQXDl7pzLbOtYAij3D9r3Vt39+72vULSD+5bG+fhcs75nO853x9H//nj/vZPT0+nNE3rrNfr32KxWJcZ1+/3p1VV7arVap/j8fgpo2YfEI1Gf6H5CSBTpVLJVJckSYTmOcRoIpHoYwCRSEQHvQSAlQ/MqnwDj2KdlDrRlbb7dNxKdPnm2gHUJAFwr66u7g3fVxAOh0U0L6PAnxY6+9wWgXjNTrJGdM76lC62vqQRYfODoijzhsr19XUXAwiFQl/QvG0o+HrthzMvqTTQOEcNWi816kRHGzL0amZyA9N3Ee2iKJ5kAIIgbCHxBuGw3Prt6mg5SBVlh6rSWfpeGaGy1Eby7RsiFBgreNLpdA8DCAaDKShYRIyN3TvRb+GaScX/p7aDRWWqczV6eOGTiOZngExkMpkzDCAQCOSQLNlsNme5XDZ1IZlMyhiwBcDhXC7XwQDGx8dTSCziBud7Z567mxrhgkqkYP+p1gfU3sKRx3v3LYYsIyby+TyrwOfzGeS9G0gzXpeZC91DL4wVklDhKRQK7A2Gh4f3XECBtfnOEVMXFiaHNlCzi2ivVCqsC16v9x0ULCB5vWf+2GkzF96HRzfxWmMYMlWtVtl3MDg4qCOxhnBGl4aaLFwT1f51AV+z/a8l5JcAuSTLMvsS3W43BChXeZ5/ZLfbTV1YWVmhYrHoB+AxlB5iXHA4HJug240jZbPZATMC4B/R3IPmrK7r3UbNHy8zkCA9UyOUAAAAAElFTkSuQmCC"
 
+      "f6":
+        name: "Load Replay"
+        description: """
+          Load a replay from a remote URL.
+        """
+        method: ({editor}) ->
+          url = prompt "Replay URL"
+
+          if url
+            editor.replay(url)
+
+      "ctrl+shift+s":
+        name: "Save State"
+        description: """
+          Download project file to your local filesystem.
+        """
+        method: ({editor}) ->
+          if name = prompt("Name", "file")
+            data = editor.saveState()
+
+            blob = new Blob [JSON.stringify(data)],
+              type: "application/json"
+
+            saveAs blob, "#{name}.json"
+
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"
+
     Actions.extras =
       "F1":
         name: "Help"
@@ -208,24 +234,6 @@ Actions
                 error: (shr, status, data) ->
                   editor.notify "Error publishing image"
                 complete: ->
-
-      "ctrl+shift+s":
-        description: """
-          Download project file to your local filesystem.
-        """
-        method: ({editor}) ->
-          if name = prompt("Name", "file")
-            data = editor.saveState()
-
-            # TODO: We may want to save history later
-            delete data.history
-
-            blob = new Blob [JSON.stringify(data)],
-              type: "application/json"
-
-            saveAs blob, "#{name}.json"
-
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"
 
       "ctrl+l":
         description: """

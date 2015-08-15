@@ -8,10 +8,6 @@ Polishing
 
 Icons, Icon offsets for tools
 
-Palette styling, editing palette colors
-
-Preview window on large images
-
 Thumbnail viewing mini-map rectangle
 
 Responsive Design
@@ -41,11 +37,6 @@ Brush Options
 -------------
 
 Should symmetry be a per-brush option, along with brush sizes, etc?
-
-Memory Usage
-------------
-
-Reduce memory usage in undo using dirty regions.
 
 Platforms
 ---------
@@ -124,7 +115,19 @@ Display transparent preview as transparent instead of white
 Done
 ====
 
-Color Picker
+Memory Usage
+------------
+
+Reduce memory usage in undo using dirty regions.
+
+Misc
+----
+
+Palette styling, editing palette colors
+
+Preview window on large images
+
+Eye dropper
 
 Better performance
 ------------------

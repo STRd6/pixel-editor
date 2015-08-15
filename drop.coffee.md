@@ -10,11 +10,8 @@ Drop and Paste Events
     Drop = (I={}, self=Core(I)) ->
       callback = ({dataURL}) ->
         loader.load(dataURL)
-        .then (imageData) ->
-          # TODO This coupling seems a little too tight
-          self.handlePaste loader.fromImageDataWithPalette(imageData, self.palette())
+        .then self.insertImageData
 
-      # TODO: Scope these events to the editor, not the entire page
       $("html").dropImageReader callback
       $(document).pasteImageReader callback
 

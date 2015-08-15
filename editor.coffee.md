@@ -89,20 +89,6 @@ Editor
 
         grid: Observable false
 
-        applyPalette: (text) ->
-          self.execute self.Command.ChangePalette
-            palette: text.split("\n")
-
-        handlePaste: (data) ->
-          command = self.Command.Composite()
-          self.execute command
-
-          # TODO: Currently paste replaces entire image
-          {width, height} = data
-          command.push self.Command.Resize({width, height})
-
-          self.trigger "change"
-
         symmetryMode: symmetryMode
 
         outputCanvas: () ->
@@ -137,25 +123,20 @@ Editor
           size = pixelExtent()
           canvas.context().getImageData(0, 0, size.width, size.height)
 
+        insertImageData: (imageData) ->
+          size = pixelExtent()
+          
+          self.execute self.Command.Resize
+            size:
+              width: imageData.width
+              height: imageData.height
+            sizePrevious: size
+            imageData: imageData
+            imageDataPrevious: editor.getSnapshot()
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
-          .then (imageData) ->
-            {width, height} = size = pixelExtent()
-
-            if (width != imageData.width) or (height != imageData.height)
-              self.execute self.Command.Resize
-                size:
-                  width: imageData.width
-                  height: imageData.height
-                sizePrevious: size
-                imageData: imageData
-                imageDataPrevious: editor.getSnapshot()
-            else
-              self.execute self.Command.PutImageData
-                imageData: imageData
-                imageDataPrevious: self.getSnapshot()
-                x: 0
-                y: 0
+          .then self.insertImageData
 
         replay: ->
           # TODO: May want to prevent adding new commands while replaying!
@@ -166,10 +147,6 @@ Editor
             steps = self.history()
             self.history([])
 
-            # TODO: The initial size should come from commands
-            self.resize initialSize
-
-            # TODO: Should never need to call repaint!
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
@@ -188,18 +165,22 @@ Editor
             setTimeout runStep, delay
 
         restoreState: (state) ->
-          self.palette state.palette
+          self.palette state.palette.map Observable
 
-          self.history state.history?.map self.Command.parse
+          commands = state.history.map self.Command.parse
+          commands.forEach (command) -> command.execute()
+          self.history commands
+
+          self.repaint()
 
         saveState: ->
-          palette: self.palette()
+          palette: self.palette().map (o) -> o()
           history: self.history().invoke "toJSON"
 
         draw: (point, options={}) ->
-          {index} = options
+          {index, color} = options
           index ?= activeIndex()
-          color = self.color(index)
+          color ?= self.color(index)
 
           Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) ->
             drawPixel(canvas, x, y, color)
@@ -347,30 +328,56 @@ Editor
 
       compareImageData = (previous, current) ->
         return unless previous and current
-        # TODO: store a dirty region
+        xMin = Infinity
+        xMax = -Infinity
+        yMin = Infinity
+        yMax = -Infinity
 
         previousData = new Uint32Array(previous.data.buffer)
         currentData = new Uint32Array(current.data.buffer)
         length = currentData.length
+        width = current.width
+
         i = 0
-        different = false
 
         while i < length
+          x = i % width
+          y = (i / width)|0
           if previousData[i] != currentData[i]
-            different = true
-            break
+            xMin = x if x < xMin
+            xMax = x if x > xMax
+            yMin = y if y < yMin
+            yMax = y if y > yMax
 
           i += 1
 
-        return different
+        if xMin != Infinity
+          return [xMin, yMin, xMax - xMin + 1, yMax - yMin + 1]
+        else
+          return null
 
       diffSnapshot = (previous, current) ->
-        if compareImageData(previous, current)
+        region = compareImageData(previous, current)
+
+        if region
+          [x, y, width, height] = region
+          
+          spareCanvas = document.createElement("canvas")
+          spareCanvas.width = width
+          spareCanvas.height = height
+          spareContext = spareCanvas.getContext("2d")
+
+          spareContext.putImageData(previous, -x, -y)
+          previous = spareContext.getImageData(0, 0, width, height)
+
+          spareContext.putImageData(current, -x, -y)
+          current = spareContext.getImageData(0, 0, width, height)
+
           self.execute self.Command.PutImageData
             imageData: current
             imageDataPrevious: previous
-            x: 0
-            y: 0
+            x: x
+            y: y
 
       $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
         {left, top} = currentTarget.getBoundingClientRect()
@@ -380,7 +387,7 @@ Editor
 
       # TODO: Move this into template?
       $viewport = $selector.find(".viewport")
-      
+
       setCursor = ({iconUrl, iconOffset}) ->
         {x, y} = Point(iconOffset)
 
@@ -394,6 +401,12 @@ Editor
 
         # TODO: Think more about triggering change events
         self.trigger "change"
+
+      # Initial resize command so we start off with the right size for replays
+      self.execute self.Command.Resize
+        size: initialSize
+        previousSize: initialSize
+        imageData: self.getSnapshot()
 
       # Decorate `execute` to soak empty last commands
       # TODO: This seems a little gross

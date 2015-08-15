@@ -13,10 +13,10 @@ Helpers
 
     componentToHex = (c) ->
       hex = c.toString(16)
-      
+
       if hex.length is 1
         "0" + hex
-      else 
+      else
         hex
 
     isObject = (object) ->
@@ -46,8 +46,6 @@ Extra utilities that may be broken out into separate libraries.
           y = 1
 
         end.add(Point(x, y))
-
-      Grid: require "grid"
 
 Call an iterator for each integer point on a line between two integer points.
 
