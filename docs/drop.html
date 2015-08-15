@@ -43,11 +43,8 @@ loader = Loader()
 <span class="function"><span class="title">Drop</span></span> = (I={}, self=Core(I)) -&gt;
   <span class="function"><span class="title">callback</span></span> = ({dataURL}) -&gt;
     loader.load(dataURL)
-    .<span class="keyword">then</span> (imageData) -&gt;
-      <span class="comment"># TODO This coupling seems a little too tight</span>
-      self.handlePaste loader.fromImageDataWithPalette(imageData, self.palette())
+    .<span class="keyword">then</span> self.insertImageData
 
-  <span class="comment"># TODO: Scope these events to the editor, not the entire page</span>
   $(<span class="string">"html"</span>).dropImageReader callback
   $(document).pasteImageReader callback
 
