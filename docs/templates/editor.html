@@ -92,6 +92,11 @@
             </div>
             <div class="content"><pre><code class="lang-haml">  = Palette(this)
 
+  .opacity
+    %h2 Opacity
+    %input.alphaValue(value=@alpha)
+    %input.alphaSlider(type=&quot;range&quot; value=@alpha step=&quot;1&quot; min=&quot;0&quot; max=&quot;100&quot;)
+
   .actions
     - @actions.each (action) -&gt;
       .action(click=action.perform touchstart=action.perform title=action.hotkey style=&quot;background-image: url(#{action.iconUrl})&quot;)

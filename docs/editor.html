@@ -65,7 +65,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   defaults I,
     selector: <span class="string">"body"</span>
 
-  activeIndex = Observable(<span class="number">1</span>)
+  activeIndex = Observable <span class="number">1</span>
 
   pixelExtent = Observable Size(<span class="number">128</span>, <span class="number">128</span>)
   pixelSize = Observable <span class="number">4</span>
@@ -97,24 +97,24 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   activeTool = self.activeTool
 
   <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size=<span class="number">1</span>) -&gt;
-    <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
-      canvas.clear
-        x: x * size
-        y: y * size
-        width: size
-        height: size
-    <span class="keyword">else</span>
-      canvas.drawRect
-        x: x * size
-        y: y * size
-        width: size
-        height: size
-        color: color
+    self.withCanvasMods (canvas) -&gt;
+      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+        canvas.clear
+          x: x * size
+          y: y * size
+          width: size
+          height: size
+      <span class="keyword">else</span>
+        canvas.drawRect
+          x: x * size
+          y: y * size
+          width: size
+          height: size
+          color: color
 
   self.extend
+    alpha: Observable <span class="number">100</span>
     activeIndex: activeIndex
-
-    backgroundIndex: Observable <span class="number">0</span>
 
     pixelSize: pixelSize
     pixelExtent: pixelExtent
@@ -210,14 +210,24 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       palette: self.palette().map (o) -&gt; o()
       history: self.history().invoke <span class="string">"toJSON"</span>
 
+    withCanvasMods: (cb) -&gt;
+      canvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
+
+      <span class="keyword">try</span>
+        Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) -&gt;
+          canvas.withTransform transform, (canvas) -&gt;
+            cb(canvas)
+      <span class="keyword">finally</span>
+        canvas.context().globalAlpha = <span class="number">1</span>
+
     draw: (point, options={}) -&gt;
       {index, color} = options
       index ?= activeIndex()
       color ?= self.color(index)
 
-      Symmetry[symmetryMode()]([point], pixelExtent()).forEach ({x, y}) -&gt;
-        drawPixel(canvas, x, y, color)
-        drawPixel(thumbnailCanvas, x, y, color)
+      {x, y} = point
+      drawPixel(canvas, x, y, color)
+      drawPixel(thumbnailCanvas, x, y, color)
 
     color: (index) -&gt;
       self.palette()[index]()
@@ -240,8 +250,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     colorAsInt: -&gt;
       color = self.color self.activeIndex()
-
-      console.log color
 
       color = color.substring(color.indexOf(<span class="string">"#"</span>) + <span class="number">1</span>)
 

@@ -236,42 +236,19 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">  rect: <span class="keyword">do</span> -&gt;
-    start = <span class="literal">null</span>
-    end = <span class="literal">null</span>
-
-    <span class="function"><span class="title">draw</span></span> = (canvas, color) -&gt;
+            <div class="content"><pre><code class="lang-coffeescript">  rect: shapeTool <span class="string">"r"</span>, <span class="number">1</span>, <span class="number">4</span>,
+    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
+    (editor, canvas, start, end) -&gt;
+      color = editor.color editor.activeIndex()
       delta = end.subtract(start)
 
-      canvas.drawRect
-        x: start.x
-        y: start.y
-        width: delta.x
-        height: delta.y
-        color: color
-
-    hotkeys: <span class="string">"r"</span>
-    iconOffset:
-      x: <span class="number">1</span>
-      y: <span class="number">4</span>
-    iconUrl: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
-    touch: ({position, editor}) -&gt;
-      start = position
-    move: ({position, editor}) -&gt;
-      <span class="keyword">if</span> position.x &gt;= start.x
-        position.x += <span class="number">1</span>
-      <span class="keyword">if</span> position.y &gt;= start.y
-        position.y += <span class="number">1</span>
-
-      end = position
-      color = editor.color editor.activeIndex()
-
-      editor.previewCanvas.clear()
-      draw(editor.previewCanvas, color)
-
-    release: -&gt;
-      color = editor.color editor.activeIndex()
-      draw(editor.canvas, color)
+      editor.withCanvasMods (canvas) -&gt;
+        canvas.drawRect
+          x: start.x
+          y: start.y
+          width: delta.x
+          height: delta.y
+          color: color
 
   rectOutline: shapeTool <span class="string">"shift+r"</span>, <span class="number">1</span>, <span class="number">4</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span>
@@ -279,14 +256,15 @@
       delta = end.subtract(start)
       color = editor.color editor.activeIndex()
 
-      canvas.drawRect
-        x: start.x - <span class="number">0.5</span>
-        y: start.y - <span class="number">0.5</span>
-        width: delta.x
-        height: delta.y
-        stroke:
-          color: color
-          width: <span class="number">1</span>
+      editor.withCanvasMods (canvas) -&gt;
+        canvas.drawRect
+          x: start.x - <span class="number">0.5</span>
+          y: start.y - <span class="number">0.5</span>
+          width: delta.x
+          height: delta.y
+          stroke:
+            color: color
+            width: <span class="number">1</span>
 
   circle: shapeTool <span class="string">"c"</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="comment"># TODO: Real offset</span>
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVklEQVQ4T2NkwA7+YxFmxKYUXRCmEZtirHLICkEKsNqCZjOKOpgGYjXDzIKrp4oBpNqO4gqQC0YNgAQJqeFA3WjESBw48gdWdVTNC8gWk50bCbgeUxoAvXwcEQnwKSYAAAAASUVORK5CYII="</span>
@@ -301,12 +279,7 @@
 
       <span class="comment"># Have to draw our own lines if we want them crisp ;_;</span>
       line start, end, (x, y) -&gt;
-        canvas.drawRect
-          x: x
-          y: y
-          width: <span class="number">1</span>
-          height: <span class="number">1</span>
-          color: color
+        editor.draw {x, y}
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
