@@ -89,10 +89,6 @@ Editor
 
         grid: Observable false
 
-        applyPalette: (text) ->
-          self.execute self.Command.ChangePalette
-            palette: text.split("\n")
-
         handlePaste: (data) ->
           command = self.Command.Composite()
           self.execute command
@@ -166,9 +162,6 @@ Editor
             steps = self.history()
             self.history([])
 
-            # TODO: The initial size should come from commands
-            self.resize initialSize
-
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
@@ -187,12 +180,16 @@ Editor
             setTimeout runStep, delay
 
         restoreState: (state) ->
-          self.palette state.palette
+          self.palette state.palette.map Observable
 
-          self.history state.history?.map self.Command.parse
+          commands = state.history.map self.Command.parse
+          commands.forEach (command) -> command.execute()
+          self.history commands
+
+          self.repaint()
 
         saveState: ->
-          palette: self.palette()
+          palette: self.palette().map (o) -> o()
           history: self.history().invoke "toJSON"
 
         draw: (point, options={}) ->
@@ -419,6 +416,9 @@ Editor
 
         # TODO: Think more about triggering change events
         self.trigger "change"
+
+      # Initial resize command so we start off with the right size for replays
+      self.execute self.Command.Resize(size: initialSize, previousSize: initialSize)
 
       # Decorate `execute` to soak empty last commands
       # TODO: This seems a little gross

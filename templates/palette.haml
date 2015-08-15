@@ -12,8 +12,6 @@
       - activate()
     - click = (e) ->
       - delta = +new Date - pressedAt
-      - console.log delta
       - e.preventDefault() if delta < 350
     %div(class=activeClass click=activate touchstart=activate)
-      - console.log "wat"
       %input(type="color" value=color mousedown=mousedown click=click)
