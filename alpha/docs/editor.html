@@ -215,7 +215,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       <span class="keyword">try</span>
         Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) -&gt;
-          console.log transform
           canvas.withTransform transform, (canvas) -&gt;
             cb(canvas)
       <span class="keyword">finally</span>
@@ -251,8 +250,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     colorAsInt: -&gt;
       color = self.color self.activeIndex()
-
-      console.log color
 
       color = color.substring(color.indexOf(<span class="string">"#"</span>) + <span class="number">1</span>)
 
