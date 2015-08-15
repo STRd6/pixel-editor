@@ -15,28 +15,10 @@ Responsive Design
 
 Styling for mobile viewports.
 
-Better Symmetry/Multi Modes
----------------------------
-
-Multiply events through symmetry so that flood fill and others
-can work better with symmetry modes.
-
-Radial symmetry
-
-Simple Replays
---------------
-
-Make sure replays can be saved and loaded
-
 Vintage Replays
 ---------------
 
 Be able to display PixieEngine replays
-
-Brush Options
--------------
-
-Should symmetry be a per-brush option, along with brush sizes, etc?
 
 Platforms
 ---------
@@ -61,10 +43,23 @@ Plugins
 Bugs
 ----
 
-Eraser
-
 V2
 ====
+
+Better Symmetry/Multi Modes
+---------------------------
+
+Multiply events through symmetry so that flood fill and others
+can work better with symmetry modes.
+
+Radial symmetry
+
+Multi Brush (2x, 3x, 4x, etc.)
+
+Brush Options
+-------------
+
+Should symmetry be a per-brush option, along with brush sizes, etc?
 
 True replays
 ------------
@@ -114,6 +109,11 @@ Display transparent preview as transparent instead of white
 
 Done
 ====
+
+Simple Replays
+--------------
+
+Make sure replays can be saved and loaded
 
 Memory Usage
 ------------
