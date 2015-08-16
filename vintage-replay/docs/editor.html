@@ -155,6 +155,27 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       loader.load(dataURL)
       .<span class="keyword">then</span> self.insertImageData
 
+    vintageReplay: (data) -&gt;
+      <span class="keyword">unless</span> replaying
+        replaying = <span class="literal">true</span>
+
+        steps = data
+
+        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+        i = <span class="number">0</span>
+
+        <span class="function"><span class="title">runStep</span></span> = -&gt;
+          <span class="keyword">if</span> step = steps[i]
+            console.log step
+            i += <span class="number">1</span>
+
+            setTimeout runStep, delay
+          <span class="keyword">else</span>
+            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
+            replaying = <span class="literal">false</span>
+
+        setTimeout runStep, delay
+
     replay: (data) -&gt;
       <span class="comment"># TODO: Check for vintage data</span>
       <span class="comment"># TODO: Generate steps from data</span>
