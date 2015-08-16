@@ -6,6 +6,8 @@ Actions
     Hotkeys = require "hotkeys"
     Modal = require("./modal")
     Palette = require("./palette")
+
+    loader = require("./loader")()
     saveAs = require "./lib/file_saver"
 
     module.exports = Actions = (I={}, self=Core(I)) ->
@@ -161,14 +163,23 @@ Actions
           Load a replay from a remote URL.
         """
         method: ({editor}) ->
-          url = prompt "Replay URL"
+          id = prompt "Replay URL", "130095"
 
-          if url
-            Q($.getJSON(url))
+          if id
+            sourceImage = "http://0.pixiecdn.com/sprites/130084/original.png?-_-"
+            jsonURL = "http://3.pixiecdn.com/sprites/#{id}/replay.json"
+            finalImage = "http://0.pixiecdn.com/sprites/#{id}/original.png?-_-"
+
+            Q($.getJSON(jsonURL))
             .then (data) ->
               if Array.isArray(data[0])
-                editor.vintageReplay(data)
+                Q.all([loader.load(sourceImage), loader.load(finalImage)])
+                .then ([imageData, {width, height}]) ->
+                  editor.resize(imageData, imageData)
+                  editor.resize({width, height})
+                  editor.vintageReplay(data)
               else
+                # New replays should handle resizing and intial state themselves
                 editor.replay(data)
 
       "ctrl+shift+s":

@@ -41,7 +41,7 @@ Plugins
 Bugs
 ----
 
-Undoing Initial state weirds out editor
+Prevent interacting during replay
 
 V2
 ====

@@ -81,7 +81,6 @@ Editor
           outputCanvas.element()
 
         resize: (size, data) ->
-          debugger
           data ?= self.getSnapshot()
 
           pixelExtent(Size(size))
@@ -129,6 +128,7 @@ Editor
 
             steps = data
 
+            self.history([])
             editor.canvas.clear()
             self.repaint()
 
@@ -150,7 +150,6 @@ Editor
             setTimeout runStep, delay
 
         replay: (steps) ->
-          # TODO: May want to prevent adding new commands while replaying!
           unless replaying
             replaying = true
 
@@ -186,6 +185,12 @@ Editor
           self.repaint()
 
         saveState: ->
+          # TODO: Need to add our initial state to the json
+          self.Command.Resize
+            size: initialSize
+            sizePrevious: initialSize
+            imageData: self.getSnapshot()
+        
           palette: self.palette().map (o) -> o()
           history: self.history().invoke "toJSON"
 
@@ -437,12 +442,6 @@ Editor
 
         # TODO: Think more about triggering change events
         self.trigger "change"
-
-      # Initial resize command so we start off with the right size for replays
-      self.execute self.Command.Resize
-        size: initialSize
-        sizePrevious: initialSize
-        imageData: self.getSnapshot()
 
       # TODO: Extract this decorator pattern
       ["undo", "execute", "redo"].forEach (method) ->
