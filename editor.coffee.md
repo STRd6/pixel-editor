@@ -133,7 +133,9 @@ Editor
 
             runStep = ->
               if step = steps[i]
-                console.log step
+                step.forEach ({x, y, color}) ->
+                  self.draw {x, y}, {color}
+
                 i += 1
 
                 setTimeout runStep, delay
