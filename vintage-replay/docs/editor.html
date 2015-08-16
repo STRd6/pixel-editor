@@ -161,6 +161,9 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         steps = data
 
+        <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
+        self.symmetryMode <span class="string">"normal"</span>
+
         self.history([])
         editor.canvas.clear()
         self.repaint()
