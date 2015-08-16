@@ -114,7 +114,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       outputCanvas.element()
 
     resize: (size, data) -&gt;
-      <span class="keyword">debugger</span>
       data ?= self.getSnapshot()
 
       pixelExtent(Size(size))
@@ -162,6 +161,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         steps = data
 
+        self.history([])
         editor.canvas.clear()
         self.repaint()
 
@@ -183,7 +183,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         setTimeout runStep, delay
 
     replay: (steps) -&gt;
-      <span class="comment"># TODO: May want to prevent adding new commands while replaying!</span>
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
 
@@ -219,6 +218,12 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       self.repaint()
 
     saveState: -&gt;
+      <span class="comment"># TODO: Need to add our initial state to the json</span>
+      self.Command.Resize
+        size: initialSize
+        sizePrevious: initialSize
+        imageData: self.getSnapshot()
+
       palette: self.palette().map (o) -&gt; o()
       history: self.history().invoke <span class="string">"toJSON"</span>
 
@@ -470,12 +475,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     <span class="comment"># TODO: Think more about triggering change events</span>
     self.trigger <span class="string">"change"</span>
-
-  <span class="comment"># Initial resize command so we start off with the right size for replays</span>
-  self.execute self.Command.Resize
-    size: initialSize
-    sizePrevious: initialSize
-    imageData: self.getSnapshot()
 
   <span class="comment"># TODO: Extract this decorator pattern</span>
   [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;

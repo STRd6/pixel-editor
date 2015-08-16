@@ -39,6 +39,8 @@ FileReading = require(<span class="string">"./file_reading"</span>)
 Hotkeys = require <span class="string">"hotkeys"</span>
 Modal = require(<span class="string">"./modal"</span>)
 Palette = require(<span class="string">"./palette"</span>)
+
+loader = require(<span class="string">"./loader"</span>)()
 saveAs = require <span class="string">"./lib/file_saver"</span>
 
 module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
@@ -194,14 +196,23 @@ Actions.defaults =
       Load a replay from a remote URL.
     """</span>
     method: ({editor}) -&gt;
-      url = prompt <span class="string">"Replay URL"</span>
+      id = prompt <span class="string">"Replay URL"</span>, <span class="string">"130095"</span>
 
-      <span class="keyword">if</span> url
-        Q($.getJSON(url))
+      <span class="keyword">if</span> id
+        sourceImage = <span class="string">"http://0.pixiecdn.com/sprites/130084/original.png?-_-"</span>
+        jsonURL = <span class="string">"http://3.pixiecdn.com/sprites/<span class="subst">#{id}</span>/replay.json"</span>
+        finalImage = <span class="string">"http://0.pixiecdn.com/sprites/<span class="subst">#{id}</span>/original.png?-_-"</span>
+
+        Q($.getJSON(jsonURL))
         .<span class="keyword">then</span> (data) -&gt;
           <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
-            editor.vintageReplay(data)
+            Q.all([loader.load(sourceImage), loader.load(finalImage)])
+            .<span class="keyword">then</span> ([imageData, {width, height}]) -&gt;
+              editor.resize(imageData, imageData)
+              editor.resize({width, height})
+              editor.vintageReplay(data)
           <span class="keyword">else</span>
+            <span class="comment"># New replays should handle resizing and intial state themselves</span>
             editor.replay(data)
 
   <span class="string">"ctrl+shift+s"</span>:
