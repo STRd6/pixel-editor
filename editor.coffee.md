@@ -81,6 +81,7 @@ Editor
           outputCanvas.element()
 
         resize: (size, data) ->
+          debugger
           data ?= self.getSnapshot()
 
           pixelExtent(Size(size))
@@ -128,6 +129,9 @@ Editor
 
             steps = data
 
+            editor.canvas.clear()
+            self.repaint()
+
             delay = (5000 / steps.length).clamp(1, 250)
             i = 0
 
@@ -145,17 +149,16 @@ Editor
 
             setTimeout runStep, delay
 
-        replay: (data) ->
-          # TODO: Check for vintage data
-          # TODO: Generate steps from data
+        replay: (steps) ->
           # TODO: May want to prevent adding new commands while replaying!
           unless replaying
             replaying = true
 
             # Copy and clear history
-            steps = self.history()
+            steps ?= self.history()
             self.history([])
 
+            editor.canvas.clear()
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
@@ -187,14 +190,16 @@ Editor
           history: self.history().invoke "toJSON"
 
         withCanvasMods: (cb) ->
-          canvas.context().globalAlpha = self.alpha() / 100
+          canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / 100
 
           try
             Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) ->
               canvas.withTransform transform, (canvas) ->
                 cb(canvas)
+              thumbnailCanvas.withTransform transform, (canvas) ->
+                cb(canvas)
           finally
-            canvas.context().globalAlpha = 1
+            canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = 1
 
         draw: (point, options={}) ->
           {index, color, size} = options
@@ -211,19 +216,8 @@ Editor
                 y: y * size
                 width: size
                 height: size
-              thumbnailCanvas.clear
-                x: x * size
-                y: y * size
-                width: size
-                height: size
             else
               canvas.drawRect
-                x: x * size
-                y: y * size
-                width: size
-                height: size
-                color: color
-              thumbnailCanvas.drawRect
                 x: x * size
                 y: y * size
                 width: size
@@ -447,19 +441,8 @@ Editor
       # Initial resize command so we start off with the right size for replays
       self.execute self.Command.Resize
         size: initialSize
-        previousSize: initialSize
+        sizePrevious: initialSize
         imageData: self.getSnapshot()
-
-      # Decorate `execute` to soak empty last commands
-      # TODO: This seems a little gross
-      do ->
-        oldExecute = self.execute
-        self.execute = (command) ->
-          if self.history().last()?.empty?()
-            lastCommand = command
-            self.undo()
-
-          oldExecute command
 
       # TODO: Extract this decorator pattern
       ["undo", "execute", "redo"].forEach (method) ->

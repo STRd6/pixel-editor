@@ -166,9 +166,10 @@ Actions
           if url
             Q($.getJSON(url))
             .then (data) ->
-              console.log data
-
-              editor.vintageReplay(data)
+              if Array.isArray(data[0])
+                editor.vintageReplay(data)
+              else
+                editor.replay(data)
 
       "ctrl+shift+s":
         name: "Save State"
