@@ -166,7 +166,9 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         <span class="function"><span class="title">runStep</span></span> = -&gt;
           <span class="keyword">if</span> step = steps[i]
-            console.log step
+            step.forEach ({x, y, color}) -&gt;
+              self.draw {x, y}, {color}
+
             i += <span class="number">1</span>
 
             setTimeout runStep, delay
