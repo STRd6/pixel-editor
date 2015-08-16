@@ -164,7 +164,11 @@ Actions
           url = prompt "Replay URL"
 
           if url
-            editor.replay(url)
+            Q($.getJSON(url))
+            .then (data) ->
+              console.log data
+
+              editor.vintageReplay(data)
 
       "ctrl+shift+s":
         name: "Save State"
@@ -188,24 +192,6 @@ Actions
         method: ({editor}) ->
           window.open("./docs")
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC7klEQVQ4T6WTW0hUQRjH/+7q6mpkbLK663ZX28pExDJLKRRKKypZiNouVoTggy+RDxEoCSEp0UNJPkSloYTdoxtYdNE2a7vRmou4mWjppuUF3T3n7Dkz03Rku9JDNPMwM8z8f3zf9/8mBP85Qn7X3+sS52kJszOGnZSxOEoJCGNeSli9pIiNBemx737W/AJodvttYPT4nOlhphDGhYSobzUaDQJ8+/aDb0AmSol9hflSEPIdcKd93MYIrbOadFFjEwI6en3o/eIDoQzGaB2SLVNhmBaBxx2jPkUhhUV5s1WICrjhHJ1LNLQl2RJh9o740ewagik6DGvTzGB8Oj0jeNE9jJXWGFhiotD86lO/oIjZB2wp3SqgqW2obGG8/pAkybjq7IckyijfuijI5ytD9ZUOBBSKvLR48Prg4Zv+8jJ7aoUKqL//sSsjaWpC69vPcH8c5WFT7NtgxeueEURFaLEsMQZtXYO42NqNJMt05CyOQ8Pdbs+RvemJKuDk7R5/bopBf+7Be4wLMmQi81oSrFsyE5nzjQjIFHde9uGJ2wt9uBZFecmoudYu1JRkRaqAo5c7/euXmvRnOWBsYpyLeeY8zKrdGRiZkFDd9BJiQOGJAHqdBsUbU1F1/pVQV5ozCahocHUVZFkSHroG4e4b5vbJoDwN7orqFpEVXgZ+5jNhRgzWLJ2FIw0vPBfK8ydTKD31rCw31XxoSqQOFx+9g08QVGHlnkzwZsL+2gfqORQUW1anYGhYQOM9d/nNyk2TRSw+1jIXGtaya43VPOqTcM3hgSAGkJZgVIXOzgFoqIz8zAUwGiJx+NzTfpGI2a3Htk3a+G1sr2y2UUbrijemRMk8dIfrA3q9w6DcuvjYaCxPtiA0VIuKMw6fTEih44T9RyMFIZsOXrcpjB3fvCrJZJ1tQLhOq14JogKXZwinb70ZkCkteV67489WDkJySs7PI9oQ9TMRhcZ9qwGhxMt7o16SWGN73a6/f6Yg5F/WrzeMbiDawgJJAAAAAElFTkSuQmCC"
-
-      "ctrl+b":
-        name: "To LocalStorage"
-        description: """
-          Save image base64 encodeded dataURL to localStorage.
-        """
-        method: ({editor}) ->
-          # Hacky write to localStorage
-          try
-            images = JSON.parse localStorage.images
-          catch
-            images = {}
-
-          if name = prompt("Store image in local storage", "image_name")
-            images[name] = editor.outputCanvas().toDataURL("image/png")
-            localStorage.images = JSON.stringify images
-
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC0ElEQVQ4T6WSaUhUURTH/29cMlzGbUbScZkKTNDUPqjlAhEkmZCZJYgVSvnBDxGlpEJGJBIpBhUarS6VSQVK0IKDC+rkEqiYjpNbYqONjtu4zDi+92533lTalyg6cPnfc+49v3vuuZfBfxpjzq9sms8nhJzlQGQ8z4PjAdasdMLxBCzVjcGBY2mM57qun/IPEwDljXMzSRGO7v9STH718FpJeoCdAHjYoCPJe8WoHS2nZJaexmKd6jq3blGWKo39XMvdV4i8KjVuZQQyAuCeYoakRDrD3s76r4pYMbLIfjyAssxgC6DsvZacjHFFXdfcHwGuphbIv72AlUMQVnTNYFa/nhYAt99MkbT97gIgJVqKmlYtkqM8fsFetmsR59sOvUqJrZJoiOV7sDCmxOC7+1oBUPJaQ84ckOBt9zxE5oCIAQMChjpm38mgQIhkCA5OoZgbVkPsvgO2jlKoGiqMAqCodoJkHPSAom8BiWES1HbOIIGq2Yy01FWtAs7bY7E29RyGWQbTg6vQr1L0yqS/ACh8NU4yY7ehWbUAS1cs5mBoQ4hzB8Q7j8CoKYPIlr7Isi90HQMonkpFad5xy/arNWPkXJwnPgwt4lCoBPW9OgTZttETlJAGHqXJpRDZsDAtyTHb1gtT+BUUKnhUZkVYAJerR8iFeBk6R/T07gA/WQ9vUTd2xcTDpK0AY2WCcVGG6ZYejO4uhp+PDNeq+/H0UqQFkFulJtkJfuge00Omrwe72AeWkcLNrQ0uUlua7I2Fj2p4J92BjdgL6olFFNb0ozL7ByCrXEVyE+XCv2+8exgnMh9BXX0Rmi9KbPEJBr/MQxJ7A4yz36/+FDz7xD/JibISKjj/oL+VY7kQE0fsPXtSkZOeQd+PQ099LYbHJ9AoK8CsyGuju3Q2rzfUNRXFJmzquWU9KcrFECqXWocH+IG3MSmXJjVpx25+Hv0te5PzHS7ETRuBCPcLAAAAAElFTkSuQmCC"
 
       "ctrl+p":
         name: "Share"
@@ -234,57 +220,3 @@ Actions
                 error: (shr, status, data) ->
                   editor.notify "Error publishing image"
                 complete: ->
-
-      "ctrl+l":
-        description: """
-          New layer
-        """
-        method: ({editor}) ->
-          editor.execute editor.Command.NewLayer()
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB60lEQVQ4T2NkgAAZIBYHYmYoHxf1CijxCIj/wRQwQhnGP3782MvMzMzLyMjIhE33nz9/GGbNmjUpLy+vH9kQmAFmv3//Pv7z508moAFw/SBN//79Y/j16xeDsLAww+vXrxnWrl07KScnB24ISDUImwIVnwQawsDExATWBAIgA/7+/Qs2QEhICEyD5BYvXjwpMzMTZMgDFANAimEApPD///9gQ4AuYxAUFETxGQsLizlQ4DSKASANMC+A2CADQRhkCMh1IENBbDExMQasBqAHHrIhMMNAhvDz8xNnAMhAmCEgjSBDQHwuLi7iDQAZAgsPWBixsbGRZgDI1l1n1zPsv7CV4ePX9wy///xmuH39zsyjC25nogQichiANMHA1hMrGS4838NgrGXCICukyrDvygaGE1cOM9y/86aXoAEgg9In+DP4e7oBEzoTg79mHkPPnlRgmmdiWLFu0w+cBsACEEQH1JsyZEVlM3hpp8BdtenyVIbWGS3gVAhLiSegbIys4FSiyuDj6cAATNgMlW4LGNp3JjBwMLPDXQDSYAJMbQeBmYkDyMbITDO3dDLsvb2IwUrPhkFV0pDh9vPzDMcuHWF4fP8jOAxAQBaIQdkZa04EKdCJFM7m4GcNAWYVLmCS+Pbn+5+FFxa+yQIAB8Ulv4JKPAEAAAAASUVORK5CYII="
-
-      ";":
-        description: """
-          Download localStorage images as json.
-        """
-        method: ({editor}) ->
-          blob = new Blob [localStorage.images],
-            type: "text/plain"
-          saveAs blob, "images.json"
-
-      ".":
-        name: "Download"
-        description: """
-          Download image as base64-encoded byte array.
-        """
-        method: ({editor}) ->
-          {width, height} = size = editor.pixelExtent()
-
-          byteArray = ByteArray(width * height)
-
-          [0...height].forEach (y) ->
-            [0...width].forEach (x) ->
-
-              # TODO: Assumes only one layer
-              {index} = editor.getPixel
-                x: x
-                y: y
-
-              byteArray.set(x + y * width, index)
-
-          blob = new Blob [JSON.stringify(byteArray)],
-            type: "text/plain"
-          saveAs blob, "array.dat"
-
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADh0lEQVQ4T12TbWxTVRjH/+f2dr3t+kbTdVtKGQtmyliNdhKYG5MhOkJ40YkoBjYMZhACiSTG+MGEGL9A9Isx4ktEMJlLdCEGhE1exqo1Q+KAVTokDB3UdW23dV3v1u729px7vMxIFp9vJ8/z/M/v/M/zEPwvDgZ3ruEG8SDhfKWeKgGIyAnPEJCrjNJjx5o6flzYQv47rO1bK/oNFSf1hm2bK9abXOYSZHLFyKkAZQookugd66aMsovTGba9a3vX7IPeeYH2z2uNRctr+lZ6auqbfesgKybkoWJYJijiJqRyGjhVYUYW8XwIA6MDv+cn5cauvZd0Mj0OhHZ/U+uueu0Zbx0USODMDlUt4JZshNFgQizNUShQGBQZlSUziMq9+OnOYM/3bT0byf6+1gZBFC6//USbMUyzUHTJYmYFcm7EskbkCwS3788AmorS8hQ87hE8JXlx+IdPWUGlLxH99lMbvKtaymw+3BEpBF6OSiohFBOhURHDiVkQaQoW718QpAQ0TUFgthREmcNX/WcvkAM/7462V7f4buQSmJAEVBtWYxGj6LzOoSgMjnIO2fUdxrRpnYLDSU2ojJuwvjKAd7s+jj8gyL7p32XpTIQwbsjBb9kAm2pH968aHCVzqFiSw5A2hZF8GCY+A8tEGovTFux5eiv2H39/TidozR3yt5lPRM8hDR8CjhoE+3UPzFZkkzK8ywCrJ4kZ3VA5VtBNHoBTHcG+plfQ/sVhhezr3TW6t6bFG5y4CVVqgJIWEbllQZHNDg4B0xMpKJNZHV+BwyPAWfwn3OQGmmvX4K2vP0ySN87vOLNxyerNRpMdl+KjesEjuBvxoSBYwQ1OFPT/z8spsNkMnA4Gu/gbVixVYOUSPrl4Kkjazmx7nlJ27p2GPeLJ8FkwYgTNv4CplP4MyQPGNOTG/4al9C7s0jBILIodzZtw6MsjXEfcOT9IL3duOr2qfPmWqrJluJa4B014FpNxC7jkAqUc+akYrK4OaON5PFn9GKKJMXQPXgkOHrnZNC+w5Xi9TWPmX+oWr3h8XaARt8dduH9PJyFF+gQK0E2Ar+oKHrUvxeVr/egJXx0uMNY49MFQ4uEy1R+tt5mM+Jaq2nOtDa+LYGXg3AIiELidMpKp6/js/Gmmc4foHH818lEk+XCZFq5n3XuBF6nG2xnV/Fzji/7N8Qw4+UPj2onw0UjHwvp/AEX+mWg8VyxBAAAAAElFTkSuQmCC"
-
-      "ctrl+e":
-        description: """
-          Export palette.
-        """
-        method: ({editor}) ->
-          paletteData = Palette.export editor.palette()
-          blob = new Blob [paletteData],
-            type: "text/plain"
-          saveAs blob, "palette.pal"
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC/UlEQVQ4T4WTW0gUYRTH/98s4+66umYGdjHSXLesyMi18qEg7EHKsB6kIunBHoJuFBj4YNBDBEFBUUmUQS1FpaRlCEEldiEybdcSzLVMLc3bquvsdcaZ+Tq70eXBapgzhxm+8/v+3/+cYfjPdbhobVZ6WsqBOckJBeCaNioFnnweGrtWVe/6EC1l/6o/sWdjWVZa6nH7Ult66nwOcCu8I2H09XqGOvqGTje0N1f9DSBcPFLsXLYoaeeKhUbD7EwNhhQPdMWEqa+l0ONEfOpq1eqaWnfOCDh3cHP1Bkf+3uVzfWCyGxoXIGYbEJzWUT3AYTaYsU0vRFPri0czAmorS4JbwsnxPCCBFcrgphTIYj4GfR14au1A3DRDiboJ7n7PF+Z5uLrdaF2+jDHhlx3vngligV+EHg4hWFyArs4WyWoxipibbT78LQkWTcHtWR64vcOTrLvBEbEVtRgZIzHkU/TRcGovVq1bjwRRx4RPQpurUY8XBBafU8IqxtJgUQO4P9sN99iIn3Xfy/XZil8mKcNV0BQDIFjR3PgWSkCBqEewMicXfp8XokGASYng9aAX6fPSkJpowKN3rjvMczdPsm1/khgZcILrHLo8gfBoL4Kj41BHh//a5TYp403N444dBMhVFm9tFCddlyCP9FCrQjAYkzCv6AwNCcPAx3aYtBDMogmqNg1ZsEB6Wo6K+mB6XdOHfua5mafYd7eQYwrtppMFnJT4oUqvoEd6IctBjA/5ACrmLIRk+zF4a0thP9QW6yDzXHfIWaXP4/TQe5pUH4WfCvsIpNMdIWaYcoC+R4OUZJxHz9WtvwHdlx2RzLImo+ZvBlenaBGFSjtylYJmQAv+gKpSLFvsTvRcKfoDcMERtu17bJqefBArjEUM8hPmp/doMYFIkWXJLfTe2B+hI5hjR+g6u/rb4rKaeGWiJZG0C5xHZVNQ5ppMWSFbKEc94hqMC3bxfudRaUm5a1YM0Hky+wgThDWMs01gPPGff3d00BgUarczu7LzUHTtd5jOkNp6KQ05AAAAAElFTkSuQmCC"

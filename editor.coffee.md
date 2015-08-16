@@ -122,6 +122,27 @@ Editor
           loader.load(dataURL)
           .then self.insertImageData
 
+        vintageReplay: (data) ->
+          unless replaying
+            replaying = true
+
+            steps = data
+
+            delay = (5000 / steps.length).clamp(1, 250)
+            i = 0
+
+            runStep = ->
+              if step = steps[i]
+                console.log step
+                i += 1
+
+                setTimeout runStep, delay
+              else
+                # Replay will be done and history will have been automatically rebuilt
+                replaying = false
+
+            setTimeout runStep, delay
+
         replay: (data) ->
           # TODO: Check for vintage data
           # TODO: Generate steps from data
