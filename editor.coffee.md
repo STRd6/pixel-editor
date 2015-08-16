@@ -128,6 +128,9 @@ Editor
 
             steps = data
 
+            # It's pretty funny if we don't reset the symmetry mode ^_^
+            self.symmetryMode "normal"
+
             self.history([])
             editor.canvas.clear()
             self.repaint()
