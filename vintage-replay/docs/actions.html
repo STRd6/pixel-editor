@@ -199,9 +199,10 @@ Actions.defaults =
       <span class="keyword">if</span> url
         Q($.getJSON(url))
         .<span class="keyword">then</span> (data) -&gt;
-          console.log data
-
-          editor.vintageReplay(data)
+          <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
+            editor.vintageReplay(data)
+          <span class="keyword">else</span>
+            editor.replay(data)
 
   <span class="string">"ctrl+shift+s"</span>:
     name: <span class="string">"Save State"</span>

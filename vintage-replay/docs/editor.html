@@ -114,6 +114,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       outputCanvas.element()
 
     resize: (size, data) -&gt;
+      <span class="keyword">debugger</span>
       data ?= self.getSnapshot()
 
       pixelExtent(Size(size))
@@ -161,6 +162,9 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         steps = data
 
+        editor.canvas.clear()
+        self.repaint()
+
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
         i = <span class="number">0</span>
 
@@ -178,17 +182,16 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         setTimeout runStep, delay
 
-    replay: (data) -&gt;
-      <span class="comment"># TODO: Check for vintage data</span>
-      <span class="comment"># TODO: Generate steps from data</span>
+    replay: (steps) -&gt;
       <span class="comment"># TODO: May want to prevent adding new commands while replaying!</span>
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
 
         <span class="comment"># Copy and clear history</span>
-        steps = self.history()
+        steps ?= self.history()
         self.history([])
 
+        editor.canvas.clear()
         self.repaint()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
@@ -220,14 +223,16 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       history: self.history().invoke <span class="string">"toJSON"</span>
 
     withCanvasMods: (cb) -&gt;
-      canvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
+      canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
 
       <span class="keyword">try</span>
         Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) -&gt;
           canvas.withTransform transform, (canvas) -&gt;
             cb(canvas)
+          thumbnailCanvas.withTransform transform, (canvas) -&gt;
+            cb(canvas)
       <span class="keyword">finally</span>
-        canvas.context().globalAlpha = <span class="number">1</span>
+        canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = <span class="number">1</span>
 
     draw: (point, options={}) -&gt;
       {index, color, size} = options
@@ -244,19 +249,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
             y: y * size
             width: size
             height: size
-          thumbnailCanvas.clear
-            x: x * size
-            y: y * size
-            width: size
-            height: size
         <span class="keyword">else</span>
           canvas.drawRect
-            x: x * size
-            y: y * size
-            width: size
-            height: size
-            color: color
-          thumbnailCanvas.drawRect
             x: x * size
             y: y * size
             width: size
@@ -480,19 +474,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   <span class="comment"># Initial resize command so we start off with the right size for replays</span>
   self.execute self.Command.Resize
     size: initialSize
-    previousSize: initialSize
+    sizePrevious: initialSize
     imageData: self.getSnapshot()
-
-  <span class="comment"># Decorate `execute` to soak empty last commands</span>
-  <span class="comment"># TODO: This seems a little gross</span>
-  <span class="keyword">do</span> -&gt;
-    oldExecute = self.execute
-    self.<span class="function"><span class="title">execute</span></span> = (command) -&gt;
-      <span class="keyword">if</span> self.history().last()?.empty?()
-        lastCommand = command
-        self.undo()
-
-      oldExecute command
 
   <span class="comment"># TODO: Extract this decorator pattern</span>
   [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;
