@@ -7,6 +7,9 @@ Command
 Commands that can be done/undone in the editor.
 
     module.exports = (I={}, self) ->
+      self.imageDataToJSON = imageDataToJSON
+      self.imageDataFromJSON = imageDataFromJSON
+
       self.Command = {}
 
 This is a weird DSL for each command to inherit a toJSON method and to register

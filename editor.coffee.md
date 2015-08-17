@@ -47,7 +47,7 @@ Editor
       lastCommand = null
 
       replaying = false
-      initialSize = pixelExtent()
+      initialState = null
 
       self ?= Model(I)
 
@@ -178,24 +178,35 @@ Editor
 
             setTimeout runStep, delay
 
-        restoreState: (state) ->
+        restoreState: (state, performReplay=false) ->
           self.palette state.palette.map Observable
 
-          commands = state.history.map self.Command.parse
-          commands.forEach (command) -> command.execute()
-          self.history commands
+          initialState = self.imageDataFromJSON(state.initialState)
+          self.restoreInitialState()
 
-          self.repaint()
+          commands = state.history.map self.Command.parse
+
+          if performReplay
+            self.replay commands
+          else
+            commands.forEach (command) -> command.execute()
+            self.history commands
+
+            self.repaint()
 
         saveState: ->
-          # TODO: Need to add our initial state to the json
-          self.Command.Resize
-            size: initialSize
-            sizePrevious: initialSize
-            imageData: self.getSnapshot()
-        
+          version: "1"
           palette: self.palette().map (o) -> o()
           history: self.history().invoke "toJSON"
+          initialState: self.imageDataToJSON initialState
+
+        setInitialState: (imageData) ->
+          initialState = imageData
+
+        restoreInitialState: ->
+          # Become the image with no history
+          self.resize initialState, initialState
+          self.history([])
 
         withCanvasMods: (cb) ->
           canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / 100
@@ -458,5 +469,7 @@ Editor
       self.include require "./dirty"
 
       # self.include require("./plugins/save_to_s3")
+
+      initialState = self.getSnapshot()
 
       return self
