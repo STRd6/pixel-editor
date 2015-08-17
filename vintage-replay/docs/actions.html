@@ -212,8 +212,18 @@ Actions.defaults =
               editor.resize({width, height})
               editor.vintageReplay(data)
           <span class="keyword">else</span>
-            <span class="comment"># New replays should handle resizing and intial state themselves</span>
-            editor.replay(data)
+            editor.restoreState data, <span class="literal">true</span>
+
+  <span class="string">"f7"</span>:
+    name: <span class="string">"Load local"</span>
+    description: <span class="string">"Load local file as replay"</span>
+    method: ({editor}) -&gt;
+      Modal.show FileReading.readerInput
+        accept: <span class="string">"application/json"</span>
+        json: (data) -&gt;
+          editor.restoreState data, <span class="literal">true</span>
+        chose: -&gt;
+          Modal.hide()
 
   <span class="string">"ctrl+shift+s"</span>:
     name: <span class="string">"Save State"</span>

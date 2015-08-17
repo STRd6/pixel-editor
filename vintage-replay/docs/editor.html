@@ -80,7 +80,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   lastCommand = <span class="literal">null</span>
 
   replaying = <span class="literal">false</span>
-  initialSize = pixelExtent()
+  initialState = <span class="literal">null</span>
 
   self ?= Model(I)
 
@@ -211,24 +211,35 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         setTimeout runStep, delay
 
-    restoreState: (state) -&gt;
+    restoreState: (state, performReplay=<span class="literal">false</span>) -&gt;
       self.palette state.palette.map Observable
 
-      commands = state.history.map self.Command.parse
-      commands.forEach (command) -&gt; command.execute()
-      self.history commands
+      initialState = self.imageDataFromJSON(state.initialState)
+      self.restoreInitialState()
 
-      self.repaint()
+      commands = state.history.map self.Command.parse
+
+      <span class="keyword">if</span> performReplay
+        self.replay commands
+      <span class="keyword">else</span>
+        commands.forEach (command) -&gt; command.execute()
+        self.history commands
+
+        self.repaint()
 
     saveState: -&gt;
-      <span class="comment"># TODO: Need to add our initial state to the json</span>
-      self.Command.Resize
-        size: initialSize
-        sizePrevious: initialSize
-        imageData: self.getSnapshot()
-
+      version: <span class="string">"1"</span>
       palette: self.palette().map (o) -&gt; o()
       history: self.history().invoke <span class="string">"toJSON"</span>
+      initialState: self.imageDataToJSON initialState
+
+    setInitialState: (imageData) -&gt;
+      initialState = imageData
+
+    restoreInitialState: -&gt;
+      <span class="comment"># Become the image with no history</span>
+      self.resize initialState, initialState
+      self.history([])
 
     withCanvasMods: (cb) -&gt;
       canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
@@ -491,6 +502,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self.include require <span class="string">"./dirty"</span>
 
   <span class="comment"># self.include require("./plugins/save_to_s3")</span>
+
+  initialState = self.getSnapshot()
 
   <span class="keyword">return</span> self</code></pre>
 </div>
