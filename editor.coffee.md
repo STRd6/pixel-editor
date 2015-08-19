@@ -223,6 +223,7 @@ Editor
           initialState: self.imageDataToJSON initialState
 
         setInitialState: (imageData) ->
+          console.log "Set Initial", imageData
           initialState = imageData
 
         restoreInitialState: ->
