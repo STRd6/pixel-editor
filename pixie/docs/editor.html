@@ -214,15 +214,23 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         Q($.getJSON(jsonURL))
         .<span class="keyword">then</span> (data) -&gt;
           <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
-            Q.all([loader.load(sourceImage), loader.load(finalImage)])
-            .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
-              {width, height} = finalImageData
+            <span class="keyword">if</span> sourceImage
+              Q.all([loader.load(sourceImage), loader.load(finalImage)])
+              .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
+                {width, height} = finalImageData
 
-              editor.setInitialState imageData
-              editor.restoreInitialState()
-              editor.resize({width, height})
-              editor.vintageReplay(data)
-              editor.setInitialState finalImageData
+                editor.setInitialState imageData
+                editor.restoreInitialState()
+                editor.resize({width, height})
+                editor.vintageReplay(data)
+                editor.setInitialState finalImageData
+            <span class="keyword">else</span>
+              loader.load(finalImage)
+              .<span class="keyword">then</span> (finalImageData) -&gt;
+                {width, height} = finalImageData
+                editor.resize({width, height})
+                editor.vintageReplay(data)
+                editor.setInitialState finalImageData
           <span class="keyword">else</span>
             editor.restoreState data, <span class="literal">true</span>
       <span class="keyword">else</span>
