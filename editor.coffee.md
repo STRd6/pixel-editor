@@ -34,8 +34,8 @@ Editor
 
       activeIndex = Observable 1
 
-      pixelExtent = Observable Size(128, 128)
-      pixelSize = Observable 4
+      pixelExtent = Observable Size(64, 64)
+      pixelSize = Observable 8
       viewSize = Observable ->
         pixelExtent().scale pixelSize()
 
