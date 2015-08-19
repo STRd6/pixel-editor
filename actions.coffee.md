@@ -201,42 +201,6 @@ Actions
 
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"
 
-      "f6":
-        name: "Load Replay"
-        description: """
-          Load a replay from a remote URL.
-        """
-        method: ({editor}) ->
-          id = prompt "Replay URL", "130095"
-
-          if id
-            sourceImage = "http://0.pixiecdn.com/sprites/130084/original.png?-_-"
-            jsonURL = "http://3.pixiecdn.com/sprites/#{id}/replay.json"
-            finalImage = "http://0.pixiecdn.com/sprites/#{id}/original.png?-_-"
-
-            Q($.getJSON(jsonURL))
-            .then (data) ->
-              if Array.isArray(data[0])
-                Q.all([loader.load(sourceImage), loader.load(finalImage)])
-                .then ([imageData, {width, height}]) ->
-                  editor.setInitialState imageData
-                  editor.restoreInitialState()
-                  editor.resize({width, height})
-                  editor.vintageReplay(data)
-              else
-                editor.restoreState data, true
-      
-      "f7":
-        name: "Load local"
-        description: "Load local file as replay"
-        method: ({editor}) ->
-          Modal.show FileReading.readerInput
-            accept: "application/json"
-            json: (data) ->
-              editor.restoreState data, true
-            chose: ->
-              Modal.hide()
-
       "ctrl+p":
         name: "Share"
         description: """
