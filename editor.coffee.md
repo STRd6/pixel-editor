@@ -132,7 +132,6 @@ Editor
             self.symmetryMode "normal"
 
             self.history([])
-            editor.canvas.clear()
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
