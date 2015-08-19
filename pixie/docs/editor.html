@@ -212,17 +212,26 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         setTimeout runStep, delay
 
     loadReplayFromURL: (jsonURL, sourceImage, finalImage) -&gt;
-      Q($.getJSON(jsonURL))
-      .<span class="keyword">then</span> (data) -&gt;
-        <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
-          Q.all([loader.load(sourceImage), loader.load(finalImage)])
-          .<span class="keyword">then</span> ([imageData, {width, height}]) -&gt;
-            editor.setInitialState imageData
-            editor.restoreInitialState()
-            editor.resize({width, height})
-            editor.vintageReplay(data)
-        <span class="keyword">else</span>
-          editor.restoreState data, <span class="literal">true</span>
+      <span class="keyword">if</span> jsonURL?
+        Q($.getJSON(jsonURL))
+        .<span class="keyword">then</span> (data) -&gt;
+          <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
+            Q.all([loader.load(sourceImage), loader.load(finalImage)])
+            .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
+              {width, height} = finalImageData
+
+              editor.setInitialState imageData
+              editor.restoreInitialState()
+              editor.resize({width, height})
+              editor.vintageReplay(data)
+              editor.setInitialState finalImageData
+          <span class="keyword">else</span>
+            editor.restoreState data, <span class="literal">true</span>
+      <span class="keyword">else</span>
+        loader.load(finalImage)
+        .<span class="keyword">then</span> (imageData) -&gt;
+          editor.setInitialState imageData
+          editor.restoreInitialState()
 
     restoreState: (state, performReplay=<span class="literal">false</span>) -&gt;
       self.palette state.palette.map Observable
