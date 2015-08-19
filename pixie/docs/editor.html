@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>editor</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="editor">Editor</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">LITTLE_ENDIAN = require <span class="string">"./endianness"</span>
+
+require <span class="string">"cornerstone"</span>
+
+loader = require(<span class="string">"./loader"</span>)()
+
+TouchCanvas = require <span class="string">"touch-canvas"</span>
+GridGen = require <span class="string">"grid-gen"</span>
+
+Actions = require <span class="string">"./actions"</span>
+Command = require <span class="string">"./command"</span>
+Drop = require <span class="string">"./drop"</span>
+Eval = require <span class="string">"eval"</span>
+Notifications = require <span class="string">"./notifications"</span>
+Postmaster = require <span class="string">"postmaster"</span>
+Tools = require <span class="string">"./tools"</span>
+Undo = require <span class="string">"undo"</span>
+
+Palette = require(<span class="string">"./palette"</span>)
+
+template = require <span class="string">"./templates/editor"</span>
+debugTemplate = require <span class="string">"./templates/debug"</span>
+
+{rgb2Hex} = require <span class="string">"./util"</span>
+
+Symmetry = require <span class="string">"./symmetry"</span>
+
+module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
+  defaults I,
+    selector: <span class="string">"body"</span>
+
+  activeIndex = Observable <span class="number">1</span>
+
+  pixelExtent = Observable Size(<span class="number">128</span>, <span class="number">128</span>)
+  pixelSize = Observable <span class="number">4</span>
+  viewSize = Observable -&gt;
+    pixelExtent().scale pixelSize()
+
+  positionDisplay = Observable(<span class="string">""</span>)
+
+  symmetryMode = Observable(<span class="string">"normal"</span>)
+
+  canvas = <span class="literal">null</span>
+  lastCommand = <span class="literal">null</span>
+
+  replaying = <span class="literal">false</span>
+  initialState = <span class="literal">null</span>
+
+  self ?= Model(I)
+
+  self.include Actions
+  self.include Bindable
+  self.include Command
+  self.include Drop
+  self.include Eval
+  self.include Notifications
+  self.include Postmaster
+  self.include Undo
+  self.include Tools
+
+  activeTool = self.activeTool
+
+  self.extend
+    alpha: Observable <span class="number">100</span>
+    activeIndex: activeIndex
+
+    pixelSize: pixelSize
+    pixelExtent: pixelExtent
+    positionDisplay: positionDisplay
+
+    grid: Observable <span class="literal">false</span>
+
+    symmetryMode: symmetryMode
+
+    outputCanvas: () -&gt;
+      outputCanvas = TouchCanvas pixelExtent()
+      outputCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
+      outputCanvas.element()
+
+    resize: (size, data) -&gt;
+      data ?= self.getSnapshot()
+
+      pixelExtent(Size(size))
+      {width, height} = pixelExtent()
+
+      canvasElement = canvas.element()
+      thumbnailCanvasElement = thumbnailCanvas.element()
+
+      thumbnailCanvasElement.width = canvasElement.width = width
+      thumbnailCanvasElement.height = canvasElement.height = height
+
+      self.putImageData(data)
+
+      self.repaint()
+
+    repaint: -&gt;
+      {width, height} = pixelExtent()
+      thumbnailCanvas.clear()
+      thumbnailCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
+
+      <span class="keyword">return</span> self
+
+    getSnapshot: -&gt;
+      size = pixelExtent()
+      canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height)
+
+    insertImageData: (imageData) -&gt;
+      size = pixelExtent()
+
+      self.execute self.Command.Resize
+        size:
+          width: imageData.width
+          height: imageData.height
+        sizePrevious: size
+        imageData: imageData
+        imageDataPrevious: editor.getSnapshot()
+
+    fromDataURL: (dataURL) -&gt;
+      loader.load(dataURL)
+      .<span class="keyword">then</span> self.insertImageData
+
+    vintageReplay: (data) -&gt;
+      <span class="keyword">unless</span> replaying
+        replaying = <span class="literal">true</span>
+
+        steps = data
+
+        <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
+        self.symmetryMode <span class="string">"normal"</span>
+
+        self.history([])
+        editor.canvas.clear()
+        self.repaint()
+
+        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+        i = <span class="number">0</span>
+
+        <span class="function"><span class="title">runStep</span></span> = -&gt;
+          <span class="keyword">if</span> step = steps[i]
+            step.forEach ({x, y, color}) -&gt;
+              self.draw {x, y}, {color}
+
+            i += <span class="number">1</span>
+
+            setTimeout runStep, delay
+          <span class="keyword">else</span>
+            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
+            replaying = <span class="literal">false</span>
+
+        setTimeout runStep, delay
+
+    replay: (steps) -&gt;
+      <span class="keyword">unless</span> replaying
+        replaying = <span class="literal">true</span>
+
+        <span class="comment"># Copy and clear history</span>
+        steps ?= self.history()
+        self.history([])
+
+        editor.canvas.clear()
+        self.repaint()
+
+        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+        i = <span class="number">0</span>
+
+        <span class="function"><span class="title">runStep</span></span> = -&gt;
+          <span class="keyword">if</span> step = steps[i]
+            self.execute step
+            i += <span class="number">1</span>
+
+            setTimeout runStep, delay
+          <span class="keyword">else</span>
+            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
+            replaying = <span class="literal">false</span>
+
+        setTimeout runStep, delay
+
+    restoreState: (state, performReplay=<span class="literal">false</span>) -&gt;
+      self.palette state.palette.map Observable
+
+      initialState = self.imageDataFromJSON(state.initialState)
+      self.restoreInitialState()
+
+      commands = state.history.map self.Command.parse
+
+      <span class="keyword">if</span> performReplay
+        self.replay commands
+      <span class="keyword">else</span>
+        commands.forEach (command) -&gt; command.execute()
+        self.history commands
+
+        self.repaint()
+
+    saveState: -&gt;
+      version: <span class="string">"1"</span>
+      palette: self.palette().map (o) -&gt; o()
+      history: self.history().invoke <span class="string">"toJSON"</span>
+      initialState: self.imageDataToJSON initialState
+
+    setInitialState: (imageData) -&gt;
+      initialState = imageData
+
+    restoreInitialState: -&gt;
+      <span class="comment"># Become the image with no history</span>
+      self.resize initialState, initialState
+      self.history([])
+
+    withCanvasMods: (cb) -&gt;
+      canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
+
+      <span class="keyword">try</span>
+        Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) -&gt;
+          canvas.withTransform transform, (canvas) -&gt;
+            cb(canvas)
+          thumbnailCanvas.withTransform transform, (canvas) -&gt;
+            cb(canvas)
+      <span class="keyword">finally</span>
+        canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = <span class="number">1</span>
+
+    draw: (point, options={}) -&gt;
+      {index, color, size} = options
+      index ?= activeIndex()
+      color ?= self.color(index)
+      size ?= <span class="number">1</span>
+
+      {x, y} = point
+
+      self.withCanvasMods (canvas) -&gt;
+        <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+          canvas.clear
+            x: x * size
+            y: y * size
+            width: size
+            height: size
+        <span class="keyword">else</span>
+          canvas.drawRect
+            x: x * size
+            y: y * size
+            width: size
+            height: size
+            color: color
+
+    color: (index) -&gt;
+      self.palette()[index]()
+
+    setColor: (color) -&gt;
+      colors =  self.palette().map (o) -&gt; o().toLowerCase()
+      index = colors.indexOf(color.toLowerCase())
+
+      <span class="keyword">if</span> index != -<span class="number">1</span>
+        activeIndex(index)
+      <span class="keyword">else</span>
+        self.palette.push Observable(color)
+        self.activeIndex self.palette().length - <span class="number">1</span>
+
+    getColor: (position) -&gt;
+      {x, y} = position
+      data = canvas.context().getImageData(x, y, <span class="number">1</span>, <span class="number">1</span>).data
+
+      rgb2Hex data[<span class="number">0</span>], data[<span class="number">1</span>], data[<span class="number">2</span>]
+
+    colorAsInt: -&gt;
+      color = self.color self.activeIndex()
+
+      color = color.substring(color.indexOf(<span class="string">"#"</span>) + <span class="number">1</span>)
+
+      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+        <span class="number">0</span>
+      <span class="keyword">else</span>
+        <span class="keyword">if</span> LITTLE_ENDIAN
+          parseInt(<span class="string">"ff<span class="subst">#{color[<span class="number">4.</span><span class="number">.5</span>]}</span><span class="subst">#{color[<span class="number">2.</span><span class="number">.3</span>]}</span><span class="subst">#{color[<span class="number">0.</span><span class="number">.1</span>]}</span>"</span>, <span class="number">16</span>)
+        <span class="keyword">else</span>
+          parseInt(<span class="string">"<span class="subst">#{color}</span>ff"</span>)
+
+    palette: Observable(Palette.dawnBringer32.map Observable)
+
+    putImageData: (imageData, x=<span class="number">0</span>, y=<span class="number">0</span>) -&gt;
+      canvas.context().putImageData(imageData, x, y)
+
+    selection: (rectangle) -&gt;
+      each: (iterator) -&gt;
+        rectangle.each (x, y) -&gt;
+          index = self.getIndex(x, y)
+          iterator(index, x, y)
+
+    thumbnailClick: (e) -&gt;
+      $(e.currentTarget).toggleClass(<span class="string">"right"</span>)
+
+  self.activeColor = Observable -&gt;
+    self.color(self.activeIndex())
+
+  self.activeColorStyle = Observable -&gt;
+    <span class="string">"background-color: <span class="subst">#{self.activeColor()}</span>"</span>
+
+  $selector = $(I.selector)
+  $(I.selector).append template self
+
+  self.canvas = canvas = TouchCanvas pixelExtent()
+  self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
+  thumbnailCanvas = TouchCanvas pixelExtent()
+
+  <span class="keyword">do</span> (ctx=self.canvas.context()) -&gt;
+    ctx.imageSmoothingEnabled = <span class="literal">false</span>
+    ctx.webkitImageSmoothingEnabled = <span class="literal">false</span>
+    ctx.mozImageSmoothingEnabled = <span class="literal">false</span>
+
+  $selector.find(<span class="string">".viewport"</span>)
+  .append(canvas.element())
+  .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
+  .css
+    backgroundImage: <span class="string">"url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"</span>
+
+  $selector.find(<span class="string">".thumbnail"</span>).append thumbnailCanvas.element()
+
+  self.TRANSPARENT_FILL = require(<span class="string">"./lib/checker"</span>)().pattern()
+
+  updateViewportCentering = (-&gt;
+    size = viewSize()
+    $selector.find(<span class="string">".viewport"</span>).toggleClass <span class="string">"vertical-center"</span>, size.height &lt; $selector.find(<span class="string">".main"</span>).height()
+  ).debounce(<span class="number">15</span>)
+  $(window).resize updateViewportCentering
+
+  <span class="function"><span class="title">updateViewSize</span></span> = (size) -&gt;
+    $selector.find(<span class="string">".viewport, .overlay"</span>).css
+      width: size.width
+      height: size.height
+
+    <span class="comment"># TODO: Should be bound directly to the template's overlay backgrond image attribute</span>
+    <span class="keyword">if</span> self.grid()
+      gridImage = GridGen(
+        <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
+      ).backgroundImage()
+
+      $selector.find(<span class="string">".overlay"</span>).css
+        backgroundImage: gridImage
+    <span class="keyword">else</span>
+      $selector.find(<span class="string">".overlay"</span>).css
+        backgroundImage: <span class="string">"none"</span>
+
+    updateViewportCentering()
+
+  <span class="comment"># TODO: Use auto-dependencies</span>
+  updateViewSize(viewSize())
+  viewSize.observe updateViewSize
+  self.grid.observe -&gt;
+    updateViewSize viewSize()
+
+  <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
+    Point(position).scale(pixelExtent()).floor()
+
+  snapshot = <span class="literal">null</span>
+
+  self.<span class="function"><span class="title">restore</span></span> = -&gt;
+    <span class="keyword">if</span> snapshot
+      self.putImageData(snapshot)
+      self.repaint()
+
+  previewCanvas.<span class="literal">on</span> <span class="string">"touch"</span>, (position) -&gt;
+    <span class="comment"># Snapshot canvas</span>
+    snapshot = self.getSnapshot()
+
+    activeTool().touch
+      position: canvasPosition position
+      editor: self
+
+  previewCanvas.<span class="literal">on</span> <span class="string">"move"</span>, (position) -&gt;
+    activeTool().move
+      position: canvasPosition position
+      editor: self
+
+  previewCanvas.<span class="literal">on</span> <span class="string">"release"</span>, (position) -&gt;
+    activeTool().release
+      position: canvasPosition position
+      editor: self
+
+    size = pixelExtent()
+    diffSnapshot(snapshot, canvas.context().getImageData(<span class="number">0</span>, <span class="number">0</span>, size.width, size.height))
+
+    self.trigger <span class="string">"release"</span>
+
+  <span class="function"><span class="title">compareImageData</span></span> = (previous, current) -&gt;
+    <span class="keyword">return</span> <span class="keyword">unless</span> previous <span class="keyword">and</span> current
+    xMin = Infinity
+    xMax = -Infinity
+    yMin = Infinity
+    yMax = -Infinity
+
+    previousData = <span class="keyword">new</span> Uint32Array(previous.data.buffer)
+    currentData = <span class="keyword">new</span> Uint32Array(current.data.buffer)
+    length = currentData.length
+    width = current.width
+
+    i = <span class="number">0</span>
+
+    <span class="keyword">while</span> i &lt; length
+      x = i % width
+      y = (i / width)|<span class="number">0</span>
+      <span class="keyword">if</span> previousData[i] != currentData[i]
+        xMin = x <span class="keyword">if</span> x &lt; xMin
+        xMax = x <span class="keyword">if</span> x &gt; xMax
+        yMin = y <span class="keyword">if</span> y &lt; yMin
+        yMax = y <span class="keyword">if</span> y &gt; yMax
+
+      i += <span class="number">1</span>
+
+    <span class="keyword">if</span> xMin != Infinity
+      <span class="keyword">return</span> [xMin, yMin, xMax - xMin + <span class="number">1</span>, yMax - yMin + <span class="number">1</span>]
+    <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="literal">null</span>
+
+  <span class="function"><span class="title">diffSnapshot</span></span> = (previous, current) -&gt;
+    region = compareImageData(previous, current)
+
+    <span class="keyword">if</span> region
+      [x, y, width, height] = region
+
+      spareCanvas = document.createElement(<span class="string">"canvas"</span>)
+      spareCanvas.width = width
+      spareCanvas.height = height
+      spareContext = spareCanvas.getContext(<span class="string">"2d"</span>)
+
+      spareContext.putImageData(previous, -x, -y)
+      previous = spareContext.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
+
+      spareContext.putImageData(current, -x, -y)
+      current = spareContext.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height)
+
+      self.execute self.Command.PutImageData
+        imageData: current
+        imageDataPrevious: previous
+        x: x
+        y: y
+
+  $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
+    {left, top} = currentTarget.getBoundingClientRect()
+    {x, y} = Point(pageX - left, pageY - top).scale(<span class="number">1</span>/pixelSize()).floor()
+
+    positionDisplay(<span class="string">"<span class="subst">#{x}</span>,<span class="subst">#{y}</span>"</span>)
+
+  <span class="comment"># TODO: Move this into template?</span>
+  $viewport = $selector.find(<span class="string">".viewport"</span>)
+
+  <span class="function"><span class="title">setCursor</span></span> = ({iconUrl, iconOffset}) -&gt;
+    {x, y} = Point(iconOffset)
+
+    $viewport.css
+      cursor: <span class="string">"url(<span class="subst">#{iconUrl}</span>) <span class="subst">#{x}</span> <span class="subst">#{y}</span>, default"</span>
+  self.activeTool.observe setCursor
+  setCursor self.activeTool()
+
+  self.<span class="literal">on</span> <span class="string">"release"</span>, -&gt;
+    previewCanvas.clear()
+
+    <span class="comment"># TODO: Think more about triggering change events</span>
+    self.trigger <span class="string">"change"</span>
+
+  <span class="comment"># TODO: Extract this decorator pattern</span>
+  [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;
+    oldMethod = self[method]
+
+    self[method] = -&gt;
+      oldMethod.apply(self, arguments)
+      self.repaint()
+      self.trigger <span class="string">"change"</span>
+
+  self.include require <span class="string">"./dirty"</span>
+
+  <span class="comment"># self.include require("./plugins/save_to_s3")</span>
+
+  initialState = self.getSnapshot()
+
+  <span class="keyword">return</span> self</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
+</script><script src="package.js"></script>
+</body>
+</html>

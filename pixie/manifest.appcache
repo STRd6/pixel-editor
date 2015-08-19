@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1439952130661
+
+CACHE:
+index.html
+../pixie.json.js
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
