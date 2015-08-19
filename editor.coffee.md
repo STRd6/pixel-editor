@@ -179,17 +179,26 @@ Editor
             setTimeout runStep, delay
 
         loadReplayFromURL: (jsonURL, sourceImage, finalImage) ->
-          Q($.getJSON(jsonURL))
-          .then (data) ->
-            if Array.isArray(data[0])
-              Q.all([loader.load(sourceImage), loader.load(finalImage)])
-              .then ([imageData, {width, height}]) ->
-                editor.setInitialState imageData
-                editor.restoreInitialState()
-                editor.resize({width, height})
-                editor.vintageReplay(data)
-            else
-              editor.restoreState data, true
+          if jsonURL?
+            Q($.getJSON(jsonURL))
+            .then (data) ->
+              if Array.isArray(data[0])
+                Q.all([loader.load(sourceImage), loader.load(finalImage)])
+                .then ([imageData, finalImageData]) ->
+                  {width, height} = finalImageData
+
+                  editor.setInitialState imageData
+                  editor.restoreInitialState()
+                  editor.resize({width, height})
+                  editor.vintageReplay(data)
+                  editor.setInitialState finalImageData
+              else
+                editor.restoreState data, true
+          else
+            loader.load(finalImage)
+            .then (imageData) ->
+              editor.setInitialState imageData
+              editor.restoreInitialState()
 
         restoreState: (state, performReplay=false) ->
           self.palette state.palette.map Observable
