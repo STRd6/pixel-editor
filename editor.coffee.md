@@ -181,15 +181,23 @@ Editor
             Q($.getJSON(jsonURL))
             .then (data) ->
               if Array.isArray(data[0])
-                Q.all([loader.load(sourceImage), loader.load(finalImage)])
-                .then ([imageData, finalImageData]) ->
-                  {width, height} = finalImageData
-
-                  editor.setInitialState imageData
-                  editor.restoreInitialState()
-                  editor.resize({width, height})
-                  editor.vintageReplay(data)
-                  editor.setInitialState finalImageData
+                if sourceImage
+                  Q.all([loader.load(sourceImage), loader.load(finalImage)])
+                  .then ([imageData, finalImageData]) ->
+                    {width, height} = finalImageData
+  
+                    editor.setInitialState imageData
+                    editor.restoreInitialState()
+                    editor.resize({width, height})
+                    editor.vintageReplay(data)
+                    editor.setInitialState finalImageData
+                else
+                  loader.load(finalImage)
+                  .then (finalImageData) ->
+                    {width, height} = finalImageData
+                    editor.resize({width, height})
+                    editor.vintageReplay(data)
+                    editor.setInitialState finalImageData
               else
                 editor.restoreState data, true
           else
