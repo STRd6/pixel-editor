@@ -131,7 +131,6 @@ Editor
             # It's pretty funny if we don't reset the symmetry mode ^_^
             self.symmetryMode "normal"
 
-            self.history([])
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
