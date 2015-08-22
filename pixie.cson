@@ -10,7 +10,7 @@ dependencies:
   "grid-gen": "distri/grid-gen:v0.2.0"
   "hotkeys": "distri/hotkeys:v0.2.0"
   "jquery-utils": "distri/jquery-utils:v0.2.0"
-  postmaster: "distri/postmaster:v0.2.0"
+  postmaster: "distri/postmaster:v0.2.3"
   runtime: "distri/runtime:v0.3.0"
   "touch-canvas": "distri/touch-canvas:v0.3.1"
   "undo": "distri/undo:v0.2.0"

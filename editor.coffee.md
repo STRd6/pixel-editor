@@ -34,8 +34,8 @@ Editor
 
       activeIndex = Observable 1
 
-      pixelExtent = Observable Size(128, 128)
-      pixelSize = Observable 4
+      pixelExtent = Observable Size(64, 64)
+      pixelSize = Observable 8
       viewSize = Observable ->
         pixelExtent().scale pixelSize()
 
@@ -47,7 +47,7 @@ Editor
       lastCommand = null
 
       replaying = false
-      initialSize = pixelExtent()
+      initialState = null
 
       self ?= Model(I)
 
@@ -62,22 +62,6 @@ Editor
       self.include Tools
 
       activeTool = self.activeTool
-
-      drawPixel = (canvas, x, y, color, size=1) ->
-        self.withCanvasMods (canvas) ->
-          if color is "transparent"
-            canvas.clear
-              x: x * size
-              y: y * size
-              width: size
-              height: size
-          else
-            canvas.drawRect
-              x: x * size
-              y: y * size
-              width: size
-              height: size
-              color: color
 
       self.extend
         alpha: Observable 100
@@ -138,15 +122,43 @@ Editor
           loader.load(dataURL)
           .then self.insertImageData
 
-        replay: ->
-          # TODO: May want to prevent adding new commands while replaying!
+        vintageReplay: (data) ->
+          unless replaying
+            replaying = true
+
+            steps = data
+
+            # It's pretty funny if we don't reset the symmetry mode ^_^
+            self.symmetryMode "normal"
+
+            self.repaint()
+
+            delay = (5000 / steps.length).clamp(1, 250)
+            i = 0
+
+            runStep = ->
+              if step = steps[i]
+                step.forEach ({x, y, color}) ->
+                  self.draw {x, y}, {color}
+
+                i += 1
+
+                setTimeout runStep, delay
+              else
+                # Replay will be done and history will have been automatically rebuilt
+                replaying = false
+
+            setTimeout runStep, delay
+
+        replay: (steps) ->
           unless replaying
             replaying = true
 
             # Copy and clear history
-            steps = self.history()
+            steps ?= self.history()
             self.history([])
 
+            editor.canvas.clear()
             self.repaint()
 
             delay = (5000 / steps.length).clamp(1, 250)
@@ -164,37 +176,100 @@ Editor
 
             setTimeout runStep, delay
 
-        restoreState: (state) ->
+        loadReplayFromURL: (jsonURL, sourceImage, finalImage) ->
+          if jsonURL?
+            Q($.getJSON(jsonURL))
+            .then (data) ->
+              if Array.isArray(data[0])
+                if sourceImage
+                  Q.all([loader.load(sourceImage), loader.load(finalImage)])
+                  .then ([imageData, finalImageData]) ->
+                    {width, height} = finalImageData
+  
+                    editor.setInitialState imageData
+                    editor.restoreInitialState()
+                    editor.resize({width, height})
+                    editor.vintageReplay(data)
+                    editor.setInitialState finalImageData
+                else
+                  loader.load(finalImage)
+                  .then (finalImageData) ->
+                    {width, height} = finalImageData
+                    editor.resize({width, height})
+                    editor.vintageReplay(data)
+                    editor.setInitialState finalImageData
+              else
+                editor.restoreState data, true
+          else
+            loader.load(finalImage)
+            .then (imageData) ->
+              editor.setInitialState imageData
+              editor.restoreInitialState()
+
+        restoreState: (state, performReplay=false) ->
           self.palette state.palette.map Observable
 
-          commands = state.history.map self.Command.parse
-          commands.forEach (command) -> command.execute()
-          self.history commands
+          initialState = self.imageDataFromJSON(state.initialState)
+          self.restoreInitialState()
 
-          self.repaint()
+          commands = state.history.map self.Command.parse
+
+          if performReplay
+            self.replay commands
+          else
+            commands.forEach (command) -> command.execute()
+            self.history commands
+
+            self.repaint()
 
         saveState: ->
+          version: "1"
           palette: self.palette().map (o) -> o()
           history: self.history().invoke "toJSON"
+          initialState: self.imageDataToJSON initialState
+
+        setInitialState: (imageData) ->
+          initialState = imageData
+
+        restoreInitialState: ->
+          # Become the image with no history
+          self.resize initialState, initialState
+          self.history([])
 
         withCanvasMods: (cb) ->
-          canvas.context().globalAlpha = self.alpha() / 100
+          canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / 100
 
           try
             Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) ->
               canvas.withTransform transform, (canvas) ->
                 cb(canvas)
+              thumbnailCanvas.withTransform transform, (canvas) ->
+                cb(canvas)
           finally
-            canvas.context().globalAlpha = 1
+            canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = 1
 
         draw: (point, options={}) ->
-          {index, color} = options
+          {index, color, size} = options
           index ?= activeIndex()
           color ?= self.color(index)
+          size ?= 1
 
           {x, y} = point
-          drawPixel(canvas, x, y, color)
-          drawPixel(thumbnailCanvas, x, y, color)
+
+          self.withCanvasMods (canvas) ->
+            if color is "transparent"
+              canvas.clear
+                x: x * size
+                y: y * size
+                width: size
+                height: size
+            else
+              canvas.drawRect
+                x: x * size
+                y: y * size
+                width: size
+                height: size
+                color: color
 
         color: (index) ->
           self.palette()[index]()
@@ -410,23 +485,6 @@ Editor
         # TODO: Think more about triggering change events
         self.trigger "change"
 
-      # Initial resize command so we start off with the right size for replays
-      self.execute self.Command.Resize
-        size: initialSize
-        previousSize: initialSize
-        imageData: self.getSnapshot()
-
-      # Decorate `execute` to soak empty last commands
-      # TODO: This seems a little gross
-      do ->
-        oldExecute = self.execute
-        self.execute = (command) ->
-          if self.history().last()?.empty?()
-            lastCommand = command
-            self.undo()
-
-          oldExecute command
-
       # TODO: Extract this decorator pattern
       ["undo", "execute", "redo"].forEach (method) ->
         oldMethod = self[method]
@@ -439,5 +497,7 @@ Editor
       self.include require "./dirty"
 
       # self.include require("./plugins/save_to_s3")
+
+      initialState = self.getSnapshot()
 
       return self
