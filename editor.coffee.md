@@ -88,9 +88,10 @@ Editor
 
           canvasElement = canvas.element()
           thumbnailCanvasElement = thumbnailCanvas.element()
+          previewCanvasElement = previewCanvas.element()
 
-          thumbnailCanvasElement.width = canvasElement.width = width
-          thumbnailCanvasElement.height = canvasElement.height = height
+          thumbnailCanvasElement.width = canvasElement.width = previewCanvasElement.width = width
+          thumbnailCanvasElement.height = canvasElement.height = previewCanvasElement.height = height
 
           self.putImageData(data)
 
@@ -185,7 +186,7 @@ Editor
                   Q.all([loader.load(sourceImage), loader.load(finalImage)])
                   .then ([imageData, finalImageData]) ->
                     {width, height} = finalImageData
-  
+
                     editor.setInitialState imageData
                     editor.restoreInitialState()
                     editor.resize({width, height})
