@@ -67,8 +67,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   activeIndex = Observable <span class="number">1</span>
 
-  pixelExtent = Observable Size(<span class="number">128</span>, <span class="number">128</span>)
-  pixelSize = Observable <span class="number">4</span>
+  pixelExtent = Observable Size(<span class="number">64</span>, <span class="number">64</span>)
+  pixelSize = Observable <span class="number">8</span>
   viewSize = Observable -&gt;
     pixelExtent().scale pixelSize()
 
@@ -80,7 +80,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   lastCommand = <span class="literal">null</span>
 
   replaying = <span class="literal">false</span>
-  initialSize = pixelExtent()
+  initialState = <span class="literal">null</span>
 
   self ?= Model(I)
 
@@ -95,22 +95,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self.include Tools
 
   activeTool = self.activeTool
-
-  <span class="function"><span class="title">drawPixel</span></span> = (canvas, x, y, color, size=<span class="number">1</span>) -&gt;
-    self.withCanvasMods (canvas) -&gt;
-      <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
-        canvas.clear
-          x: x * size
-          y: y * size
-          width: size
-          height: size
-      <span class="keyword">else</span>
-        canvas.drawRect
-          x: x * size
-          y: y * size
-          width: size
-          height: size
-          color: color
 
   self.extend
     alpha: Observable <span class="number">100</span>
@@ -171,15 +155,43 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       loader.load(dataURL)
       .<span class="keyword">then</span> self.insertImageData
 
-    replay: -&gt;
-      <span class="comment"># TODO: May want to prevent adding new commands while replaying!</span>
+    vintageReplay: (data) -&gt;
+      <span class="keyword">unless</span> replaying
+        replaying = <span class="literal">true</span>
+
+        steps = data
+
+        <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
+        self.symmetryMode <span class="string">"normal"</span>
+
+        self.repaint()
+
+        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+        i = <span class="number">0</span>
+
+        <span class="function"><span class="title">runStep</span></span> = -&gt;
+          <span class="keyword">if</span> step = steps[i]
+            step.forEach ({x, y, color}) -&gt;
+              self.draw {x, y}, {color}
+
+            i += <span class="number">1</span>
+
+            setTimeout runStep, delay
+          <span class="keyword">else</span>
+            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
+            replaying = <span class="literal">false</span>
+
+        setTimeout runStep, delay
+
+    replay: (steps) -&gt;
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
 
         <span class="comment"># Copy and clear history</span>
-        steps = self.history()
+        steps ?= self.history()
         self.history([])
 
+        editor.canvas.clear()
         self.repaint()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
@@ -197,37 +209,100 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         setTimeout runStep, delay
 
-    restoreState: (state) -&gt;
+    loadReplayFromURL: (jsonURL, sourceImage, finalImage) -&gt;
+      <span class="keyword">if</span> jsonURL?
+        Q($.getJSON(jsonURL))
+        .<span class="keyword">then</span> (data) -&gt;
+          <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
+            <span class="keyword">if</span> sourceImage
+              Q.all([loader.load(sourceImage), loader.load(finalImage)])
+              .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
+                {width, height} = finalImageData
+
+                editor.setInitialState imageData
+                editor.restoreInitialState()
+                editor.resize({width, height})
+                editor.vintageReplay(data)
+                editor.setInitialState finalImageData
+            <span class="keyword">else</span>
+              loader.load(finalImage)
+              .<span class="keyword">then</span> (finalImageData) -&gt;
+                {width, height} = finalImageData
+                editor.resize({width, height})
+                editor.vintageReplay(data)
+                editor.setInitialState finalImageData
+          <span class="keyword">else</span>
+            editor.restoreState data, <span class="literal">true</span>
+      <span class="keyword">else</span>
+        loader.load(finalImage)
+        .<span class="keyword">then</span> (imageData) -&gt;
+          editor.setInitialState imageData
+          editor.restoreInitialState()
+
+    restoreState: (state, performReplay=<span class="literal">false</span>) -&gt;
       self.palette state.palette.map Observable
 
-      commands = state.history.map self.Command.parse
-      commands.forEach (command) -&gt; command.execute()
-      self.history commands
+      initialState = self.imageDataFromJSON(state.initialState)
+      self.restoreInitialState()
 
-      self.repaint()
+      commands = state.history.map self.Command.parse
+
+      <span class="keyword">if</span> performReplay
+        self.replay commands
+      <span class="keyword">else</span>
+        commands.forEach (command) -&gt; command.execute()
+        self.history commands
+
+        self.repaint()
 
     saveState: -&gt;
+      version: <span class="string">"1"</span>
       palette: self.palette().map (o) -&gt; o()
       history: self.history().invoke <span class="string">"toJSON"</span>
+      initialState: self.imageDataToJSON initialState
+
+    setInitialState: (imageData) -&gt;
+      initialState = imageData
+
+    restoreInitialState: -&gt;
+      <span class="comment"># Become the image with no history</span>
+      self.resize initialState, initialState
+      self.history([])
 
     withCanvasMods: (cb) -&gt;
-      canvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
+      canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
 
       <span class="keyword">try</span>
         Symmetry[symmetryMode()](pixelExtent(), [Matrix.IDENTITY]).forEach (transform) -&gt;
           canvas.withTransform transform, (canvas) -&gt;
             cb(canvas)
+          thumbnailCanvas.withTransform transform, (canvas) -&gt;
+            cb(canvas)
       <span class="keyword">finally</span>
-        canvas.context().globalAlpha = <span class="number">1</span>
+        canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = <span class="number">1</span>
 
     draw: (point, options={}) -&gt;
-      {index, color} = options
+      {index, color, size} = options
       index ?= activeIndex()
       color ?= self.color(index)
+      size ?= <span class="number">1</span>
 
       {x, y} = point
-      drawPixel(canvas, x, y, color)
-      drawPixel(thumbnailCanvas, x, y, color)
+
+      self.withCanvasMods (canvas) -&gt;
+        <span class="keyword">if</span> color <span class="keyword">is</span> <span class="string">"transparent"</span>
+          canvas.clear
+            x: x * size
+            y: y * size
+            width: size
+            height: size
+        <span class="keyword">else</span>
+          canvas.drawRect
+            x: x * size
+            y: y * size
+            width: size
+            height: size
+            color: color
 
     color: (index) -&gt;
       self.palette()[index]()
@@ -443,23 +518,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     <span class="comment"># TODO: Think more about triggering change events</span>
     self.trigger <span class="string">"change"</span>
 
-  <span class="comment"># Initial resize command so we start off with the right size for replays</span>
-  self.execute self.Command.Resize
-    size: initialSize
-    previousSize: initialSize
-    imageData: self.getSnapshot()
-
-  <span class="comment"># Decorate `execute` to soak empty last commands</span>
-  <span class="comment"># TODO: This seems a little gross</span>
-  <span class="keyword">do</span> -&gt;
-    oldExecute = self.execute
-    self.<span class="function"><span class="title">execute</span></span> = (command) -&gt;
-      <span class="keyword">if</span> self.history().last()?.empty?()
-        lastCommand = command
-        self.undo()
-
-      oldExecute command
-
   <span class="comment"># TODO: Extract this decorator pattern</span>
   [<span class="string">"undo"</span>, <span class="string">"execute"</span>, <span class="string">"redo"</span>].forEach (method) -&gt;
     oldMethod = self[method]
@@ -472,6 +530,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self.include require <span class="string">"./dirty"</span>
 
   <span class="comment"># self.include require("./plugins/save_to_s3")</span>
+
+  initialState = self.getSnapshot()
 
   <span class="keyword">return</span> self</code></pre>
 </div>
