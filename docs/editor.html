@@ -121,9 +121,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       canvasElement = canvas.element()
       thumbnailCanvasElement = thumbnailCanvas.element()
+      previewCanvasElement = previewCanvas.element()
 
-      thumbnailCanvasElement.width = canvasElement.width = width
-      thumbnailCanvasElement.height = canvasElement.height = height
+      thumbnailCanvasElement.width = canvasElement.width = previewCanvasElement.width = width
+      thumbnailCanvasElement.height = canvasElement.height = previewCanvasElement.height = height
 
       self.putImageData(data)
 
