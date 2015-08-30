@@ -2,8 +2,6 @@
 mirror = (size, flip) ->
   midpoint = Point size.width/2, size.height/2
 
-  console.log midpoint
-
   Matrix.translate(midpoint.x, midpoint.y).concat(flip).concat(Matrix.translate(-midpoint.x, -midpoint.y))
 
 module.exports = Symmetry =
