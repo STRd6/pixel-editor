@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1444700230707
+
+CACHE:
+index.html
+../whimsy.json.js
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
