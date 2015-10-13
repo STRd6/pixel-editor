@@ -121,7 +121,7 @@ Editor
 
         loadFile: (blob) ->
           url = URL.createObjectURL(blob)
-          
+
           self.fromDataURL(url)
           .then ->
             URL.revokeObjectURL(url)
@@ -507,5 +507,7 @@ Editor
       # self.include require("./plugins/save_to_s3")
 
       initialState = self.getSnapshot()
+
+      self.invokeRemote "childLoaded"
 
       return self
