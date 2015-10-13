@@ -119,6 +119,13 @@ Editor
             imageData: imageData
             imageDataPrevious: editor.getSnapshot()
 
+        loadFile: (blob) ->
+          url = URL.createObjectURL(blob)
+          
+          self.fromDataURL(url)
+          .then ->
+            URL.revokeObjectURL(url)
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then self.insertImageData
