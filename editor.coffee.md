@@ -233,7 +233,12 @@ Editor
         saveState: ->
           version: "1"
           palette: self.palette().map (o) -> o()
-          history: self.history().invoke "toJSON"
+          history: self.history().invoke("toJSON").map (command) ->
+            if command.sizePrevious # TODO: this is a dumb hack because somehow
+              delete command.sizePrevious.init # we're getting an init fn attached to sizePrevious
+
+            return command
+
           initialState: self.imageDataToJSON initialState
 
         setInitialState: (imageData) ->
