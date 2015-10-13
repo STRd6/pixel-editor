@@ -266,7 +266,12 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     saveState: -&gt;
       version: <span class="string">"1"</span>
       palette: self.palette().map (o) -&gt; o()
-      history: self.history().invoke <span class="string">"toJSON"</span>
+      history: self.history().invoke(<span class="string">"toJSON"</span>).map (command) -&gt;
+        <span class="keyword">if</span> command.sizePrevious <span class="comment"># TODO: this is a dumb hack because somehow</span>
+          <span class="keyword">delete</span> command.sizePrevious.init <span class="comment"># we're getting an init fn attached to sizePrevious</span>
+
+        <span class="keyword">return</span> command
+
       initialState: self.imageDataToJSON initialState
 
     setInitialState: (imageData) -&gt;
