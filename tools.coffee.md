@@ -108,15 +108,19 @@ Fill a connected area.
           color = editor.colorAsInt()
 
           imageData = editor.getSnapshot()
-          width = imageData.width
+          {width, height} = imageData
 
           data = new Uint32Array(imageData.data.buffer)
 
           set = ({x, y}, color) ->
-            data[y * width + x] = color
+            if 0 <= x < width
+              if 0 <= y < height
+                data[y * width + x] = color
 
           get = ({x, y}) ->
-            data[y * width + x]
+            if 0 <= x < width
+              if 0 <= y < height
+                data[y * width + x]
 
           target = get(position)
 
@@ -127,8 +131,7 @@ Fill a connected area.
 
           set(position, color)
 
-          # TODO: Allow for interrupts if it takes too long
-          {width, height} = editor.pixelExtent()
+          # Allow for interrupts if it takes too long
           safetyHatch = width * height
 
           while(queue.length and safetyHatch > 0)
