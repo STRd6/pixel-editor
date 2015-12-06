@@ -168,15 +168,19 @@
       color = editor.colorAsInt()
 
       imageData = editor.getSnapshot()
-      width = imageData.width
+      {width, height} = imageData
 
       data = <span class="keyword">new</span> Uint32Array(imageData.data.buffer)
 
       <span class="function"><span class="title">set</span></span> = ({x, y}, color) -&gt;
-        data[y * width + x] = color
+        <span class="keyword">if</span> <span class="number">0</span> &lt;= x &lt; width
+          <span class="keyword">if</span> <span class="number">0</span> &lt;= y &lt; height
+            data[y * width + x] = color
 
       <span class="function"><span class="title">get</span></span> = ({x, y}) -&gt;
-        data[y * width + x]
+        <span class="keyword">if</span> <span class="number">0</span> &lt;= x &lt; width
+          <span class="keyword">if</span> <span class="number">0</span> &lt;= y &lt; height
+            data[y * width + x]
 
       target = get(position)
 
@@ -187,8 +191,7 @@
 
       set(position, color)
 
-      <span class="comment"># TODO: Allow for interrupts if it takes too long</span>
-      {width, height} = editor.pixelExtent()
+      <span class="comment"># Allow for interrupts if it takes too long</span>
       safetyHatch = width * height
 
       <span class="keyword">while</span>(queue.length <span class="keyword">and</span> safetyHatch &gt; <span class="number">0</span>)
