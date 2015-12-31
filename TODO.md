@@ -42,6 +42,7 @@ Bugs
 ----
 
 Prevent interacting during replay
+Maintain Redo stack after replay
 
 V2
 ====

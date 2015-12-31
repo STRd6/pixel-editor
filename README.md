@@ -5,11 +5,6 @@ It edits pixels
 
 http://www.danielx.net/pixel-editor/
 
-Palette
-=======
-
-Limited color palette (4, 8, 16, 32, 64, 128, or 256)
-
 Tools
 =====
 
