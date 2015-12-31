@@ -32,8 +32,6 @@ Editor
       defaults I,
         selector: "body"
 
-      activeIndex = Observable 0
-
       pixelExtent = Observable Size(64, 64)
       pixelSize = Observable 8
       viewSize = Observable ->
@@ -65,7 +63,6 @@ Editor
 
       self.extend
         alpha: Observable 100
-        activeIndex: activeIndex
 
         pixelSize: pixelSize
         pixelExtent: pixelExtent
