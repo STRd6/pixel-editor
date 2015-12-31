@@ -65,8 +65,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   defaults I,
     selector: <span class="string">"body"</span>
 
-  activeIndex = Observable <span class="number">0</span>
-
   pixelExtent = Observable Size(<span class="number">64</span>, <span class="number">64</span>)
   pixelSize = Observable <span class="number">8</span>
   viewSize = Observable -&gt;
@@ -98,7 +96,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   self.extend
     alpha: Observable <span class="number">100</span>
-    activeIndex: activeIndex
 
     pixelSize: pixelSize
     pixelExtent: pixelExtent
