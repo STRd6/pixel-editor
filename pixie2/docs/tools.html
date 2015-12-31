@@ -138,9 +138,9 @@
       x: <span class="number">13</span>
       y: <span class="number">13</span>
     touch: ({position, editor}) -&gt;
-      editor.setColor(editor.getColor(position))
+      editor.activeColor(editor.getColor(position))
     move: ({position, editor}) -&gt;
-      editor.setColor(editor.getColor(position))
+      editor.activeColor(editor.getColor(position))
     release: -&gt;
       <span class="comment"># Return to the previous tool</span>
       editor.activeTool editor.previousTool()
@@ -242,7 +242,7 @@
             <div class="content"><pre><code class="lang-coffeescript">  rect: shapeTool <span class="string">"r"</span>, <span class="number">1</span>, <span class="number">4</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="</span>
     (editor, canvas, start, end) -&gt;
-      color = editor.color editor.activeIndex()
+      color = editor.activeColor()
       delta = end.subtract(start)
 
       editor.withCanvasMods (canvas) -&gt;
@@ -257,7 +257,7 @@
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="</span>
     (editor, canvas, start, end) -&gt;
       delta = end.subtract(start)
-      color = editor.color editor.activeIndex()
+      color = editor.activeColor()
 
       editor.withCanvasMods (canvas) -&gt;
         canvas.drawRect
@@ -278,7 +278,7 @@
   line2: shapeTool <span class="string">"l"</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
     (editor, canvas, start, end) -&gt;
-      color = editor.color editor.activeIndex()
+      color = editor.activeColor()
 
       <span class="comment"># Have to draw our own lines if we want them crisp ;_;</span>
       line start, end, (x, y) -&gt;
