@@ -137,25 +137,27 @@ h2
   box-sizing: border-box
   border-left: 1px solid rgba(255, 255, 255, 0.5)
   height: 100%
-  width: 72px
+  width: 50px
   position: absolute
   top: 0
-  right: 0
+  right: -1px
   font-size: 0
 
-  & > *
+  & > .color
     box-sizing: border-box
     border: 1px solid rgba(255, 255, 255, 0.5)
     border-top: 1px solid rgba(0, 0, 0, 0.5)
     border-left: 1px solid rgba(0, 0, 0, 0.5)
     border-radius: 2px
     display: inline-block
-    float: right
-    width: 32px
-    height: 32px
+    width: 24px
+    height: 24px
     overflow: hidden
-    margin: 0 4px 4px 0
     padding: 0
+
+    &.primary.color
+      width: 48px
+      height: 48px
 
     & > input[type=color]
       width: 64px
@@ -166,16 +168,14 @@ h2
     &.active
       border: 1px solid rgba(255, 255, 255, 0.875)
 
-    &:nth-child(2), &:nth-child(1)
+    &:nth-child(1)
       border-top-right-radius: 0
       border-top-left-radius: 0
       border-top: 0
 
-    &:nth-child(odd)
+    &:nth-child(even)
       border-top-right-radius: 0
       border-bottom-right-radius: 0
-      border-right: 0
-      margin-right: 0
 
 .vertical-center
   position: absolute

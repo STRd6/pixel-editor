@@ -2,16 +2,23 @@
   - editor = this
   - activeIndex = @activeIndex
 
+  .primary.color
+    %input(type="color" value=editor.activeColor)
+
   - @palette.forEach (color, index) ->
-    - activeClass = -> "active" if index is activeIndex()
-    - activate = -> activeIndex index
-    - pressedAt = null
-    - mousedown = (e) ->
-      - e.preventDefault()
-      - pressedAt = +new Date
-      - activate()
+    - showPicker = false
     - click = (e) ->
-      - delta = +new Date - pressedAt
-      - e.preventDefault() if delta < 350
-    %div(class=activeClass click=activate touchstart=activate)
-      %input(type="color" value=color mousedown=mousedown click=click)
+      - unless showPicker
+        - e.preventDefault()
+
+    - start = (e) ->
+      - setTimeout ->
+        - showPicker = true
+        - e.target.click()
+        - showPicker = false
+      - , 1000
+      - editor.activeColor color()
+      - return false
+
+    .color(mousedown=start touchstart=start)
+      %input(type="color" value=color click=click)

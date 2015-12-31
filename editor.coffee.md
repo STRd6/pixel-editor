@@ -32,7 +32,7 @@ Editor
       defaults I,
         selector: "body"
 
-      activeIndex = Observable 1
+      activeIndex = Observable 0
 
       pixelExtent = Observable Size(64, 64)
       pixelSize = Observable 8
@@ -250,9 +250,8 @@ Editor
             canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = 1
 
         draw: (point, options={}) ->
-          {index, color, size} = options
-          index ?= activeIndex()
-          color ?= self.color(index)
+          {color, size} = options
+          color ?= self.activeColor()
           size ?= 1
 
           {x, y} = point
@@ -275,16 +274,6 @@ Editor
         color: (index) ->
           self.palette()[index]()
 
-        setColor: (color) ->
-          colors =  self.palette().map (o) -> o().toLowerCase()
-          index = colors.indexOf(color.toLowerCase())
-
-          if index != -1
-            activeIndex(index)
-          else
-            self.palette.push Observable(color)
-            self.activeIndex self.palette().length - 1
-
         getColor: (position) ->
           {x, y} = position
           data = canvas.context().getImageData(x, y, 1, 1).data
@@ -292,7 +281,7 @@ Editor
           rgb2Hex data[0], data[1], data[2]
 
         colorAsInt: ->
-          color = self.color self.activeIndex()
+          color = self.activeColor()
 
           color = color.substring(color.indexOf("#") + 1)
 
@@ -318,8 +307,7 @@ Editor
         thumbnailClick: (e) ->
           $(e.currentTarget).toggleClass("right")
 
-      self.activeColor = Observable ->
-        self.color(self.activeIndex())
+      self.activeColor = Observable "#000000"
 
       self.activeColorStyle = Observable ->
         "background-color: #{self.activeColor()}"
