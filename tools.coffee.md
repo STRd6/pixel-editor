@@ -87,9 +87,9 @@ Draw a line when moving while touching.
           x: 13
           y: 13
         touch: ({position, editor}) ->
-          editor.setColor(editor.getColor(position))
+          editor.activeColor(editor.getColor(position))
         move: ({position, editor}) ->
-          editor.setColor(editor.getColor(position))
+          editor.activeColor(editor.getColor(position))
         release: ->
           # Return to the previous tool
           editor.activeTool editor.previousTool()
@@ -161,7 +161,7 @@ Shapes
       rect: shapeTool "r", 1, 4,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVQ4T2NkoBAwUqifYfAY8J9MrzDCvDBqAAPDMAgDMpMBwyBKymR7AQAp1wgR44q8HgAAAABJRU5ErkJggg=="
         (editor, canvas, start, end) ->
-          color = editor.color editor.activeIndex()
+          color = editor.activeColor()
           delta = end.subtract(start)
 
           editor.withCanvasMods (canvas) ->
@@ -176,7 +176,7 @@ Shapes
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAN0lEQVQ4T2NkoBAwUqifgWoG/CfTJYwwF4AMINU1YD2jBgy7MCAnLcHTATmawXpITX0YFlFsAADRBBIRAZEL0wAAAABJRU5ErkJggg=="
         (editor, canvas, start, end) ->
           delta = end.subtract(start)
-          color = editor.color editor.activeIndex()
+          color = editor.activeColor()
 
           editor.withCanvasMods (canvas) ->
             canvas.drawRect
@@ -197,7 +197,7 @@ Shapes
       line2: shapeTool "l", 0, 0,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"
         (editor, canvas, start, end) ->
-          color = editor.color editor.activeIndex()
+          color = editor.activeColor()
 
           # Have to draw our own lines if we want them crisp ;_;
           line start, end, (x, y) ->
