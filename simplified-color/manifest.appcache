@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1451590281761
+
+CACHE:
+index.html
+../simplified-color.json.js
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
