@@ -17,6 +17,8 @@ The toolbar holds our tools.
             - activeClass = -> "active" if tool is activeTool()
             - activate = -> activeTool(tool)
             .tool(style="background-image: url(#{tool.iconUrl})" title=tool.hotkeys class=activeClass click=activate)
+              - if setting = tool.settings?.size
+                %input(type=setting.type min=setting.min max=setting.max value=setting.value)
         %h2 Symmetry
         .tools
           - symmetryMode = @symmetryMode

@@ -63,6 +63,12 @@ Tools
         previousPosition = position
       release: ->
         previousPosition = null
+      settings:
+        size:
+          type: 'range'
+          min: 0
+          max: 5
+          value: Observable 0
 
 Default tools.
 

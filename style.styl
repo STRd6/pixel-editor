@@ -121,11 +121,20 @@ h2
     border-left: 1px solid rgba(255, 255, 255, 0.5)
     cursor: pointer
 
+    input
+      display: none
+
     &:last-child
       border-bottom-right-radius: 2px
 
     &.active
       background-color: #EEE
+
+      input
+        display: inline
+        margin-left: 38px
+        position: absolute
+        z-index: 10
 
   .tools:not(:first-child)
     .tool
