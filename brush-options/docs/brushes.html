@@ -35,7 +35,25 @@
               <p>A brush takes a point and returns a list of points.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.exports =
+            <div class="content"><pre><code class="lang-coffeescript">big = <span class="string">"""
+  01110
+  11111
+  11111
+  11111
+  01110
+"""</span>
+
+bigger = <span class="string">"""
+  0011100
+  0111110
+  1111111
+  1111111
+  1111111
+  0111110
+  0011100
+"""</span>
+
+module.exports =
   pencil: (point) -&gt;
     [point]
 
