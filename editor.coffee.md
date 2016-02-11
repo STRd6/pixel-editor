@@ -116,6 +116,13 @@ Editor
             imageData: imageData
             imageDataPrevious: editor.getSnapshot()
 
+        loadFile: (blob) ->
+          url = URL.createObjectURL(blob)
+
+          self.fromDataURL(url)
+          .then ->
+            URL.revokeObjectURL(url)
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then self.insertImageData
@@ -223,7 +230,12 @@ Editor
         saveState: ->
           version: "1"
           palette: self.palette().map (o) -> o()
-          history: self.history().invoke "toJSON"
+          history: self.history().invoke("toJSON").map (command) ->
+            if command.sizePrevious # TODO: this is a dumb hack because somehow
+              delete command.sizePrevious.init # we're getting an init fn attached to sizePrevious
+
+            return command
+
           initialState: self.imageDataToJSON initialState
 
         setInitialState: (imageData) ->
@@ -485,5 +497,7 @@ Editor
       # self.include require("./plugins/save_to_s3")
 
       initialState = self.getSnapshot()
+
+      self.invokeRemote "childLoaded"
 
       return self
