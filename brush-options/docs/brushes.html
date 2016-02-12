@@ -35,7 +35,17 @@
               <p>A brush takes a point and returns a list of points.</p>
 
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">big = <span class="string">"""
+            <div class="content"><pre><code class="lang-coffeescript">tiny = <span class="string">"""
+  1
+"""</span>
+
+small = <span class="string">"""
+  010
+  111
+  010
+"""</span>
+
+big = <span class="string">"""
   01110
   11111
   11111
@@ -52,6 +62,23 @@ bigger = <span class="string">"""
   0111110
   0011100
 """</span>
+
+sizes = [tiny, small, big, bigger].map (data) -&gt;
+  rows = data.split(<span class="string">'\n'</span>)
+
+  offset = Math.floor rows[<span class="number">0</span>].length / <span class="number">2</span>
+
+  rows.reduce (array, row, y) -&gt;
+    y -= offset
+    row.split(<span class="string">''</span>).forEach (c, x) -&gt;
+      x -= offset
+      <span class="keyword">if</span> c <span class="keyword">is</span> <span class="string">'1'</span>
+        array.push Point(x, y)
+
+    <span class="keyword">return</span> array
+  , []
+
+<span class="comment"># TODO: use these arrays as sizes</span>
 
 module.exports =
   pencil: (point) -&gt;

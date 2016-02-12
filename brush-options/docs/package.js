@@ -198,7 +198,7 @@
     },
     "brushes.coffee.md": {
       "path": "brushes.coffee.md",
-      "content": "Brushes\n=======\n\nA brush takes a point and returns a list of points.\n\n    big = \"\"\"\n      01110\n      11111\n      11111\n      11111\n      01110\n    \"\"\"\n\n    bigger = \"\"\"\n      0011100\n      0111110\n      1111111\n      1111111\n      1111111\n      0111110\n      0011100\n    \"\"\"\n\n    module.exports =\n      pencil: (point) ->\n        [point]\n\n      brush: ({x, y}) ->\n        [\n          Point x, y - 1\n          Point x - 1, y\n          Point x, y\n          Point x + 1, y\n          Point x, y + 1\n        ]\n",
+      "content": "Brushes\n=======\n\nA brush takes a point and returns a list of points.\n\n    tiny = \"\"\"\n      1\n    \"\"\"\n    \n    small = \"\"\"\n      010\n      111\n      010\n    \"\"\"\n\n    big = \"\"\"\n      01110\n      11111\n      11111\n      11111\n      01110\n    \"\"\"\n\n    bigger = \"\"\"\n      0011100\n      0111110\n      1111111\n      1111111\n      1111111\n      0111110\n      0011100\n    \"\"\"\n    \n    sizes = [tiny, small, big, bigger].map (data) ->\n      rows = data.split('\\n')\n\n      offset = Math.floor rows[0].length / 2\n\n      rows.reduce (array, row, y) ->\n        y -= offset\n        row.split('').forEach (c, x) ->\n          x -= offset\n          if c is '1'\n            array.push Point(x, y)\n\n        return array\n      , []\n\n    # TODO: use these arrays as sizes\n\n    module.exports =\n      pencil: (point) ->\n        [point]\n\n      brush: ({x, y}) ->\n        [\n          Point x, y - 1\n          Point x - 1, y\n          Point x, y\n          Point x + 1, y\n          Point x, y + 1\n        ]\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -397,7 +397,7 @@
     },
     "brushes": {
       "path": "brushes",
-      "content": "(function() {\n  var big, bigger;\n\n  big = \"01110\\n11111\\n11111\\n11111\\n01110\";\n\n  bigger = \"0011100\\n0111110\\n1111111\\n1111111\\n1111111\\n0111110\\n0011100\";\n\n  module.exports = {\n    pencil: function(point) {\n      return [point];\n    },\n    brush: function(_arg) {\n      var x, y;\n      x = _arg.x, y = _arg.y;\n      return [Point(x, y - 1), Point(x - 1, y), Point(x, y), Point(x + 1, y), Point(x, y + 1)];\n    }\n  };\n\n}).call(this);\n",
+      "content": "(function() {\n  var big, bigger, sizes, small, tiny;\n\n  tiny = \"1\";\n\n  small = \"010\\n111\\n010\";\n\n  big = \"01110\\n11111\\n11111\\n11111\\n01110\";\n\n  bigger = \"0011100\\n0111110\\n1111111\\n1111111\\n1111111\\n0111110\\n0011100\";\n\n  sizes = [tiny, small, big, bigger].map(function(data) {\n    var offset, rows;\n    rows = data.split('\\n');\n    offset = Math.floor(rows[0].length / 2);\n    return rows.reduce(function(array, row, y) {\n      y -= offset;\n      row.split('').forEach(function(c, x) {\n        x -= offset;\n        if (c === '1') {\n          return array.push(Point(x, y));\n        }\n      });\n      return array;\n    }, []);\n  });\n\n  module.exports = {\n    pencil: function(point) {\n      return [point];\n    },\n    brush: function(_arg) {\n      var x, y;\n      x = _arg.x, y = _arg.y;\n      return [Point(x, y - 1), Point(x - 1, y), Point(x, y), Point(x + 1, y), Point(x, y + 1)];\n    }\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "command": {
