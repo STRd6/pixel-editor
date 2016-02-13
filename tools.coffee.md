@@ -4,10 +4,6 @@ Tools
     Brushes = require "./brushes"
     {circle, line, rect, rectOutline, endDeltoid} = require "./util"
 
-    line2 = (start, end, fn) ->
-      fn start
-      line start, end, fn
-
     neighbors = (point) ->
       [
         {x: point.x, y: point.y-1}
@@ -38,37 +34,39 @@ Tools
         editor.restore()
         fn(editor, editor.canvas, start, end)
 
-    brushTool = (brushName, hotkey, offsetX, offsetY, icon, options) ->
+    sizedTool = (hotkey, offsetX, offsetY, icon, options) ->
       previousPosition = null
-      brush = Brushes[brushName]
 
       OP = (out) ->
         (p) ->
           out(p, options)
 
       paint = (out) ->
-        (x, y) ->
-          brush({x, y}).forEach OP out
+        (p) ->
+          brush = Brushes.sizes[self.settings.size.value()]
 
-      hotkeys: hotkey
-      iconUrl: icon
-      iconOffset:
-        x: offsetX
-        y: offsetY
-      touch: ({position, editor})->
-        paint(editor.draw) position.x, position.y
-        previousPosition = position
-      move: ({editor, position})->
-        line previousPosition, position, paint(editor.draw)
-        previousPosition = position
-      release: ->
-        previousPosition = null
-      settings:
-        size:
-          type: 'range'
-          min: 0
-          max: 5
-          value: Observable 0
+          brush(p).forEach OP out
+
+      self =
+        hotkeys: hotkey
+        iconUrl: icon
+        iconOffset:
+          x: offsetX
+          y: offsetY
+        touch: ({position, editor})->
+          paint(editor.draw) position
+          previousPosition = position
+        move: ({editor, position})->
+          line previousPosition, position, paint(editor.draw)
+          previousPosition = position
+        release: ->
+          previousPosition = null
+        settings:
+          size:
+            type: 'range'
+            min: 0
+            max: 3
+            value: Observable 0
 
 Default tools.
 
@@ -76,13 +74,10 @@ Default tools.
 
 Draw a line when moving while touching.
 
-      pencil: brushTool "pencil", "p", 4, 14,
+      pencil: sizedTool "p", 4, 14,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="
 
-      brush: brushTool "brush", "b", 4, 14,
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="
-
-      eraser: brushTool "pencil", "e", 4, 11,
+      eraser: sizedTool "e", 4, 11,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg==",
         color: "transparent"
 
@@ -200,14 +195,13 @@ Shapes
           circle start, end, (x, y) ->
             editor.draw({x, y})
 
-      line2: shapeTool "l", 0, 0,
+      line: shapeTool "l", 0, 0,
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"
         (editor, canvas, start, end) ->
           color = editor.activeColor()
 
           # Have to draw our own lines if we want them crisp ;_;
-          line start, end, (x, y) ->
-            editor.draw {x, y}
+          line start, end, editor.draw
 
     module.exports = (I={}, self=Core(I)) ->
       self.extend

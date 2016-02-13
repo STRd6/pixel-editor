@@ -36,7 +36,7 @@ A brush takes a point and returns a list of points.
 
       offset = Math.floor rows[0].length / 2
 
-      rows.reduce (array, row, y) ->
+      points = rows.reduce (array, row, y) ->
         y -= offset
         row.split('').forEach (c, x) ->
           x -= offset
@@ -46,17 +46,15 @@ A brush takes a point and returns a list of points.
         return array
       , []
 
+      (point) ->
+        points.map (brushPoint) ->
+          brushPoint.add(point)
+
     # TODO: use these arrays as sizes
 
     module.exports =
-      pencil: (point) ->
-        [point]
+      pencil: sizes[0]
 
-      brush: ({x, y}) ->
-        [
-          Point x, y - 1
-          Point x - 1, y
-          Point x, y
-          Point x + 1, y
-          Point x, y + 1
-        ]
+      brush: sizes[1]
+
+      sizes: sizes
