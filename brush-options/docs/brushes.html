@@ -68,7 +68,7 @@ sizes = [tiny, small, big, bigger].map (data) -&gt;
 
   offset = Math.floor rows[<span class="number">0</span>].length / <span class="number">2</span>
 
-  rows.reduce (array, row, y) -&gt;
+  points = rows.reduce (array, row, y) -&gt;
     y -= offset
     row.split(<span class="string">''</span>).forEach (c, x) -&gt;
       x -= offset
@@ -78,20 +78,18 @@ sizes = [tiny, small, big, bigger].map (data) -&gt;
     <span class="keyword">return</span> array
   , []
 
+  (point) -&gt;
+    points.map (brushPoint) -&gt;
+      brushPoint.add(point)
+
 <span class="comment"># TODO: use these arrays as sizes</span>
 
 module.exports =
-  pencil: (point) -&gt;
-    [point]
+  pencil: sizes[<span class="number">0</span>]
 
-  brush: ({x, y}) -&gt;
-    [
-      Point x, y - <span class="number">1</span>
-      Point x - <span class="number">1</span>, y
-      Point x, y
-      Point x + <span class="number">1</span>, y
-      Point x, y + <span class="number">1</span>
-    ]</code></pre>
+  brush: sizes[<span class="number">1</span>]
+
+  sizes: sizes</code></pre>
 </div>
         </li>
         
