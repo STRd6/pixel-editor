@@ -29,4 +29,7 @@
       - editor.activeColor e.target.value
 
     .color(mousedown=start touchstart=start mouseup=stop touchend=stop mouseout=stop)
-      %input(type="color" value=color click=click input=input)
+      - style = -> 
+        - c = color()
+        - "background-color: #{c}; color: #{c};"
+      %input(type="color" value=color click=click input=input style=style)
