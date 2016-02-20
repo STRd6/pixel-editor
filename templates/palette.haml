@@ -3,7 +3,10 @@
   - activeIndex = @activeIndex
 
   .primary.color
-    %input(type="color" value=editor.activeColor)
+    - style = ->
+      - c = editor.activeColor()
+      - "background-color: #{c}"
+    %input(type="color" value=editor.activeColor style=style)
 
   - @palette.forEach (color, index) ->
     - showPicker = false
