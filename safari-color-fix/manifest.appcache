@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1456005716205
+
+CACHE:
+index.html
+../safari-color-fix.json
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*

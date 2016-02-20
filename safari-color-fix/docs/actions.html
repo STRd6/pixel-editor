@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>actions</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="actions">Actions</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">ByteArray = require <span class="string">"byte_array"</span>
+FileReading = require(<span class="string">"./file_reading"</span>)
+Hotkeys = require <span class="string">"hotkeys"</span>
+Modal = require(<span class="string">"./modal"</span>)
+Palette = require(<span class="string">"./palette"</span>)
+
+loader = require(<span class="string">"./loader"</span>)()
+saveAs = require <span class="string">"./lib/file_saver"</span>
+
+module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
+  self.include Hotkeys
+
+  self.extend
+    addAction: (action) -&gt;
+      self.actions.push action
+
+    actions: Observable []
+
+  Object.keys(Actions.defaults).forEach (hotkey) -&gt;
+    {method, icon, name} = Actions.defaults[hotkey]
+
+    self.addAction
+      perform: -&gt;
+        <span class="keyword">if</span> <span class="keyword">typeof</span> method <span class="keyword">is</span> <span class="string">"function"</span>
+          method
+            editor: self
+        <span class="keyword">else</span>
+          self[method]()
+      name: name
+      iconUrl: icon
+      hotkey: hotkey
+
+    self.addHotkey hotkey, method
+
+  <span class="keyword">return</span> self
+
+state = <span class="literal">null</span>
+
+Actions.defaults =
+  <span class="string">"ctrl+z"</span>:
+    name: <span class="string">"Undo"</span>
+    method: <span class="string">"undo"</span>
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACRklEQVQ4T6VTXUhTYRh+p47sbhcR2zmMDGXUTVBBiyBdJUjU6EJ2K4R0ESm6CyEo6qKZWcGkoC6KFt2GxKhwi4JKbcg2khmonVW6RbmGnnI1z873c3rPjp6aQQw88PJ834H3+b73eZ7PAhv8LBvsB5PAP3pK45wDZxyYXpQZSBjHWiSUJTmlUaVQGg6feZZdO9gk6HnZqXnEw6BpAFxjWBowRGwHhSgg/5RhQc6B9FkKq0ppMOJ/FdNJTIKuFye1Q84jwLGBAzbrqOENyiQciuQX1NVYIbOQgcR0IqwUV7pfn49nTYLT0Q7NuDYDShBxTfU9rgWbCA32BrDWWZGQQ2o2Be8/Sv7RCxNDVYnovdUaJCptb9njcTILhe/yDxiPxyKxS4mjVRHos7ZeOxh0bXP1ig4RiKrCk+eRfGJgcmsFgc8HteD1nn3Y8bh/vb3Nl93BHdt39oqCAKpK4Gl0JD95/d06ggfeECV076POkV1/EzQH3EHUpL3lgMdJawgsLxVgfOxNZOrGzJ8RfPeP3XTYxC5duLmvn8pCIpkhoh1FdKKIm6zoEoqYmgJpVvJP304bIvpCx6/abY6+JrHJtFB3Y81CHQulZaiv3QzzmSwk44mwulLs/hD6Yth44k5bQLAJ5xqdjeg9GBnAouUsYJAUBRblJcjlvkF6RgqjI4Ppe/OVQWoLeoaELY4eivGdy6yOsJoDHCWPoyUZoVFKlGH95H+irP/wBPbfpYztG7sYrxDxfw+uMgdoo9u1u2+i/+2Val/pb35FXyDc5lZBAAAAAElFTkSuQmCC"</span>
+
+  <span class="string">"ctrl+y"</span>:
+    name: <span class="string">"Redo"</span>
+    method: <span class="string">"redo"</span>
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACUUlEQVQ4T6WTUUhTURjHv+scNheypmOy7RY0H7IHC6Rgo/ItB0GXWIgSBUOJMIRFkEUlBEWBDzOsXnoQpIdqTUlrQ6k9NPBhUeCaFO0udxuB7bVc5D3n3L5zYNZSiNG9nHu+C+f/4/v+33ck+M9HqkXf9/DYRRKbHo1GgVZ0NQF6Jo9miE7SU/3xgU0Bg3Mh2TBIkBpGNyWkkxHmIIQC1Snw3WVzA8Nd/ZK/HR9KhjlkPYOzL075KDWGPVZZ2dZoB6vZCvV19UANBDAGjCEEY50SeJfLgFpQbyQvLVwRgMG5XpkZ5vH2lt2K09oKP0gZTJIZmMFQzAEUYwRwCK7FD4ugaupo6mr6ggCcjp8Iy03bI157mxCtrpVBXcnB8sqySF2UoBNwtbiBUgr5Qv5OaiQ9tF7CwLO+REfr3kCj2YIHGCSzySIejD0JPT/3Z5e6bvoyTCdvUiOvQ1UmhqZ7Sv6dBx11aIlW0iD7OTs21Z+oEnOB/9r+ywvZ9C34u40nHwdL/rYDDklCwFcNlgpLYzNn5jcANpsZ4UHvAyXRIe8JWCxbsFYs4e3LIl2jsfnzr/4JEYDjE0fCbrsn4nV5sW1oYnkVchqaWEQT0cDKHFA0VPyjke/v5YRWfJS7h2Xs9PiuHe2Ko9kJ339+gwZTg2gZbx/DORAxvnwmZqKz8PH+p98ADglEunw6YcMep0exNdlgq9UKkskEBp8FXByEEwoGgp4+moX8hFYN4JBD1/fJlBhBTLWbENZJCGlmOqvjqfP2VnaGcWGyuBFQy82snP0Ffg5KIO/aNV0AAAAASUVORK5CYII="</span>
+
+  <span class="string">"ctrl+o"</span>:
+    name: <span class="string">"Open"</span>
+    description: <span class="string">"""
+      Open an image file from your local filesystem.
+    """</span>
+    method: ({editor}) -&gt;
+      Modal.show FileReading.readerInput
+        image: (dataURL) -&gt;
+          editor.fromDataURL(dataURL)
+        json: (data) -&gt;
+          editor.restoreState data
+        text: -&gt;
+          <span class="comment"># TODO: Currently we don't handle this format</span>
+        chose: -&gt;
+          Modal.hide()
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACwklEQVQ4T31TXUgUURT+7mzr5taaL9ofgdm6YtZDuvqg0UOED2lGYUQkhathCoblT1KSBlJhuyksZj0EKflQtlaaT1pKtIIQUZmiPqhpmBn4s7o6zjpzO7OumqAd+OYcZs75zjnfncuwgWWU1p/mnFUxxnZwMICrid7HqnFeTV/Wt4wSh7vo4iF9cFAQGNvkLfUoDIo3nUNelHCjslWlXt/SSxz8QV4Csmw1MIaFrSRpBIbh3i7czctGobX5/wSVBcdhbXiHA3FHoBE0EDRaCIKA7x3tsCTEE8HbjQnSbr3klYWJqGp24uDhozT16v5dzjakJcQhv5wI+pqivugCIvczJvyrDkpakrW2gkRk3ndgT2Tc0ubykgIjPR2wX0vB1fJGsP5Gs2hM6tSR2qtKU3yh2IGKwiRkVzQRQfwaoUa6najIScKVO6+JwBE9ZTz5cZs09hCypAGEAFLdgPRqBfaiZKTk3kNwSOQagvGhbtRZryOrrIFWeB7jMp5qNYg/a8EVDmVhAh73b4wOjSMwIBAKV8cmeDVQoEgyJL12fmvUY/9Lt+tVgmgp9ESzdnagHlyahcf1B4aIsxiZ24m9uwJpGvWkqdhLQNAYMNyaJhli7ZrUm6+mWd+zGMl0vlNL1CudaA78GhvA9LiTfhg3FHkW3ENQ5uG33YKRtlLJ+vWMS1bkFNb31LwQlvrBT5n7RipPEWbAF6egeCYpngYoVj2XXQQ3/ENsGKjPEE2WT/6qMKz/kVncZ3mvk2faqVBNJKhF3phIFtXCZbihNz7BYN1l0ZS1TGA3zxszWzZ7Jt/4Cn0dV8hoIl93rojYEl6HwZps0ZTjI+i1RY2GWl7opYlOAxRR4FwksQnkubxAXiL9yKsacRm63ef4j9qrrvD8z4HeFXrKInKZIMQyzo6BccNGl8t3CakCEh13bURxT4767i/ium6v2KS7zgAAAABJRU5ErkJggg=="</span>
+
+  <span class="string">"ctrl+shift+s"</span>:
+    name: <span class="string">"Download"</span>
+    description: <span class="string">"""
+      Download image to your local filesystem.
+    """</span>
+    method: ({editor}) -&gt;
+      <span class="keyword">if</span> name = prompt(<span class="string">"File name"</span>, <span class="string">"image"</span>)
+        editor.markClean()
+        editor.outputCanvas().toBlob (blob) -&gt;
+          saveAs blob, <span class="string">"<span class="subst">#{name}</span>.png"</span>
+
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACs0lEQVQ4T42SS0hUURjH/2fGO2MPTC3p6VQudBEt1Bm1UWgXCEW0LNpIlk5WYoq2UYseFAmaYaRNAy2KApMkq5lRepChjJqaiUJp4cKyRTgzPsZp7jl954xEK+teDt/HPff/+57MWuwpE2DbDQx5AFLIXwuIGMbAIOgLPUa6NNARgkPnmDVp+BwKLV3rbz7QymwO7x1nVV4h6P+0rWalEVwgHKHziyvxKrMBBMTcIsdcSBcT03P6PfeEf+zrTBWzOjrH71bmprX5gqg6lCTlOH2jD9eLMxHhQKzGYNIMWCKYf0EnKzA5swAjOC64BpYkYNZZmbvucW8AFQc3qJTPNvXjyokMaEaKbjJQ6kBgUcd8iINTdq6uH8jPjENZY4+QgPDtCrvW7gugJH+9AlQ7B3GpMB2rY43QqITFMBU+r1NGEgACzCB9hxl1D96DAF7eVG5nT6mE4/sSFYA0WGM2UnSGiE7RKfWFsK7Egl6X9zt2W0xoeDQIZjvpFY2ldjzrD+Db9BQ1izpOAC2GGkewCKUcoWYsD0QFiI9PxC6LGU2twwRweEV9aQ6e9/lVrVKl5qcUAqSnyASgSy4P+QYKkrqJoeXJSBRQdyoH7gG/ov8ZPoFkw6RQzl+lT1ZIh8ApSQyujo9RwFVHFrqGAtGtoUu5Q9LqEiCjy0zI51xXO0IeLIkC991jEuARl4uy8Go4iNoj25YhK5uKllEkJwg87BwHy6Ymni+04c1IALWHk9Hw7tiK6lK7E+XNH7AlXqDt5ScClHhFTYEV3aNB1BDAN/V6RYAteS/Kbg1hc5xA+1sCUAm8usDKesYkwPJfGZy5OYCNBOjonpCb6Jk8dzRjp5zh/uzoKv/ruejyqQa/6P3yk1mL3PXU11QwsYcJJNDw1Oio3Wpsf1sZJDpWIRh4UDDjyG82p2waquUVyAAAAABJRU5ErkJggg=="</span>
+
+  <span class="string">"ctrl+r"</span>:
+    name: <span class="string">"Resize"</span>
+    description: <span class="string">"""
+      Resize
+    """</span>
+    method: ({editor}) -&gt;
+      {width, height} = size = editor.pixelExtent()
+
+      <span class="keyword">if</span> newSize = prompt(<span class="string">"New Size (WxH)"</span>, <span class="string">"<span class="subst">#{width}</span>x<span class="subst">#{height}</span>"</span>)
+        [width, height] = newSize.split(<span class="string">"x"</span>).map (v) -&gt; parseInt v, <span class="number">10</span>
+
+        command = editor.Command.Resize
+          size: {width, height}
+          sizePrevious: size
+          imageDataPrevious: editor.getSnapshot()
+
+        editor.execute command
+
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACLElEQVQ4T91Tz2sTQRR+05hmTTeB0iS7h8ZjLyEKgoVehCLWFG0g0ahrMEpp6rH++EMUFH8UUbRIq7ZZ21qoh14UjfQiQkXpQWKSJmlcyzZmY3fj7DhjGklK+g/4YBjmzX7fvve9+dC15CUCNIhJgBC66H7j8H3EcjsjvhAlJr03TRNMXNsRIzjU2UcPGJaV5K5gRibNSoKjzVrwu/cDQgiSqXeArr4dJQc7e6FS1UDRFchpWflW/8Pwzr8zsI2QVS/vdXIWDuxWHpYz7wFdeRMnFmQFgRNBtImQKqcg/zMr3x543ERyQT6reB3dXZ4OAVIb3yC3uVZrYez1CNEMTeQQt9rN73Pqhg758tqru4MTgcYqzk9H5oUO8YSJTciVcvLUOTl86tEQ+SfWCC3Rutf6iYqUvBeYGGolojQVXqQiVxi4ft9S7Vbg3XL/G0FsJpLA2LQ/OT3TNIF6/8HxwXmCcV9Fx76ly0vrLI+G5yTyIDiJGNjFeUJstvlS/uXT6IumSQTHA4tu3nPMgiyQVjKlKiY9FiAFdFE+8/d9uzg3CHYRiloR0hvpH89js65G5Y/fGUi4HZ6Q6KTfbBZhXS2AXjUAxaYjxNflB/WXCjrWIatmSltbWs9cvFZiYwRuHknQKkLt7XuAtzlhJbUCKPrsJPG7DoDx24Av3z9DuaKKrcB1oqPX+4nP64M2aqYPXz8CkibDtAVmT7q2rSoPL7R8HwzM7G5u257Z/w969A/vqEbP0wAAAABJRU5ErkJggg=="</span>
+
+  <span class="string">"ctrl+shift+c"</span>:
+    name: <span class="string">"Clear"</span>
+    description: <span class="string">"""
+      Clear image
+    """</span>
+    method: ({editor}) -&gt;
+      previous = editor.getSnapshot()
+      editor.canvas.clear()
+
+      editor.execute editor.Command.PutImageData
+        imageData: editor.getSnapshot()
+        imageDataPrevious: previous
+        x: <span class="number">0</span>
+        y: <span class="number">0</span>
+
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAC4SURBVCjPdZFbDsIgEEWnrsMm7oGGfZrohxvU+Iq1TyjU60Bf1pac4Yc5YS4ZAtGWBMk/drQBOVwJlZrWYkLhsB8UV9K0BUrPGy9cWbng2CtEEUmLGppPjRwpbixUKHBiZRS0p+ZGhvs4irNEvWD8heHpbsyDXznPhYFOyTjJc13olIqzZCHBouE0FRMUjA+s1gTjaRgVFpqRwC8mfoXPPEVPS7LbRaJL2y7bOifRCTEli3U7BMWgLzKlW/CuebZPAAAAAElFTkSuQmCC"</span>
+
+  <span class="string">"+"</span>:
+    name: <span class="string">"Zoom In"</span>
+    description: <span class="string">"""
+      Zoom in
+    """</span>
+    method: ({editor}) -&gt;
+      currentSize = editor.pixelSize()
+      <span class="keyword">if</span> currentSize &lt; <span class="number">32</span>
+        editor.pixelSize(currentSize*<span class="number">2</span>)
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACbklEQVQ4T6WTbWhSURjH/15fptPltJm2pJkGLRdUNAZBY/TycZ8EI6LojWAUYxBBtL74KSKCYDSEiCihDBcEvdArgy2C1WRbc6GN3jaXIpMcvl7vvefa8YarMT8IXe45l8u9z+/8zvM8R4b/vGSVeI/Hw3Qe6R8UiNhNiNhMn+AFISYIwtPwsxtn6Xex2loSQAo+3D/cqC51GeplUDAlgN6sUMJ8ksVcIj8SHb25rxpEArye5bwGtdhj1jHIFAlYvgRCAUoGaKiTY2C6Dzk2Da7Asz73kOZfEwnwPJyPbmmSW1lBRJ4rQSzRQYWpAOoUMng/nsQBy1Y8CgcxdOzJ8rbLsdLL41CWbG9WMotZAiKWATSYToFv55HJpWBW6mBf04TJhR/4Go+jyHKp0UtjxmXAw4klsmujhklkBAoA1f9jcHv6BDrNDroljo4izUkRBa6IN+MhfLg8JS0uTffHktGdLVprjurnOFEyKJvcm+zFr3QcRpUGVqMen+YWMP9zEcUCx4YGIlIuJMCdkbh3nV7V47BokcoTZMsQalCnlMGgkaP37l7scGzA2+AsJq6FVuegXEZTx/Fhy1p1l83SAJWCQbnoBVZA6EsSvndHkcmmoOaJeE6jcx68GvxcqcSKRtJsOzTI8aSbF2gj8QScQOImdobbrw9tsjo7EIuMIxJ8lSxw6T2nvN8lyAqdap0WcLeplPZGv6ml1WVz7kY08h4zwRfJ07eippoAUqdSyGaz6Dfb2lz21na8DFzHGV/ibxVqOU8eN1QW7Xq/QqV25TJLV/r8qYs1G1QWcLshb5fXmy88yMdWJbEWi2r//AZSUiAguj/HUQAAAABJRU5ErkJggg=="</span>
+
+  <span class="string">"-"</span>:
+    name: <span class="string">"Zoom Out"</span>
+    description: <span class="string">"""
+      Zoom out
+    """</span>
+    method: ({editor}) -&gt;
+      currentSize = editor.pixelSize()
+      <span class="keyword">if</span> currentSize &gt; <span class="number">1</span>
+        editor.pixelSize(currentSize/<span class="number">2</span>)
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACVElEQVQ4T6WTS2gTURSG/0zejaVNbUws0aZVamgFFUtUiBQUF2JXgYiIC0GEqovufBTELNWFblpSxIUPMFK6EsVaMVBXPoIuUkwqbUXHJA0GE5vMdDKZO+OdkaQqkQYc5twLdzjf+bjnjA7/+eiq+aFQiNl/YmRMIvIgIXIH3VGRpLQkSY8TT0bP0e9yvVoaQEs+PhJttSgD9iYdDIwC0FeQFHzJCfic5WfYl7cO1INogOcfxbDdIg851zEolgmEigJCAUYGaDbrkUgVsZAujg8f6Trzt4UGeJrg2W3tercgyeBFBbJCgwpTAZgNOhh1CqZjqa/nAz2b6gIexUtkR4eR+VYiILIKoMl08d2/Bn0+D7nEgfwo0VgGKahRyrfNx9tUmGYw+a5Adm+2MtmiRAGg+r8M/KMXwe/1QhbpOQ1ZEEHKFRhu3EV7ZlHL1ZYHr3Lsrk6bm6P6nChrBqrJnvErMLDsamVqodkIZcGZT1lrgDszmfCGFtPQFpcNeZ6gpEKogdmog92qx5sPS+DmXgg9hcmdhy9Pzf1+D7U2Onwno671lgGPqxkmAwO16SuChPh8Dtz3JRwyRbH4fjq3InL+o9djNcgfg2TdfmxMrJDBikQHqUIgSiTjEGbFgy3xLnevD+nkWyRjKmTZfyr8SYPUAP+a6Ilgn8nY3RpxdHoDnt59YJOvMRubyp2+zToaAmiTSiFbnXLE6ekLdHv78WziJs7ey652oZH/KRSEyWXbGDGYLAGuWLg6HMlfatigWiAYhL5f3+S88JBPV8/WvIO17H4CfCMpIEZZGWYAAAAASUVORK5CYII="</span>
+
+  <span class="string">"g"</span>:
+    name: <span class="string">"Toggle Grid"</span>
+    description: <span class="string">"""
+      Toggle Grid
+    """</span>
+    method: ({editor}) -&gt;
+      editor.grid.toggle()
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"</span>
+
+  <span class="string">"f5"</span>:
+    name: <span class="string">"Replay"</span>
+    description: <span class="string">"""
+      Replay the drawing process
+    """</span>
+    method: ({editor}) -&gt;
+      editor.replay()
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZElEQVQ4T6WSX0hTcRTHz9XYTXEPRboC05qilK0N58N8kD1IIstyIHsYhReGrT9j4VOv+lgEQtCkB4ugZ8MSggXtIQXDl7pzLbOtYAij3D9r3Vt39+72vULSD+5bG+fhcs75nO853x9H//nj/vZPT0+nNE3rrNfr32KxWJcZ1+/3p1VV7arVap/j8fgpo2YfEI1Gf6H5CSBTpVLJVJckSYTmOcRoIpHoYwCRSEQHvQSAlQ/MqnwDj2KdlDrRlbb7dNxKdPnm2gHUJAFwr66u7g3fVxAOh0U0L6PAnxY6+9wWgXjNTrJGdM76lC62vqQRYfODoijzhsr19XUXAwiFQl/QvG0o+HrthzMvqTTQOEcNWi816kRHGzL0amZyA9N3Ee2iKJ5kAIIgbCHxBuGw3Prt6mg5SBVlh6rSWfpeGaGy1Eby7RsiFBgreNLpdA8DCAaDKShYRIyN3TvRb+GaScX/p7aDRWWqczV6eOGTiOZngExkMpkzDCAQCOSQLNlsNme5XDZ1IZlMyhiwBcDhXC7XwQDGx8dTSCziBud7Z567mxrhgkqkYP+p1gfU3sKRx3v3LYYsIyby+TyrwOfzGeS9G0gzXpeZC91DL4wVklDhKRQK7A2Gh4f3XECBtfnOEVMXFiaHNlCzi2ivVCqsC16v9x0ULCB5vWf+2GkzF96HRzfxWmMYMlWtVtl3MDg4qCOxhnBGl4aaLFwT1f51AV+z/a8l5JcAuSTLMvsS3W43BChXeZ5/ZLfbTV1YWVmhYrHoB+AxlB5iXHA4HJug240jZbPZATMC4B/R3IPmrK7r3UbNHy8zkCA9UyOUAAAAAElFTkSuQmCC"</span>
+
+  <span class="string">"ctrl+s"</span>:
+    name: <span class="string">"Save"</span>
+    description: <span class="string">"""
+      Save to your gallery
+    """</span>
+    method: ({editor}) -&gt;
+      <span class="keyword">if</span> title = prompt(<span class="string">"Title"</span>, <span class="string">""</span>)
+        {width, height} = editor.pixelExtent()
+        editor.markClean()
+        editor.outputCanvas().toBlob (blob) -&gt;
+          parent.postMessage
+            method: <span class="string">"save"</span>
+            title: title
+            width: width
+            height: height
+            image: blob
+            state: JSON.stringify(editor.saveState())
+          , <span class="string">"*"</span>
+
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"</span>
+
+Actions.extras =
+  <span class="string">"F1"</span>:
+    name: <span class="string">"Help"</span>
+    method: ({editor}) -&gt;
+      window.open(<span class="string">"./docs"</span>)
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC7klEQVQ4T6WTW0hUQRjH/+7q6mpkbLK663ZX28pExDJLKRRKKypZiNouVoTggy+RDxEoCSEp0UNJPkSloYTdoxtYdNE2a7vRmou4mWjppuUF3T3n7Dkz03Rku9JDNPMwM8z8f3zf9/8mBP85Qn7X3+sS52kJszOGnZSxOEoJCGNeSli9pIiNBemx737W/AJodvttYPT4nOlhphDGhYSobzUaDQJ8+/aDb0AmSol9hflSEPIdcKd93MYIrbOadFFjEwI6en3o/eIDoQzGaB2SLVNhmBaBxx2jPkUhhUV5s1WICrjhHJ1LNLQl2RJh9o740ewagik6DGvTzGB8Oj0jeNE9jJXWGFhiotD86lO/oIjZB2wp3SqgqW2obGG8/pAkybjq7IckyijfuijI5ytD9ZUOBBSKvLR48Prg4Zv+8jJ7aoUKqL//sSsjaWpC69vPcH8c5WFT7NtgxeueEURFaLEsMQZtXYO42NqNJMt05CyOQ8Pdbs+RvemJKuDk7R5/bopBf+7Be4wLMmQi81oSrFsyE5nzjQjIFHde9uGJ2wt9uBZFecmoudYu1JRkRaqAo5c7/euXmvRnOWBsYpyLeeY8zKrdGRiZkFDd9BJiQOGJAHqdBsUbU1F1/pVQV5ozCahocHUVZFkSHroG4e4b5vbJoDwN7orqFpEVXgZ+5jNhRgzWLJ2FIw0vPBfK8ydTKD31rCw31XxoSqQOFx+9g08QVGHlnkzwZsL+2gfqORQUW1anYGhYQOM9d/nNyk2TRSw+1jIXGtaya43VPOqTcM3hgSAGkJZgVIXOzgFoqIz8zAUwGiJx+NzTfpGI2a3Htk3a+G1sr2y2UUbrijemRMk8dIfrA3q9w6DcuvjYaCxPtiA0VIuKMw6fTEih44T9RyMFIZsOXrcpjB3fvCrJZJ1tQLhOq14JogKXZwinb70ZkCkteV67489WDkJySs7PI9oQ9TMRhcZ9qwGhxMt7o16SWGN73a6/f6Yg5F/WrzeMbiDawgJJAAAAAElFTkSuQmCC"</span>
+
+  <span class="string">"ctrl+shift+s"</span>:
+    name: <span class="string">"Save State"</span>
+    description: <span class="string">"""
+      Download project file to your local filesystem.
+    """</span>
+    method: ({editor}) -&gt;
+      <span class="keyword">if</span> name = prompt(<span class="string">"Name"</span>, <span class="string">"file"</span>)
+        data = editor.saveState()
+
+        blob = <span class="keyword">new</span> Blob [JSON.stringify(data)],
+          type: <span class="string">"application/json"</span>
+
+        saveAs blob, <span class="string">"<span class="subst">#{name}</span>.json"</span>
+
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"</span>
+
+  <span class="string">"ctrl+p"</span>:
+    name: <span class="string">"Share"</span>
+    description: <span class="string">"""
+      Publish picture to Facebook.
+    """</span>
+    icon: <span class="string">"data:image/png;base64,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"</span>
+    method: ({editor}) -&gt;
+      Facebook.requiringPermissions [<span class="string">"publish_stream"</span>], ({accessToken, userID}) -&gt;
+        editor.notify <span class="string">"Publishing image to Facebook"</span>
+
+        editor.outputCanvas(<span class="number">8</span>).toBlob (blob) -&gt;
+          formData = <span class="keyword">new</span> FormData
+          formData.append <span class="string">"access_token"</span>, accessToken
+          formData.append(<span class="string">"source"</span>, blob)
+
+          $.ajax
+            url:<span class="string">"https://graph.facebook.com/"</span> + userID + <span class="string">"/photos?access_token="</span> + accessToken,
+            type:<span class="string">"POST"</span>
+            data:formData,
+            processData:<span class="literal">false</span>,
+            contentType:<span class="literal">false</span>,
+            cache:<span class="literal">false</span>,
+            success: (data) -&gt;
+              editor.notify <span class="string">"Successfully published!"</span>
+            error: (shr, status, data) -&gt;
+              editor.notify <span class="string">"Error publishing image"</span>
+            complete: -&gt;</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+  (function() {
+  var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
+
+  createEditor = function(code, shebang, section) {
+    var annotationElement, contentElement, editorElement, exampleSection, runtimeElement;
+    exampleSection = $("<li>", {
+      "class": "example"
+    });
+    annotationElement = $("<div>", {
+      "class": "annotation"
+    });
+    editorElement = $("<textarea>", {
+      "class": "annotation",
+      text: code
+    });
+    contentElement = $("<div>", {
+      "class": "content"
+    });
+    runtimeElement = $("<div>", {
+      "class": "output"
+    });
+    contentElement.append(runtimeElement);
+    annotationElement.append(editorElement);
+    exampleSection.append(annotationElement);
+    exampleSection.append(contentElement);
+    section.after(exampleSection);
+    return bindUpdates(shebang, editorElement, runtimeElement);
+  };
+
+  bindUpdates = function(shebang, editorElement, runtimeElement) {
+    return editorElement.on("keyup", function() {
+      var e, report, source;
+      report = ErrorReporter(editorElement);
+      source = editorElement.val();
+      try {
+        runners[shebang]({
+          editorElement: editorElement,
+          source: source,
+          runtimeElement: runtimeElement
+        });
+        return report.clear();
+      } catch (_error) {
+        e = _error;
+        return report(e);
+      }
+    });
+  };
+
+  readShebang = function(source) {
+    var match;
+    if (match = source.match(/^\#\! (.*)\n/)) {
+      return match[1];
+    }
+  };
+
+  ErrorReporter = function(editor) {
+    var reporter;
+    reporter = function(error) {
+      var errorParagraph;
+      if (editor.next().is("p.error")) {
+        return editor.next().text(error);
+      } else {
+        errorParagraph = $("<p>", {
+          "class": "error",
+          text: error.toString()
+        });
+        return editor.after(errorParagraph);
+      }
+    };
+    reporter.clear = function() {
+      if (editor.next().is("p.error")) {
+        return editor.next().remove();
+      }
+    };
+    return reporter;
+  };
+
+  findInteractiveElements = function() {
+    return $("blockquote > pre > code").each(function() {
+      var blockQuoteElement, code, codeElement, sectionElement, shebang;
+      codeElement = $(this);
+      code = codeElement.text();
+      if (shebang = readShebang(code)) {
+        if (!runners[shebang]) {
+          return;
+        }
+        code = code.split("\n").slice(1).join("\n");
+        blockQuoteElement = codeElement.parent().parent();
+        sectionElement = blockQuoteElement.parent().parent();
+        blockQuoteElement.remove();
+        return createEditor(code, shebang, sectionElement);
+      }
+    });
+  };
+
+  runners = {};
+
+  (typeof window !== "undefined" && window !== null ? window : global).Interactive = {
+    register: function(name, runner) {
+      runners[name] = runner;
+      findInteractiveElements();
+      return $('#container').on('keyup', 'textarea', function() {
+        $(this).height(0);
+        return $(this).height(this.scrollHeight);
+      }).find('textarea').keyup();
+    }
+  };
+
+  exec = function(_arg) {
+    var code, editorElement, runtimeElement, source;
+    source = _arg.source, code = _arg.code, editorElement = _arg.editorElement, runtimeElement = _arg.runtimeElement;
+    runtimeElement.remove();
+    editorElement.replaceWith($("<pre>", {
+      text: source
+    }));
+    return setTimeout(function() {
+      return Function(code)();
+    }, 0);
+  };
+
+  $(function() {
+    Interactive.register("setup", function(params) {
+      params.code = CoffeeScript.compile(params.source);
+      return exec(params);
+    });
+    return Interactive.register("setup-js", function(params) {
+      params.code = params.source;
+      return exec(params);
+    });
+  });
+
+}).call(this);
+
+</script><script src="package.js"></script>
+</body>
+</html>
