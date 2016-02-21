@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1456077268559
+
+CACHE:
+index.html
+../reduce-deps.json
+https://code.jquery.com/jquery-1.11.0.min.js
+
+NETWORK:
+https://*
+http://*
+*
