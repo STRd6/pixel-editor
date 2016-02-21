@@ -1,8 +1,6 @@
 Palette
 =======
 
-    require "cornerstone"
-
 Helpers
 -------
 

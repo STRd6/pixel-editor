@@ -1,12 +1,9 @@
 Util
 ====
 
-Deferred
---------
-
-Use jQuery deferred
-
-    global.Deferred = jQuery.Deferred
+    global.Point = require "point"
+    global.Observable = require "observable"
+    global.Size = require "size"
 
 Helpers
 -------

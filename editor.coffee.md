@@ -3,9 +3,9 @@ Editor
 
     LITTLE_ENDIAN = require "./endianness"
 
-    require "cornerstone"
-
     loader = require("./loader")()
+
+    {extend, defaults} = require "util"
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"

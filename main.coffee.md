@@ -14,7 +14,7 @@ Editing pixels in your browser.
     require("analytics").init("UA-3464282-15")
 
     # Setup
-    require "cornerstone"
+    # require "cornerstone"
 
     require "jquery-utils"
 
