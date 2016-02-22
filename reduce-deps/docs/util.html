@@ -34,9 +34,16 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">global.Point = require <span class="string">"point"</span>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"extensions"</span>
+
+global.Bindable = require <span class="string">"bindable"</span>
+global.Matrix = require <span class="string">"matrix"</span>
+global.Model = require <span class="string">"core"</span>
+global.Point = require <span class="string">"point"</span>
 global.Observable = require <span class="string">"observable"</span>
-global.Size = require <span class="string">"size"</span></code></pre>
+global.Size = require <span class="string">"size"</span>
+
+Matrix.Point = Point</code></pre>
 </div>
         </li>
         
@@ -101,7 +108,10 @@ global.Size = require <span class="string">"size"</span></code></pre>
   <span class="keyword">if</span> isObject(scalar)
     Point(<span class="property">@x</span> * scalar.width, <span class="property">@y</span> * scalar.height)
   <span class="keyword">else</span>
-    Point(<span class="property">@x</span> * scalar, <span class="property">@y</span> * scalar)</code></pre>
+    Point(<span class="property">@x</span> * scalar, <span class="property">@y</span> * scalar)
+
+Point.prototype.<span class="function"><span class="title">floor</span></span> = -&gt;
+  Point <span class="property">@x</span>.floor(), <span class="property">@y</span>.floor()</code></pre>
 </div>
         </li>
         
