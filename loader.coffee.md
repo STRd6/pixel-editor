@@ -4,7 +4,6 @@ Loader
     Loader = ->
       load: (url) ->
         new Promise (resolve, reject) ->
-
           canvas = document.createElement('canvas')
           context = canvas.getContext('2d')
           image = document.createElement("img")
