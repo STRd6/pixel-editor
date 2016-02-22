@@ -34,19 +34,35 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"jquery-utils"</span>
-
-Loader = require <span class="string">"./loader"</span>
+            <div class="content"><pre><code class="lang-coffeescript">Loader = require <span class="string">"./loader"</span>
 
 loader = Loader()
 
 <span class="function"><span class="title">Drop</span></span> = (I={}, self=Core(I)) -&gt;
-  <span class="function"><span class="title">callback</span></span> = ({dataURL}) -&gt;
-    loader.load(dataURL)
-    .<span class="keyword">then</span> self.insertImageData
+  <span class="function"><span class="title">stopFn</span></span> = (event) -&gt;
+    event.stopPropagation()
+    event.preventDefault()
+    <span class="keyword">return</span> <span class="literal">false</span>
 
-  $(<span class="string">"html"</span>).dropImageReader callback
-  $(document).pasteImageReader callback
+  html = document.documentElement
+  html.addEventListener <span class="string">"dragenter"</span>, stopFn
+  html.addEventListener <span class="string">"dragover"</span>, stopFn
+  html.addEventListener <span class="string">"dragleave"</span>, stopFn
+  html.addEventListener <span class="string">"drop"</span>, (event) -&gt;
+    stopFn(event)
+    Array::forEach.call event.dataTransfer.files, (file) -&gt;
+      url = URL.createObjectURL(file)
+      self.fromDataURL(url)
+
+  document.addEventListener <span class="string">"paste"</span>, (event) -&gt;
+    Array::some.call event.clipboardData.items, (item) -&gt;
+      <span class="keyword">if</span> item.type.match <span class="regexp">/^image\//</span>
+        file = item.getAsFile()
+        url = URL.createObjectURL(file)
+        self.fromDataURL(url)
+        <span class="keyword">return</span> <span class="literal">true</span>
+      <span class="keyword">else</span>
+        <span class="keyword">return</span> <span class="literal">false</span>
 
 module.exports = Drop</code></pre>
 </div>
