@@ -1,8 +1,6 @@
 Util
 ====
 
-    require "jquery-utils"
-
     require "extensions"
 
     global.Bindable = require "bindable"

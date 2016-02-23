@@ -1,9 +1,10 @@
 Actions
 =======
 
+    require "./lib/mousetrap"
+
     ByteArray = require "byte_array"
     FileReading = require("./file_reading")
-    Hotkeys = require "hotkeys"
     Modal = require("./modal")
     Palette = require("./palette")
 
@@ -11,13 +12,23 @@ Actions
     saveAs = require "./lib/file_saver"
 
     module.exports = Actions = (I={}, self=Core(I)) ->
-      self.include Hotkeys
-
       self.extend
         addAction: (action) ->
           self.actions.push action
 
         actions: Observable []
+      
+        addHotkey: (key, method) ->
+          Mousetrap.bind key, (event) ->
+            event.preventDefault()
+
+            if typeof method is "function"
+              method
+                editor: self
+            else
+              self[method]()
+
+            return
 
       Object.keys(Actions.defaults).forEach (hotkey) ->
         {method, icon, name} = Actions.defaults[hotkey]

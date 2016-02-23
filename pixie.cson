@@ -10,8 +10,6 @@ dependencies:
   eval: "distri/eval:v0.1.0"
   extensions: "distri/extensions:master"
   "grid-gen": "distri/grid-gen:v0.2.0"
-  "hotkeys": "distri/hotkeys:v0.2.0"
-  "jquery-utils": "distri/jquery-utils:v0.2.0"
   matrix: "distri/matrix:master"
   observable: "distri/observable:master"
   point: "distri/point:master"
