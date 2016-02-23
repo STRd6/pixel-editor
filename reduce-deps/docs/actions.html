@@ -34,9 +34,10 @@
               </div>
               
             </div>
-            <div class="content"><pre><code class="lang-coffeescript">ByteArray = require <span class="string">"byte_array"</span>
+            <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"./lib/mousetrap"</span>
+
+ByteArray = require <span class="string">"byte_array"</span>
 FileReading = require(<span class="string">"./file_reading"</span>)
-Hotkeys = require <span class="string">"hotkeys"</span>
 Modal = require(<span class="string">"./modal"</span>)
 Palette = require(<span class="string">"./palette"</span>)
 
@@ -44,13 +45,23 @@ loader = require(<span class="string">"./loader"</span>)()
 saveAs = require <span class="string">"./lib/file_saver"</span>
 
 module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
-  self.include Hotkeys
-
   self.extend
     addAction: (action) -&gt;
       self.actions.push action
 
     actions: Observable []
+
+    addHotkey: (key, method) -&gt;
+      Mousetrap.bind key, (event) -&gt;
+        event.preventDefault()
+
+        <span class="keyword">if</span> <span class="keyword">typeof</span> method <span class="keyword">is</span> <span class="string">"function"</span>
+          method
+            editor: self
+        <span class="keyword">else</span>
+          self[method]()
+
+        <span class="keyword">return</span>
 
   Object.keys(Actions.defaults).forEach (hotkey) -&gt;
     {method, icon, name} = Actions.defaults[hotkey]
