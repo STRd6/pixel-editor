@@ -33,8 +33,8 @@
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
               <p>It edits pixels</p>
-<p><a href="http://www.danielx.net/pixel-editor/">http://www.danielx.net/pixel-editor/</a></p>
-<h1 id="tools">Tools</h1>
+<p><a href="https://danielx.net/pixel-editor/">Live Demo</a></p>
+<h1 id="embedding-instructions">Embedding Instructions</h1>
 
             </div>
             <div class="content"><pre><code>
@@ -48,20 +48,39 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>Pencil</p>
-<p>Brush</p>
-<p>Eraser</p>
-<p>Eye Dropper</p>
-<p>Paint Bucket</p>
-<p>Ellipse</p>
-<p>Solid Rectangle</p>
-<p>Rectangle Outline</p>
-<p>Line</p>
-<h1 id="symmetry-modes">Symmetry Modes</h1>
+              <p>The editor will send a <code>postMessage</code> to its parent window when &quot;Save&quot; is clicked.</p>
+<p>One thing to note is that this is pointing to the latest version of 
+<a href="https://danielx.net/pixel-editor/">https://danielx.net/pixel-editor/</a> so it might break out from under you. You&#39;d 
+probably want to host a stable version of the editor on your own service after 
+you get it working if you care about that kind of thing.</p>
+<p>```html</p>
 
             </div>
-            <div class="content"><pre><code>
-</code></pre>
+            <div class="content"><pre><code>&lt;html&gt;
+&lt;body&gt;
+&lt;/body&gt;
+&lt;iframe src=&quot;https://danielx.net/pixel-editor/&quot; width=&quot;100%&quot; height=&quot;100%&quot;&gt;&lt;/iframe&gt;
+&lt;script&gt;
+window.addEventListener(&quot;message&quot;, receiveMessage, false);
+function receiveMessage(event) {
+  var origin = event.origin;
+
+  if (origin !== &quot;https://danielx.net&quot;) {
+    return;
+  }
+
+  var data = event.data;
+  if (data.method === &quot;save&quot;) {
+    var image = data.image; // HTML5 Blob object
+    var width = data.width;
+    var height = data.height;
+
+    // Post to your server, etc
+    console.log(data);
+  }
+}
+&lt;\/script&gt;
+&lt;/html&gt;</code></pre>
 </div>
         </li>
         
@@ -71,11 +90,8 @@
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>Normal
-Flip horizontally
-Flip vertically
-Quad</p>
-<h1 id="hotkeys">Hotkeys</h1>
+              <p>```</p>
+<h1 id="developer-instructions">Developer Instructions</h1>
 
             </div>
             <div class="content"><pre><code>
@@ -88,21 +104,6 @@ Quad</p>
             <div class="annotation">
               <div class="pilwrap">
                 <a class="pilcrow" href="#section-5">&#182;</a>
-              </div>
-              <p>0-9 Select nth tool</p>
-<h1 id="developer-instructions">Developer Instructions</h1>
-
-            </div>
-            <div class="content"><pre><code>
-</code></pre>
-</div>
-        </li>
-        
-        
-        <li id="section-6">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>Fork on Github <a href="https://github.com/STRd6/pixel-editor/fork">https://github.com/STRd6/pixel-editor/fork</a></p>
 <p>Go to <a href="http://danielx.net/editor">http://danielx.net/editor</a></p>
