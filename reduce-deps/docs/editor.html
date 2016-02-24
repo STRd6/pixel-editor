@@ -481,7 +481,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         x: x
         y: y
 
-  $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
+  previewCanvas.element().addEventListener <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
     {left, top} = currentTarget.getBoundingClientRect()
     {x, y} = Point(pageX - left, pageY - top).scale(<span class="number">1</span>/pixelSize()).floor()
 
