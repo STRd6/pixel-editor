@@ -448,7 +448,7 @@ Editor
             x: x
             y: y
 
-      $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
+      previewCanvas.element().addEventListener "mousemove", ({currentTarget, pageX, pageY}) ->
         {left, top} = currentTarget.getBoundingClientRect()
         {x, y} = Point(pageX - left, pageY - top).scale(1/pixelSize()).floor()
 
