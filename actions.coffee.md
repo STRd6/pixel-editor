@@ -17,7 +17,7 @@ Actions
           self.actions.push action
 
         actions: Observable []
-      
+
         addHotkey: (key, method) ->
           Mousetrap.bind key, (event) ->
             event.preventDefault()
