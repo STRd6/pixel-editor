@@ -1,12 +1,16 @@
 Util
 ====
 
-Deferred
---------
+    require "extensions"
 
-Use jQuery deferred
+    global.Bindable = require "bindable"
+    global.Matrix = require "matrix"
+    global.Model = require "core"
+    global.Point = require "point"
+    global.Observable = require "observable"
+    global.Size = require "size"
 
-    global.Deferred = jQuery.Deferred
+    Matrix.Point = Point
 
 Helpers
 -------
@@ -30,6 +34,9 @@ Point Extensions
         Point(@x * scalar.width, @y * scalar.height)
       else
         Point(@x * scalar, @y * scalar)
+    
+    Point.prototype.floor = ->
+      Point @x.floor(), @y.floor()
 
 Extra utilities that may be broken out into separate libraries.
 

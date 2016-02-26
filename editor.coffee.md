@@ -3,9 +3,9 @@ Editor
 
     LITTLE_ENDIAN = require "./endianness"
 
-    require "cornerstone"
-
     loader = require("./loader")()
+
+    {extend, defaults} = require "util"
 
     TouchCanvas = require "touch-canvas"
     GridGen = require "grid-gen"
@@ -448,7 +448,7 @@ Editor
             x: x
             y: y
 
-      $(previewCanvas.element()).on "mousemove", ({currentTarget, pageX, pageY}) ->
+      previewCanvas.element().addEventListener "mousemove", ({currentTarget, pageX, pageY}) ->
         {left, top} = currentTarget.getBoundingClientRect()
         {x, y} = Point(pageX - left, pageY - top).scale(1/pixelSize()).floor()
 
