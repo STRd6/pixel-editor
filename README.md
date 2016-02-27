@@ -10,9 +10,9 @@ Embedding Instructions
 
 The editor will send a `postMessage` to its parent window when "Save" is clicked.
 
-One thing to note is that this is pointing to the latest version of 
-https://danielx.net/pixel-editor/ so it might break out from under you. You'd 
-probably want to host a stable version of the editor on your own service after 
+One thing to note is that this is pointing to the latest version of
+https://danielx.net/pixel-editor/ so it might break out from under you. You'd
+probably want to host a stable version of the editor on your own service after
 you get it working if you care about that kind of thing.
 
 ```html
@@ -34,7 +34,7 @@ you get it working if you care about that kind of thing.
         var image = data.image; // HTML5 Blob object
         var width = data.width;
         var height = data.height;
-    
+
         // Post to your server, etc
         console.log(data);
       }

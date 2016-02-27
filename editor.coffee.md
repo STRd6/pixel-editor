@@ -8,12 +8,12 @@ Editor
     {extend, defaults} = require "util"
 
     TouchCanvas = require "touch-canvas"
-    GridGen = require "grid-gen"
 
     Actions = require "./actions"
     Command = require "./command"
     Drop = require "./drop"
     Eval = require "eval"
+    GridGen = require "grid-gen"
     Notifications = require "./notifications"
     Postmaster = require "postmaster"
     Tools = require "./tools"
@@ -21,20 +21,14 @@ Editor
 
     Palette = require("./palette")
 
-    template = require "./templates/editor"
-    debugTemplate = require "./templates/debug"
-
     {rgb2Hex} = require "./util"
 
     Symmetry = require "./symmetry"
 
-    module.exports = (I={}, self) ->
-      defaults I,
-        selector: "body"
-
+    module.exports = (I={}, self=Model(I)) ->
       pixelExtent = Observable Size(64, 64)
       pixelSize = Observable 8
-      viewSize = Observable ->
+      self.viewSize = Observable ->
         pixelExtent().scale pixelSize()
 
       positionDisplay = Observable("")
@@ -46,8 +40,6 @@ Editor
 
       replaying = false
       initialState = null
-
-      self ?= Model(I)
 
       self.include Actions
       self.include Bindable
@@ -69,6 +61,14 @@ Editor
         positionDisplay: positionDisplay
 
         grid: Observable false
+
+        gridStyle: ->
+          if self.grid()
+            gridImage = GridGen(
+              # TODO: Grid size options and matching pixel size/extent
+            ).backgroundImage()
+  
+            "background-image: #{gridImage};"
 
         symmetryMode: symmetryMode
 
@@ -302,65 +302,24 @@ Editor
               iterator(index, x, y)
 
         thumbnailClick: (e) ->
-          $(e.currentTarget).toggleClass("right")
+          e.currentTarget.classList.toggle "right"
 
       self.activeColor = Observable "#000000"
 
       self.activeColorStyle = Observable ->
         "background-color: #{self.activeColor()}"
 
-      $selector = $(I.selector)
-      $(I.selector).append template self
-
       self.canvas = canvas = TouchCanvas pixelExtent()
       self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
-      thumbnailCanvas = TouchCanvas pixelExtent()
+      self.thumbnailCanvas = thumbnailCanvas = TouchCanvas pixelExtent()
+      
+      previewCanvas.element().classList.add "preview"
 
       do (ctx=self.canvas.context()) ->
         ctx.imageSmoothingEnabled = false
-        ctx.webkitImageSmoothingEnabled = false
         ctx.mozImageSmoothingEnabled = false
 
-      $selector.find(".viewport")
-      .append(canvas.element())
-      .append($(previewCanvas.element()).addClass("preview"))
-      .css
-        backgroundImage: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"
-
-      $selector.find(".thumbnail").append thumbnailCanvas.element()
-
       self.TRANSPARENT_FILL = require("./lib/checker")().pattern()
-
-      updateViewportCentering = (->
-        size = viewSize()
-        $selector.find(".viewport").toggleClass "vertical-center", size.height < $selector.find(".main").height()
-      ).debounce(15)
-      $(window).resize updateViewportCentering
-
-      updateViewSize = (size) ->
-        $selector.find(".viewport, .overlay").css
-          width: size.width
-          height: size.height
-
-        # TODO: Should be bound directly to the template's overlay backgrond image attribute
-        if self.grid()
-          gridImage = GridGen(
-            # TODO: Grid size options and matching pixel size/extent
-          ).backgroundImage()
-
-          $selector.find(".overlay").css
-            backgroundImage: gridImage
-        else
-          $selector.find(".overlay").css
-            backgroundImage: "none"
-
-        updateViewportCentering()
-
-      # TODO: Use auto-dependencies
-      updateViewSize(viewSize())
-      viewSize.observe updateViewSize
-      self.grid.observe ->
-        updateViewSize viewSize()
 
       canvasPosition = (position) ->
         Point(position).scale(pixelExtent()).floor()
@@ -453,17 +412,6 @@ Editor
         {x, y} = Point(pageX - left, pageY - top).scale(1/pixelSize()).floor()
 
         positionDisplay("#{x},#{y}")
-
-      # TODO: Move this into template?
-      $viewport = $selector.find(".viewport")
-
-      setCursor = ({iconUrl, iconOffset}) ->
-        {x, y} = Point(iconOffset)
-
-        $viewport.css
-          cursor: "url(#{iconUrl}) #{x} #{y}, default"
-      self.activeTool.observe setCursor
-      setCursor self.activeTool()
 
       self.on "release", ->
         previewCanvas.clear()

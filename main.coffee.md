@@ -26,3 +26,43 @@ Editing pixels in your browser.
     global.editor = Editor()
 
     editor.notify("Welcome to PixiPaint!")
+
+    Template = require "./templates/editor"
+
+    document.body.appendChild Template editor
+
+    do ->
+      $selector = $('body')
+      $selector.find(".viewport")
+      .css
+        backgroundImage: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"
+
+      updateViewportCentering = (->
+        size = editor.viewSize()
+        $selector.find(".viewport").toggleClass "vertical-center", size.height < $selector.find(".main").height()
+      ).debounce(15)
+      $(window).resize updateViewportCentering
+
+      updateViewSize = (size) ->
+        $selector.find(".viewport").css
+          width: size.width
+          height: size.height
+
+        updateViewportCentering()
+
+      # TODO: Use auto-dependencies
+      updateViewSize(editor.viewSize())
+      editor.viewSize.observe updateViewSize
+      editor.grid.observe ->
+        updateViewSize editor.viewSize()
+
+      # TODO: Move this into template?
+      $viewport = $selector.find(".viewport")
+
+      setCursor = ({iconUrl, iconOffset}) ->
+        {x, y} = Point(iconOffset)
+
+        $viewport.css
+          cursor: "url(#{iconUrl}) #{x} #{y}, default"
+      editor.activeTool.observe setCursor
+      setCursor editor.activeTool()
