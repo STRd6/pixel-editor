@@ -33,9 +33,6 @@ Editing pixels in your browser.
 
     do ->
       $selector = $('body')
-      $selector.find(".viewport")
-      .css
-        backgroundImage: "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"
 
       updateViewportCentering = (->
         size = editor.viewSize()
