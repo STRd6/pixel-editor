@@ -28,38 +28,19 @@ Editing pixels in your browser.
     editor.notify("Welcome to PixiPaint!")
 
     Template = require "./templates/editor"
+    editorElement = Template editor
+    document.body.appendChild editorElement
 
-    document.body.appendChild Template editor
+    updateViewportCentering = (->
+      {height: mainHeight} = editorElement.querySelector(".main").getBoundingClientRect()
+      viewportElement = editorElement.querySelector(".viewport")
 
-    do ->
-      $selector = $('body')
+      height = editor.viewportHeight()
+      if height < mainHeight
+        viewportElement.classList.add("vertical-center")
+      else
+        viewportElement.classList.remove("vertical-center")
 
-      updateViewportCentering = (->
-        size = editor.viewSize()
-        $selector.find(".viewport").toggleClass "vertical-center", size.height < $selector.find(".main").height()
-      ).debounce(15)
-      $(window).resize updateViewportCentering
-
-      updateViewSize = (size) ->
-        $selector.find(".viewport").css
-          width: size.width
-          height: size.height
-
-        updateViewportCentering()
-
-      # TODO: Use auto-dependencies
-      updateViewSize(editor.viewSize())
-      editor.viewSize.observe updateViewSize
-      editor.grid.observe ->
-        updateViewSize editor.viewSize()
-
-      # TODO: Move this into template?
-      $viewport = $selector.find(".viewport")
-
-      setCursor = ({iconUrl, iconOffset}) ->
-        {x, y} = Point(iconOffset)
-
-        $viewport.css
-          cursor: "url(#{iconUrl}) #{x} #{y}, default"
-      editor.activeTool.observe setCursor
-      setCursor editor.activeTool()
+    ).debounce(15)
+    window.addEventListener "resize", updateViewportCentering
+    updateViewportCentering()

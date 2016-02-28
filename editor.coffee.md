@@ -4,6 +4,7 @@ Editor
     LITTLE_ENDIAN = require "./endianness"
 
     loader = require("./loader")()
+    ajax = require("ajax")()
 
     {extend, defaults} = require "util"
 
@@ -28,8 +29,6 @@ Editor
     module.exports = (I={}, self=Model(I)) ->
       pixelExtent = Observable Size(64, 64)
       pixelSize = Observable 8
-      self.viewSize = Observable ->
-        pixelExtent().scale pixelSize()
 
       positionDisplay = Observable("")
 
@@ -60,6 +59,21 @@ Editor
         pixelExtent: pixelExtent
         positionDisplay: positionDisplay
 
+        viewportWidth: ->
+          pixelExtent().scale(pixelSize()).width
+        viewportHeight: ->
+          pixelExtent().scale(pixelSize()).height
+
+        viewportStyle: ->
+          width = self.viewportWidth() 
+          height = self.viewportHeight()
+
+          {iconUrl, iconOffset} = self.activeTool()
+          {x, y} = Point(iconOffset)
+          cursor = "url(#{iconUrl}) #{x} #{y}, default"
+
+          "width: #{width}px; height: #{height}px; cursor: #{cursor};"
+
         grid: Observable false
 
         gridStyle: ->
@@ -67,7 +81,7 @@ Editor
             gridImage = GridGen(
               # TODO: Grid size options and matching pixel size/extent
             ).backgroundImage()
-  
+
             "background-image: #{gridImage};"
 
         symmetryMode: symmetryMode
@@ -176,7 +190,7 @@ Editor
 
         loadReplayFromURL: (jsonURL, sourceImage, finalImage) ->
           if jsonURL?
-            Q($.getJSON(jsonURL))
+            ajax.getJSON(jsonURL)
             .then (data) ->
               if Array.isArray(data[0])
                 if sourceImage
@@ -312,7 +326,7 @@ Editor
       self.canvas = canvas = TouchCanvas pixelExtent()
       self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
       self.thumbnailCanvas = thumbnailCanvas = TouchCanvas pixelExtent()
-      
+
       previewCanvas.element().classList.add "preview"
 
       do (ctx=self.canvas.context()) ->

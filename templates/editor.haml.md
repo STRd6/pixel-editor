@@ -28,7 +28,7 @@ The toolbar holds our tools.
 Our layers and preview canvases are placed in the viewport.
 
       .main
-        .viewport
+        .viewport(style=@viewportStyle)
           .overlay(style=@gridStyle)
           = @canvas.element()
           = @previewCanvas.element()

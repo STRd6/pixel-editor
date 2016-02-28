@@ -1,8 +1,6 @@
-version: "0.1.0"
-remoteDependencies: [
-  "https://code.jquery.com/jquery-1.11.0.min.js"
-]
+version: "0.2.0"
 dependencies:
+  ajax: "distri/ajax:master"
   analytics: "distri/google-analytics:v0.1.0"
   bindable: "distri/bindable:master"
   byte_array: "distri/byte_array:v0.1.1"
