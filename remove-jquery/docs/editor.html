@@ -33,6 +33,7 @@
   <div class="content"><pre><code class="lang-coffeescript">LITTLE_ENDIAN = require <span class="string">"./endianness"</span>
 
 loader = require(<span class="string">"./loader"</span>)()
+ajax = require(<span class="string">"ajax"</span>)()
 
 {extend, defaults} = require <span class="string">"util"</span>
 
@@ -57,8 +58,6 @@ Symmetry = require <span class="string">"./symmetry"</span>
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Model(I)) -&gt;
   pixelExtent = Observable Size(<span class="number">64</span>, <span class="number">64</span>)
   pixelSize = Observable <span class="number">8</span>
-  self.viewSize = Observable -&gt;
-    pixelExtent().scale pixelSize()
 
   positionDisplay = Observable(<span class="string">""</span>)
 
@@ -88,6 +87,21 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     pixelSize: pixelSize
     pixelExtent: pixelExtent
     positionDisplay: positionDisplay
+
+    viewportWidth: -&gt;
+      pixelExtent().scale(pixelSize()).width
+    viewportHeight: -&gt;
+      pixelExtent().scale(pixelSize()).height
+
+    viewportStyle: -&gt;
+      width = self.viewportWidth() 
+      height = self.viewportHeight()
+
+      {iconUrl, iconOffset} = self.activeTool()
+      {x, y} = Point(iconOffset)
+      cursor = <span class="string">"url(<span class="subst">#{iconUrl}</span>) <span class="subst">#{x}</span> <span class="subst">#{y}</span>, default"</span>
+
+      <span class="string">"width: <span class="subst">#{width}</span>px; height: <span class="subst">#{height}</span>px; cursor: <span class="subst">#{cursor}</span>;"</span>
 
     grid: Observable <span class="literal">false</span>
 
@@ -205,7 +219,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     loadReplayFromURL: (jsonURL, sourceImage, finalImage) -&gt;
       <span class="keyword">if</span> jsonURL?
-        Q($.getJSON(jsonURL))
+        ajax.getJSON(jsonURL)
         .<span class="keyword">then</span> (data) -&gt;
           <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
             <span class="keyword">if</span> sourceImage
@@ -469,8 +483,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     </ul>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 

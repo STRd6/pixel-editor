@@ -1,10 +1,10 @@
 CACHE MANIFEST
-# 1456631065378
+# 1456634131881
 
 CACHE:
 index.html
 ../remove-jquery.json
-https://code.jquery.com/jquery-1.11.0.min.js
+
 
 NETWORK:
 https://*
