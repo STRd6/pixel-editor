@@ -74,6 +74,12 @@ Editor
 
           "width: #{width}px; height: #{height}px; cursor: #{cursor};"
 
+        mainHeight: Observable(720)
+
+        viewportCenter: ->
+          if self.viewportHeight() < self.mainHeight()
+            "vertical-center"
+
         grid: Observable false
 
         gridStyle: ->

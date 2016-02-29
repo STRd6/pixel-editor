@@ -31,16 +31,8 @@ Editing pixels in your browser.
     editorElement = Template editor
     document.body.appendChild editorElement
 
-    updateViewportCentering = (->
+    updateViewportCentering = ->
       {height: mainHeight} = editorElement.querySelector(".main").getBoundingClientRect()
-      viewportElement = editorElement.querySelector(".viewport")
-
-      height = editor.viewportHeight()
-      if height < mainHeight
-        viewportElement.classList.add("vertical-center")
-      else
-        viewportElement.classList.remove("vertical-center")
-
-    ).debounce(15)
+      editor.mainHeight mainHeight
     window.addEventListener "resize", updateViewportCentering
     updateViewportCentering()
