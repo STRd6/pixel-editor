@@ -58,17 +58,9 @@ Template = require <span class="string">"./templates/editor"</span>
 editorElement = Template editor
 document.body.appendChild editorElement
 
-updateViewportCentering = (-&gt;
+<span class="function"><span class="title">updateViewportCentering</span></span> = -&gt;
   {height: mainHeight} = editorElement.querySelector(<span class="string">".main"</span>).getBoundingClientRect()
-  viewportElement = editorElement.querySelector(<span class="string">".viewport"</span>)
-
-  height = editor.viewportHeight()
-  <span class="keyword">if</span> height &lt; mainHeight
-    viewportElement.classList.add(<span class="string">"vertical-center"</span>)
-  <span class="keyword">else</span>
-    viewportElement.classList.remove(<span class="string">"vertical-center"</span>)
-
-).debounce(<span class="number">15</span>)
+  editor.mainHeight mainHeight
 window.addEventListener <span class="string">"resize"</span>, updateViewportCentering
 updateViewportCentering()</code></pre>
 </div>

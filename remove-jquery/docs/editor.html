@@ -103,6 +103,12 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       <span class="string">"width: <span class="subst">#{width}</span>px; height: <span class="subst">#{height}</span>px; cursor: <span class="subst">#{cursor}</span>;"</span>
 
+    mainHeight: Observable(<span class="number">720</span>)
+
+    viewportCenter: -&gt;
+      <span class="keyword">if</span> self.viewportHeight() &lt; self.mainHeight()
+        <span class="string">"vertical-center"</span>
+
     grid: Observable <span class="literal">false</span>
 
     gridStyle: -&gt;

@@ -61,7 +61,7 @@
 
   </div>
   <div class="content"><pre><code class="lang-haml">  .main
-    .viewport(style=@viewportStyle)
+    .viewport(style=@viewportStyle class=@viewportCenter)
       .overlay(style=@gridStyle)
       = @canvas.element()
       = @previewCanvas.element()
