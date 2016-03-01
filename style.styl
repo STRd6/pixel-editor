@@ -188,9 +188,11 @@ h2
   right: 0
   margin: auto
 
+.checkered
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=")
+
 .viewport
   background-color: white
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=")
   border: 1px solid gray
   margin: auto
   position: relative
@@ -265,6 +267,20 @@ h2
       width: 100%
 
       top: 50%
+
+#options
+  width: 50%
+  height: 50%
+  padding: 1em
+  
+  button.close
+    position: absolute
+    bottom: 1em
+    right: 1em
+
+  & > label
+    display: block
+    padding-bottom: 0.5em
 
 #modal
   background-color: rgba(0, 0, 0, 0.25)

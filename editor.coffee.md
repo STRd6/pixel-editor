@@ -76,14 +76,19 @@ Editor
 
         mainHeight: Observable(720)
 
+        viewportCheckered: Observable false
+
+        viewportChecker: ->
+          "checkered" if self.viewportCheckered()
+
         viewportCenter: ->
           if self.viewportHeight() < self.mainHeight()
             "vertical-center"
 
-        grid: Observable false
+        displayGrid: Observable false
 
         gridStyle: ->
-          if self.grid()
+          if self.displayGrid()
             gridImage = GridGen(
               # TODO: Grid size options and matching pixel size/extent
             ).backgroundImage()
@@ -91,6 +96,10 @@ Editor
             "background-image: #{gridImage};"
 
         symmetryMode: symmetryMode
+
+        hideModal: ->
+          Modal = require "./modal"
+          Modal.hide()
 
         outputCanvas: () ->
           outputCanvas = TouchCanvas pixelExtent()
