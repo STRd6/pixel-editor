@@ -14,7 +14,7 @@ dependencies:
   postmaster: "distri/postmaster:v0.2.3"
   runtime: "distri/runtime:v0.3.0"
   size: "distri/size:master"
-  "touch-canvas": "distri/touch-canvas:v0.4.0"
+  "touch-canvas": "distri/touch-canvas:v0.4.1"
   "undo": "distri/undo:v0.2.0"
   util: "distri/util:v0.1.0"
 width: 1280

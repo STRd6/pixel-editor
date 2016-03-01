@@ -65,7 +65,7 @@ Editor
           pixelExtent().scale(pixelSize()).height
 
         viewportStyle: ->
-          width = self.viewportWidth() 
+          width = self.viewportWidth()
           height = self.viewportHeight()
 
           {iconUrl, iconOffset} = self.activeTool()

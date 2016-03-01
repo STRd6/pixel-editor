@@ -7,6 +7,7 @@ Messing around with some modal BS
     modal.id = "modal"
 
     modal.onclick = (e) ->
+      console.log e
       if e.target is modal
         Modal.hide()
 
