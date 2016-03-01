@@ -105,14 +105,19 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     mainHeight: Observable(<span class="number">720</span>)
 
+    viewportCheckered: Observable <span class="literal">false</span>
+
+    viewportChecker: -&gt;
+      <span class="string">"checkered"</span> <span class="keyword">if</span> self.viewportCheckered()
+
     viewportCenter: -&gt;
       <span class="keyword">if</span> self.viewportHeight() &lt; self.mainHeight()
         <span class="string">"vertical-center"</span>
 
-    grid: Observable <span class="literal">false</span>
+    displayGrid: Observable <span class="literal">false</span>
 
     gridStyle: -&gt;
-      <span class="keyword">if</span> self.grid()
+      <span class="keyword">if</span> self.displayGrid()
         gridImage = GridGen(
           <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
         ).backgroundImage()
@@ -120,6 +125,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         <span class="string">"background-image: <span class="subst">#{gridImage}</span>;"</span>
 
     symmetryMode: symmetryMode
+
+    hideModal: -&gt;
+      Modal = require <span class="string">"./modal"</span>
+      Modal.hide()
 
     outputCanvas: () -&gt;
       outputCanvas = TouchCanvas pixelExtent()
