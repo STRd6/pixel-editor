@@ -52,14 +52,23 @@ Editor = require <span class="string">"./editor"</span>
 <span class="comment"># For debugging</span>
 global.editor = Editor()
 
-editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)</code></pre>
+editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)
+
+Template = require <span class="string">"./templates/editor"</span>
+editorElement = Template editor
+document.body.appendChild editorElement
+
+<span class="function"><span class="title">updateViewportCentering</span></span> = -&gt;
+  {height: mainHeight} = editorElement.querySelector(<span class="string">".main"</span>).getBoundingClientRect()
+  editor.mainHeight mainHeight
+window.addEventListener <span class="string">"resize"</span>, updateViewportCentering
+updateViewportCentering()</code></pre>
 </div>
 </li>
     </ul>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 

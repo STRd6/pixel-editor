@@ -31,28 +31,35 @@
     <p>Messing around with some modal BS</p>
 
   </div>
-  <div class="content"><pre><code class="lang-coffeescript">modal = $ <span class="string">"&lt;div&gt;"</span>,
-  id: <span class="string">"modal"</span>
+  <div class="content"><pre><code class="lang-coffeescript">modal = document.createElement <span class="string">"div"</span>
+modal.id = <span class="string">"modal"</span>
 
-modal.click (e) -&gt;
-  <span class="keyword">if</span> e.target <span class="keyword">is</span> <span class="keyword">this</span>
+modal.<span class="function"><span class="title">onclick</span></span> = (e) -&gt;
+  console.log e
+  <span class="keyword">if</span> e.target <span class="keyword">is</span> modal
     Modal.hide()
 
-$(<span class="string">"body"</span>).append modal
+document.body.appendChild modal
 
 module.exports = Modal =
   show: (element) -&gt;
-    modal.empty().append(element).addClass(<span class="string">"active"</span>)
+    empty(modal).appendChild(element)
+    modal.classList.add <span class="string">"active"</span>
 
   hide: -&gt;
-    modal.removeClass(<span class="string">"active"</span>)</code></pre>
+    modal.classList.remove <span class="string">"active"</span>
+
+<span class="function"><span class="title">empty</span></span> = (node) -&gt;
+  <span class="keyword">while</span> node.hasChildNodes()
+    node.removeChild(node.lastChild)
+
+  <span class="keyword">return</span> node</code></pre>
 </div>
 </li>
     </ul>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 
