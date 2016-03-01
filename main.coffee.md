@@ -26,3 +26,13 @@ Editing pixels in your browser.
     global.editor = Editor()
 
     editor.notify("Welcome to PixiPaint!")
+
+    Template = require "./templates/editor"
+    editorElement = Template editor
+    document.body.appendChild editorElement
+
+    updateViewportCentering = ->
+      {height: mainHeight} = editorElement.querySelector(".main").getBoundingClientRect()
+      editor.mainHeight mainHeight
+    window.addEventListener "resize", updateViewportCentering
+    updateViewportCentering()

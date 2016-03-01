@@ -10,6 +10,8 @@ Actions
 
     loader = require("./loader")()
     saveAs = require "./lib/file_saver"
+    
+    OptionsTemplate = require "./templates/options"
 
     module.exports = Actions = (I={}, self=Core(I)) ->
       self.extend
@@ -151,13 +153,13 @@ Actions
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACVElEQVQ4T6WTS2gTURSG/0zejaVNbUws0aZVamgFFUtUiBQUF2JXgYiIC0GEqovufBTELNWFblpSxIUPMFK6EsVaMVBXPoIuUkwqbUXHJA0GE5vMdDKZO+OdkaQqkQYc5twLdzjf+bjnjA7/+eiq+aFQiNl/YmRMIvIgIXIH3VGRpLQkSY8TT0bP0e9yvVoaQEs+PhJttSgD9iYdDIwC0FeQFHzJCfic5WfYl7cO1INogOcfxbDdIg851zEolgmEigJCAUYGaDbrkUgVsZAujg8f6Trzt4UGeJrg2W3tercgyeBFBbJCgwpTAZgNOhh1CqZjqa/nAz2b6gIexUtkR4eR+VYiILIKoMl08d2/Bn0+D7nEgfwo0VgGKahRyrfNx9tUmGYw+a5Adm+2MtmiRAGg+r8M/KMXwe/1QhbpOQ1ZEEHKFRhu3EV7ZlHL1ZYHr3Lsrk6bm6P6nChrBqrJnvErMLDsamVqodkIZcGZT1lrgDszmfCGFtPQFpcNeZ6gpEKogdmog92qx5sPS+DmXgg9hcmdhy9Pzf1+D7U2Onwno671lgGPqxkmAwO16SuChPh8Dtz3JRwyRbH4fjq3InL+o9djNcgfg2TdfmxMrJDBikQHqUIgSiTjEGbFgy3xLnevD+nkWyRjKmTZfyr8SYPUAP+a6Ilgn8nY3RpxdHoDnt59YJOvMRubyp2+zToaAmiTSiFbnXLE6ekLdHv78WziJs7ey652oZH/KRSEyWXbGDGYLAGuWLg6HMlfatigWiAYhL5f3+S88JBPV8/WvIO17H4CfCMpIEZZGWYAAAAASUVORK5CYII="
 
       "g":
-        name: "Toggle Grid"
+        name: "Options"
         description: """
-          Toggle Grid
+          Show options
         """
         method: ({editor}) ->
-          editor.grid.toggle()
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"
+          Modal.show OptionsTemplate editor
+        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC+klEQVQ4T3VTS0jjUBR9qX/bommpNv5QlIILoRTxA4IIunDrWhCU2Ym4EUStv1F3iriSyMyidFOC2I0gONSFYotipWqdRRFBUUqrbSEmJrz3kuFGdIYZ58FLXsK9595z7nkM+s86PT0dIYQMEkIQIcTf09Pz7bNQ5s+fl5eXzZIkPbS3t79EIpFkXV2dQ9d1FA6H0/F43NnW1mZRFKV6YGDg53veB0AsFtuilA4TQlKKonh0XY/W1tY6AeDq6ipJCPFomhbFGFdgjL8PDQ19ARAD4Pz8fNpqtS6xLIsymQx6fHyUCCGlHMcxmqahRCKhE0Lk+vp6c01NDcSjeDw+MzExsWwAnJyceFVVXYAERVFQQUEBMplMCGOMAAC+VVU1NqUUBYNBXVGUufX19a8fFI6OjpbLy8unAACCcrkcuru7M5IbGhpQfn6+ASjLMrq4uFiZnJycNihEIpEz4EUIMXMcx0qSZNA4Pj4Oi6I4W1xcjGw222Jra2sn6GGxWFAoFMpijCVKaYo5PDykLpfL9Pz8jERRNCpeX1+j29vbPq/X+wOq8Dzfy7LsvtPpNDoAEDivrq5qTCgUok1NTSZoGQCg4v39PbTfNzY2ZgBsbGz0OhyO/aqqKgQdlpSUILvdjtbW1jTG5/OdPT09VbAsa3a73SxUKCoqQrFYLEwpnQVNCCGLHo+nEzQAfQRByIqiCJNKfYgoCMIyx3FT4DwQLC8vzxAREqAyvF9fX40ODg4OVjY3N99EhEcgEPASQhbcbjeTzWaNDgoLCxFUfx8jnGGXlZUhn8+nq6o6x/P82xj9fv90ZWXlUmNjI9gW3dzcSCaTqbS7u9swkiAIOsMwckdHh7mlpQVtb2/DKGd2dnbejARrfn5+K5PJDEuSlLJarR6bzRbt7+93AiWe55MYYw/GOCrLsmHlvb2931Z+BxkfH2+mlD7Y7fYXhFCyq6vLAZwDgUDa5XI5E4mEJZfLVe/u7v57mf6+qqOjoyPpdHoQ7Assg8Hgp9f5F8rrwJFre608AAAAAElFTkSuQmCC"
 
       "f5":
         name: "Replay"
@@ -167,27 +169,6 @@ Actions
         method: ({editor}) ->
           editor.replay()
         icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZElEQVQ4T6WSX0hTcRTHz9XYTXEPRboC05qilK0N58N8kD1IIstyIHsYhReGrT9j4VOv+lgEQtCkB4ugZ8MSggXtIQXDl7pzLbOtYAij3D9r3Vt39+72vULSD+5bG+fhcs75nO853x9H//nj/vZPT0+nNE3rrNfr32KxWJcZ1+/3p1VV7arVap/j8fgpo2YfEI1Gf6H5CSBTpVLJVJckSYTmOcRoIpHoYwCRSEQHvQSAlQ/MqnwDj2KdlDrRlbb7dNxKdPnm2gHUJAFwr66u7g3fVxAOh0U0L6PAnxY6+9wWgXjNTrJGdM76lC62vqQRYfODoijzhsr19XUXAwiFQl/QvG0o+HrthzMvqTTQOEcNWi816kRHGzL0amZyA9N3Ee2iKJ5kAIIgbCHxBuGw3Prt6mg5SBVlh6rSWfpeGaGy1Eby7RsiFBgreNLpdA8DCAaDKShYRIyN3TvRb+GaScX/p7aDRWWqczV6eOGTiOZngExkMpkzDCAQCOSQLNlsNme5XDZ1IZlMyhiwBcDhXC7XwQDGx8dTSCziBud7Z567mxrhgkqkYP+p1gfU3sKRx3v3LYYsIyby+TyrwOfzGeS9G0gzXpeZC91DL4wVklDhKRQK7A2Gh4f3XECBtfnOEVMXFiaHNlCzi2ivVCqsC16v9x0ULCB5vWf+2GkzF96HRzfxWmMYMlWtVtl3MDg4qCOxhnBGl4aaLFwT1f51AV+z/a8l5JcAuSTLMvsS3W43BChXeZ5/ZLfbTV1YWVmhYrHoB+AxlB5iXHA4HJug240jZbPZATMC4B/R3IPmrK7r3UbNHy8zkCA9UyOUAAAAAElFTkSuQmCC"
-
-      "ctrl+s":
-        name: "Save"
-        description: """
-          Save to your gallery
-        """
-        method: ({editor}) ->
-          if title = prompt("Title", "")
-            {width, height} = editor.pixelExtent()
-            editor.markClean()
-            editor.outputCanvas().toBlob (blob) ->
-              parent.postMessage
-                method: "save"
-                title: title
-                width: width
-                height: height
-                image: blob
-                state: JSON.stringify(editor.saveState())
-              , "*"
-
-        icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"
 
     Actions.extras =
       "F1":

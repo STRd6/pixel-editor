@@ -1,8 +1,6 @@
-version: "0.1.0"
-remoteDependencies: [
-  "https://code.jquery.com/jquery-1.11.0.min.js"
-]
+version: "0.2.0"
 dependencies:
+  ajax: "distri/ajax:master"
   analytics: "distri/google-analytics:v0.1.0"
   bindable: "distri/bindable:master"
   byte_array: "distri/byte_array:v0.1.1"
@@ -16,7 +14,7 @@ dependencies:
   postmaster: "distri/postmaster:v0.2.3"
   runtime: "distri/runtime:v0.3.0"
   size: "distri/size:master"
-  "touch-canvas": "distri/touch-canvas:v0.3.1"
+  "touch-canvas": "distri/touch-canvas:v0.4.1"
   "undo": "distri/undo:v0.2.0"
   util: "distri/util:v0.1.0"
 width: 1280

@@ -34,7 +34,7 @@ Point Extensions
         Point(@x * scalar.width, @y * scalar.height)
       else
         Point(@x * scalar, @y * scalar)
-    
+
     Point.prototype.floor = ->
       Point @x.floor(), @y.floor()
 

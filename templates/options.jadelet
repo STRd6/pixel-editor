@@ -1,0 +1,10 @@
+#options
+  label
+    input(type="checkbox" checked=@displayGrid)
+    = "Display Grid"
+  
+  label
+    input(type="checkbox" checked=@viewportCheckered)
+    = "Checkered Backgound"
+
+  button.close(click=@hideModal) Close
