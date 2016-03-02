@@ -87,10 +87,13 @@ Editor
 
         displayGrid: Observable false
 
+        guideInterval: Observable 4
         gridStyle: ->
           if self.displayGrid()
             gridImage = GridGen(
-              # TODO: Grid size options and matching pixel size/extent
+              width: self.pixelSize()
+              height: self.pixelSize()
+              guide: self.guideInterval()
             ).backgroundImage()
 
             "background-image: #{gridImage};"
