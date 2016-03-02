@@ -116,10 +116,13 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     displayGrid: Observable <span class="literal">false</span>
 
+    guideInterval: Observable <span class="number">4</span>
     gridStyle: -&gt;
       <span class="keyword">if</span> self.displayGrid()
         gridImage = GridGen(
-          <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
+          width: self.pixelSize()
+          height: self.pixelSize()
+          guide: self.guideInterval()
         ).backgroundImage()
 
         <span class="string">"background-image: <span class="subst">#{gridImage}</span>;"</span>
