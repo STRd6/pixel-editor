@@ -3,18 +3,26 @@ Modal
 
 Messing around with some modal BS
 
-    modal = $ "<div>",
-      id: "modal"
+    modal = document.createElement "div"
+    modal.id = "modal"
 
-    modal.click (e) ->
-      if e.target is this
+    modal.onclick = (e) ->
+      console.log e
+      if e.target is modal
         Modal.hide()
 
-    $("body").append modal
+    document.body.appendChild modal
 
     module.exports = Modal =
       show: (element) ->
-        modal.empty().append(element).addClass("active")
+        empty(modal).appendChild(element)
+        modal.classList.add "active"
 
       hide: ->
-        modal.removeClass("active")
+        modal.classList.remove "active"
+
+    empty = (node) ->
+      while node.hasChildNodes()
+        node.removeChild(node.lastChild)
+
+      return node

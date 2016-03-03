@@ -1,19 +1,35 @@
 Drop and Paste Events
 =====================
 
-    require "jquery-utils"
-
     Loader = require "./loader"
 
     loader = Loader()
 
     Drop = (I={}, self=Core(I)) ->
-      callback = ({dataURL}) ->
-        loader.load(dataURL)
-        .then self.insertImageData
+      stopFn = (event) ->
+        event.stopPropagation()
+        event.preventDefault()
+        return false
 
-      $("html").dropImageReader callback
-      $(document).pasteImageReader callback
+      html = document.documentElement
+      html.addEventListener "dragenter", stopFn
+      html.addEventListener "dragover", stopFn
+      html.addEventListener "dragleave", stopFn
+      html.addEventListener "drop", (event) ->
+        stopFn(event)
+        Array::forEach.call event.dataTransfer.files, (file) ->
+          url = URL.createObjectURL(file)
+          self.fromDataURL(url)
+
+      document.addEventListener "paste", (event) ->
+        Array::some.call event.clipboardData.items, (item) ->
+          if item.type.match /^image\//
+            file = item.getAsFile()
+            url = URL.createObjectURL(file)
+            self.fromDataURL(url)
+            return true
+          else
+            return false
 
     module.exports = Drop
 

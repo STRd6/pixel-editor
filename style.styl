@@ -6,8 +6,9 @@ html, body
 body
   color: #222
 
-h2
-  font-size: 12px
+.opacity
+  h2
+    font-size: 12px
 
 .editor
   background-color: #AAA
@@ -16,6 +17,9 @@ h2
   padding: 0px 72px 64px 35px
   position: relative
   user-select: none
+  -moz-user-select: none
+  -ms-user-select: none
+  -webkit-user-select: none
   overflow: hidden
 
   .main
@@ -168,7 +172,7 @@ h2
       width: 48px
       height: 48px
 
-    & > input[type=color]
+    & > input
       width: 64px
       height: 64px
       margin: -8px 0 0 -8px
@@ -193,6 +197,9 @@ h2
   left: 0
   right: 0
   margin: auto
+
+.checkered
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=")
 
 .viewport
   background-color: white
@@ -220,6 +227,8 @@ h2
     pointer-events: none
     position: absolute
     z-index: 1
+    width: 100%
+    height: 100%
 
 .debug
   background-color: white
@@ -268,6 +277,20 @@ h2
       width: 100%
 
       top: 50%
+
+#options
+  width: 50%
+  height: 50%
+  padding: 1em
+
+  button.close
+    position: absolute
+    bottom: 1em
+    right: 1em
+
+  & > label
+    display: block
+    padding-bottom: 0.5em
 
 #modal
   background-color: rgba(0, 0, 0, 0.25)

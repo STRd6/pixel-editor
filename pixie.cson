@@ -1,18 +1,20 @@
-version: "0.1.0"
-remoteDependencies: [
-  "https://code.jquery.com/jquery-1.11.0.min.js"
-]
+version: "0.2.0"
 dependencies:
+  ajax: "distri/ajax:master"
   analytics: "distri/google-analytics:v0.1.0"
+  bindable: "distri/bindable:master"
   byte_array: "distri/byte_array:v0.1.1"
-  cornerstone: "distri/cornerstone:v0.2.8"
+  core: "distri/core:master"
   eval: "distri/eval:v0.1.0"
+  extensions: "distri/extensions:master"
   "grid-gen": "distri/grid-gen:v0.2.0"
-  "hotkeys": "distri/hotkeys:v0.2.0"
-  "jquery-utils": "distri/jquery-utils:v0.2.0"
+  matrix: "distri/matrix:master"
+  observable: "distri/observable:master"
+  point: "distri/point:master"
   postmaster: "distri/postmaster:v0.2.3"
   runtime: "distri/runtime:v0.3.0"
-  "touch-canvas": "distri/touch-canvas:v0.3.1"
+  size: "distri/size:master"
+  "touch-canvas": "distri/touch-canvas:v0.4.1"
   "undo": "distri/undo:v0.2.0"
   util: "distri/util:v0.1.0"
 width: 1280

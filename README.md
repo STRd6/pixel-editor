@@ -3,41 +3,45 @@ Pixel Editor
 
 It edits pixels
 
-http://www.danielx.net/pixel-editor/
+[Live Demo](https://danielx.net/pixel-editor/)
 
-Tools
-=====
+Embedding Instructions
+======================
 
-Pencil
+The editor will send a `postMessage` to its parent window when "Save" is clicked.
 
-Brush
+One thing to note is that this is pointing to the latest version of
+https://danielx.net/pixel-editor/ so it might break out from under you. You'd
+probably want to host a stable version of the editor on your own service after
+you get it working if you care about that kind of thing.
 
-Eraser
+```html
+    <html>
+    <body>
+    </body>
+    <iframe src="https://danielx.net/pixel-editor/" width="100%" height="100%"></iframe>
+    <script>
+    window.addEventListener("message", receiveMessage, false);
+    function receiveMessage(event) {
+      var origin = event.origin;
 
-Eye Dropper
+      if (origin !== "https://danielx.net") {
+        return;
+      }
 
-Paint Bucket
+      var data = event.data;
+      if (data.method === "save") {
+        var image = data.image; // HTML5 Blob object
+        var width = data.width;
+        var height = data.height;
 
-Ellipse
-
-Solid Rectangle
-
-Rectangle Outline
-
-Line
-
-Symmetry Modes
-==============
-
-Normal
-Flip horizontally
-Flip vertically
-Quad
-
-Hotkeys
-=======
-
-0-9 Select nth tool
+        // Post to your server, etc
+        console.log(data);
+      }
+    }
+    <\/script>
+    </html>
+```
 
 Developer Instructions
 ======================

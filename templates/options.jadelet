@@ -1,0 +1,19 @@
+#options
+  h2 Appearance
+
+  label
+    input(type="checkbox" checked=@displayGrid)
+    = "Display Grid"
+  
+  label
+    input(type="number" min=2 step=1 value=@guideInterval)
+  
+  label
+    input(type="checkbox" checked=@viewportCheckered)
+    = "Checkered Backgound"
+
+  h2 About
+  p
+    a(href="https://github.com/STRd6/pixel-editor/" target="_blank") View on GitHub
+
+  button.close(click=@hideModal) Close

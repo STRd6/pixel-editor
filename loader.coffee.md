@@ -1,11 +1,9 @@
 Loader
 ======
 
-    Loader = (I={}, self=Core(I)) ->
-      self.extend
-        load: (url) ->
-          deferred = Deferred()
-
+    Loader = ->
+      load: (url) ->
+        new Promise (resolve, reject) ->
           canvas = document.createElement('canvas')
           context = canvas.getContext('2d')
           image = document.createElement("img")
@@ -19,13 +17,11 @@ Loader
             context.drawImage(image, 0, 0)
             imageData = context.getImageData(0, 0, width, height)
 
-            deferred.resolve imageData
+            resolve imageData
 
           image.onerror = ->
-            deferred.reject "Error loading image data"
+            reject new Error "Error loading image data"
 
           image.src = url
-
-          return deferred.promise()
 
     module.exports = Loader

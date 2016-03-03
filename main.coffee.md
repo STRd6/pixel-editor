@@ -14,10 +14,6 @@ Editing pixels in your browser.
     require("analytics").init("UA-3464282-15")
 
     # Setup
-    require "cornerstone"
-
-    require "jquery-utils"
-
     require "./lib/canvas-to-blob"
 
     runtime = require("runtime")(PACKAGE)
@@ -30,3 +26,13 @@ Editing pixels in your browser.
     global.editor = Editor()
 
     editor.notify("Welcome to PixiPaint!")
+
+    Template = require "./templates/editor"
+    editorElement = Template editor
+    document.body.appendChild editorElement
+
+    updateViewportCentering = ->
+      {height: mainHeight} = editorElement.querySelector(".main").getBoundingClientRect()
+      editor.mainHeight mainHeight
+    window.addEventListener "resize", updateViewportCentering
+    updateViewportCentering()

@@ -4,6 +4,8 @@ TODO
 Polishing
 ---------
 
+Loading progress for replays
+
 Icons, Icon offsets for tools
 
 Thumbnail viewing mini-map rectangle
@@ -12,11 +14,6 @@ Responsive Design
 -----------------
 
 Styling for mobile viewports.
-
-Vintage Replays
----------------
-
-Be able to display PixieEngine replays
 
 Platforms
 ---------
@@ -72,8 +69,6 @@ Use quadtrees for diffing regions in undo stack.
 
 Hot reload editor state / initial editor state
 
-Documentation
-
 Autosave
 
 Analytics
@@ -100,10 +95,6 @@ Scripts
 
 Plugins
 
-Bugs
-----
-
-Display transparent preview as transparent instead of white
 
 Done
 ====
@@ -112,6 +103,8 @@ Simple Replays
 --------------
 
 Make sure replays can be saved and loaded
+
+Be able to display PixieEngine replays
 
 Memory Usage
 ------------
