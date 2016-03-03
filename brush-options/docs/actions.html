@@ -5,52 +5,61 @@
   <title>actions</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
-  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+  <link rel="stylesheet" media="all" href="https://strd6.github.io/cdn/parallel/docco.css" />
 </head>
 <body>
   <div id="container">
     <div id="background"></div>
     <ul class="sections">
-        
-        
-        <li id="section-1">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-1">&#182;</a>
-              </div>
-              <h1 id="actions">Actions</h1>
+      <li id="section-1">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-1">&#182;</a>
+    </div>
+    <h1 id="actions">Actions</h1>
 
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
-        </li>
-        
-        
-        <li id="section-2">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-2">&#182;</a>
-              </div>
-              
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">ByteArray = require <span class="string">"byte_array"</span>
+</li>
+<li id="section-2">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-2">&#182;</a>
+    </div>
+    
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"./lib/mousetrap"</span>
+
+ByteArray = require <span class="string">"byte_array"</span>
 FileReading = require(<span class="string">"./file_reading"</span>)
-Hotkeys = require <span class="string">"hotkeys"</span>
 Modal = require(<span class="string">"./modal"</span>)
 Palette = require(<span class="string">"./palette"</span>)
 
 loader = require(<span class="string">"./loader"</span>)()
 saveAs = require <span class="string">"./lib/file_saver"</span>
 
-module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
-  self.include Hotkeys
+OptionsTemplate = require <span class="string">"./templates/options"</span>
 
+module.exports = <span class="function"><span class="title">Actions</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
     addAction: (action) -&gt;
       self.actions.push action
 
     actions: Observable []
+
+    addHotkey: (key, method) -&gt;
+      Mousetrap.bind key, (event) -&gt;
+        event.preventDefault()
+
+        <span class="keyword">if</span> <span class="keyword">typeof</span> method <span class="keyword">is</span> <span class="string">"function"</span>
+          method
+            editor: self
+        <span class="keyword">else</span>
+          self[method]()
+
+        <span class="keyword">return</span>
 
   Object.keys(Actions.defaults).forEach (hotkey) -&gt;
     {method, icon, name} = Actions.defaults[hotkey]
@@ -173,13 +182,13 @@ Actions.defaults =
     icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACVElEQVQ4T6WTS2gTURSG/0zejaVNbUws0aZVamgFFUtUiBQUF2JXgYiIC0GEqovufBTELNWFblpSxIUPMFK6EsVaMVBXPoIuUkwqbUXHJA0GE5vMdDKZO+OdkaQqkQYc5twLdzjf+bjnjA7/+eiq+aFQiNl/YmRMIvIgIXIH3VGRpLQkSY8TT0bP0e9yvVoaQEs+PhJttSgD9iYdDIwC0FeQFHzJCfic5WfYl7cO1INogOcfxbDdIg851zEolgmEigJCAUYGaDbrkUgVsZAujg8f6Trzt4UGeJrg2W3tercgyeBFBbJCgwpTAZgNOhh1CqZjqa/nAz2b6gIexUtkR4eR+VYiILIKoMl08d2/Bn0+D7nEgfwo0VgGKahRyrfNx9tUmGYw+a5Adm+2MtmiRAGg+r8M/KMXwe/1QhbpOQ1ZEEHKFRhu3EV7ZlHL1ZYHr3Lsrk6bm6P6nChrBqrJnvErMLDsamVqodkIZcGZT1lrgDszmfCGFtPQFpcNeZ6gpEKogdmog92qx5sPS+DmXgg9hcmdhy9Pzf1+D7U2Onwno671lgGPqxkmAwO16SuChPh8Dtz3JRwyRbH4fjq3InL+o9djNcgfg2TdfmxMrJDBikQHqUIgSiTjEGbFgy3xLnevD+nkWyRjKmTZfyr8SYPUAP+a6Ilgn8nY3RpxdHoDnt59YJOvMRubyp2+zToaAmiTSiFbnXLE6ekLdHv78WziJs7ey652oZH/KRSEyWXbGDGYLAGuWLg6HMlfatigWiAYhL5f3+S88JBPV8/WvIO17H4CfCMpIEZZGWYAAAAASUVORK5CYII="</span>
 
   <span class="string">"g"</span>:
-    name: <span class="string">"Toggle Grid"</span>
+    name: <span class="string">"Options"</span>
     description: <span class="string">"""
-      Toggle Grid
+      Show options
     """</span>
     method: ({editor}) -&gt;
-      editor.grid.toggle()
-    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAM0lEQVQ4T2NkoBAwUqifAZsB/4GGIovj5VPVAJBNpAJGqroAZvtoGDAwjIYBFcKApOQMANUmIRHQ0q3yAAAAAElFTkSuQmCC"</span>
+      Modal.show OptionsTemplate editor
+    icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC+klEQVQ4T3VTS0jjUBR9qX/bommpNv5QlIILoRTxA4IIunDrWhCU2Ym4EUStv1F3iriSyMyidFOC2I0gONSFYotipWqdRRFBUUqrbSEmJrz3kuFGdIYZ58FLXsK9595z7nkM+s86PT0dIYQMEkIQIcTf09Pz7bNQ5s+fl5eXzZIkPbS3t79EIpFkXV2dQ9d1FA6H0/F43NnW1mZRFKV6YGDg53veB0AsFtuilA4TQlKKonh0XY/W1tY6AeDq6ipJCPFomhbFGFdgjL8PDQ19ARAD4Pz8fNpqtS6xLIsymQx6fHyUCCGlHMcxmqahRCKhE0Lk+vp6c01NDcSjeDw+MzExsWwAnJyceFVVXYAERVFQQUEBMplMCGOMAAC+VVU1NqUUBYNBXVGUufX19a8fFI6OjpbLy8unAACCcrkcuru7M5IbGhpQfn6+ASjLMrq4uFiZnJycNihEIpEz4EUIMXMcx0qSZNA4Pj4Oi6I4W1xcjGw222Jra2sn6GGxWFAoFMpijCVKaYo5PDykLpfL9Pz8jERRNCpeX1+j29vbPq/X+wOq8Dzfy7LsvtPpNDoAEDivrq5qTCgUok1NTSZoGQCg4v39PbTfNzY2ZgBsbGz0OhyO/aqqKgQdlpSUILvdjtbW1jTG5/OdPT09VbAsa3a73SxUKCoqQrFYLEwpnQVNCCGLHo+nEzQAfQRByIqiCJNKfYgoCMIyx3FT4DwQLC8vzxAREqAyvF9fX40ODg4OVjY3N99EhEcgEPASQhbcbjeTzWaNDgoLCxFUfx8jnGGXlZUhn8+nq6o6x/P82xj9fv90ZWXlUmNjI9gW3dzcSCaTqbS7u9swkiAIOsMwckdHh7mlpQVtb2/DKGd2dnbejARrfn5+K5PJDEuSlLJarR6bzRbt7+93AiWe55MYYw/GOCrLsmHlvb2931Z+BxkfH2+mlD7Y7fYXhFCyq6vLAZwDgUDa5XI5E4mEJZfLVe/u7v57mf6+qqOjoyPpdHoQ7Assg8Hgp9f5F8rrwJFre608AAAAAElFTkSuQmCC"</span>
 
   <span class="string">"f5"</span>:
     name: <span class="string">"Replay"</span>
@@ -200,7 +209,7 @@ Actions.defaults =
         {width, height} = editor.pixelExtent()
         editor.markClean()
         editor.outputCanvas().toBlob (blob) -&gt;
-          parent.postMessage
+          (opener <span class="keyword">or</span> parent).postMessage
             method: <span class="string">"save"</span>
             title: title
             width: width
@@ -210,6 +219,7 @@ Actions.defaults =
           , <span class="string">"*"</span>
 
     icon: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC4klEQVQ4T32T70tTURjHv8fpppuaQkuhlgU2f4wCs6b4QpxLod9BJSaYEOS7+gOiF/VCYvjKepf0IsFfU6wxUSNFiALJ9NWi7AelbmbX2qZzv9zdvT3nSOAMei6Xe++55/mc7/N9zmGgGBsb06Wnp19QVfVaMpkspaEjynZ4aOwLPZ8kEomppqamJJ+/Mxgll2s0mv6CgoJjhYWFMBgM0Ov1oESsr68jFAphcXERkiS9prFmgvhSABMTE9NlZWV1JpMJjLHdC4hvWZbh8XiwsLDQ09zc3JYCGB8fl2w2m1Gr1f4XEAgEMDk5udbS0rJvdwkCEAwGkZmZCZ1Oh4yMDFFCJBKB3++H1+tFcXExpqam1lpbW1MBo6OjUn19vTEcDot6Y7GYSOayuQfxeBxkMMxms1DQ1taWCnC73QLAJ/JknsgTHjz3I0cHRLZk5GdrsSJFwdKAbL0GisoQ2Iji5exSFXO5XJLdbjdyudFoVAC4H/cHf+KsrQSXjmfDPePF+eoDKQY/nV7D9NtvYCMjI1JDQ4Nxc3NT1MwB3Ic7vT9grynFjbo83H40h4e3KgUgJgNbtBsej/nw/vMy2PDwsNTY2ChM5ADaSAJwb+gXTlWVoKU2F4yuNOqwSgBFUalbgGPoO+Y/EMDpdAoAd5sDaNchKysLDlcAJyyH4PsdEslyUoFCN4dwk/mLb2UFbGBgQLJarUYKrK6uCh84oOOZHxXlJjKLNNNsWU4KOFegqAp9J6i9BOjt7T1DP5wWi8VQVFQk5PMdeb1zHvaTJbhSmwVZ2SIItYAvzBRkpmvR2beEWc8nKo6iu7v7MLXuLoEu07nYw89Cn6cQp6uO4mJtAt2z7dhrOMidwFp4Ge3WLnT1xzE9924bsDMcDkcOlVD8Klg5f/NcORor/JgJDCJPu1+ICMYkVOdfRUdPEi9m5v4F/IVVtE+8MZv0NXm6fJKcS2UkwMgDppIXLIKPS18hbSTwB3tLeq03+hLeAAAAAElFTkSuQmCC"</span>
+
 
 Actions.extras =
   <span class="string">"F1"</span>:
@@ -262,13 +272,11 @@ Actions.extras =
               editor.notify <span class="string">"Error publishing image"</span>
             complete: -&gt;</code></pre>
 </div>
-        </li>
-        
+</li>
     </ul>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 
