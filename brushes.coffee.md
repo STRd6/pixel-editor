@@ -1,12 +1,14 @@
 Brushes
 =======
 
+    require "./util"
+
 A brush takes a point and returns a list of points.
 
     tiny = """
       1
     """
-    
+
     small = """
       010
       111
@@ -30,7 +32,7 @@ A brush takes a point and returns a list of points.
       0111110
       0011100
     """
-    
+
     sizes = [tiny, small, big, bigger].map (data) ->
       rows = data.split('\n')
 
