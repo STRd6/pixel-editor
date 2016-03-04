@@ -213,6 +213,7 @@ Shapes
           self.tools.push tool
 
         activeTool: Observable()
+        detailTool: Observable()
         previousTool: Observable()
 
         tools: Observable []

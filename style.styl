@@ -125,20 +125,33 @@ body
     border-left: 1px solid rgba(255, 255, 255, 0.5)
     cursor: pointer
 
-    input
+    & > .panel
+      background-color: #eee
+      border-bottom: 1px solid rgba(0, 0, 0, 0.5)
+      border-right: 1px solid rgba(0, 0, 0, 0.5)
+      border-top: 1px solid rgba(255, 255, 255, 0.5)
       display: none
+      margin-top: -1px
+      margin-left: 35px
+      padding: 3px
+      padding-bottom: 4px
+      position: absolute
+      z-index: 10
+
+    &.panelOpen
+      border-right: 1px solid #eee
+
+      &:empty
+        border-right: 1px solid rgba(0, 0, 0, 0.5)
+
+      & > .panel
+        display: inline-block
 
     &:last-child
       border-bottom-right-radius: 2px
 
     &.active
       background-color: #EEE
-
-      input
-        display: inline
-        margin-left: 38px
-        position: absolute
-        z-index: 10
 
   .tools:not(:first-child)
     .tool

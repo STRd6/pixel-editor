@@ -6,7 +6,8 @@ Editor template
     - editor = this
     - Symmetry = require "../symmetry"
     - Palette = require "./palette"
-    - ToolPanel = require "./tool_panel"
+    - Tool = require "./tool"
+    - ToolPresenter = require "../presenters/tool"
 
     .editor
 
@@ -15,11 +16,7 @@ The toolbar holds our tools.
       .toolbar
         .tools
           - @tools.each (tool) ->
-            - activeClass = -> "active" if tool is activeTool()
-            - activate = -> activeTool(tool)
-            .tool(style="background-image: url(#{tool.iconUrl})" title=tool.hotkeys class=activeClass click=activate)
-              - if settings = tool.settings
-                = ToolPanel(settings)
+            = Tool ToolPresenter(editor, tool)
         %h2 Symmetry
         .tools
           - symmetryMode = @symmetryMode
