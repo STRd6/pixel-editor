@@ -2,6 +2,7 @@ Util
 ====
 
     require "extensions"
+    require "./shims"
 
     global.Bindable = require "bindable"
     global.Matrix = require "matrix"
@@ -77,7 +78,9 @@ Call an iterator for each integer point on a line between two integer points.
             err += dx
             y0 += sy
 
-          iterator x0, y0
+          iterator
+            x: x0
+            y: y0
 
       rect: (start, end, iterator) ->
         [start.y..end.y].forEach (y) ->

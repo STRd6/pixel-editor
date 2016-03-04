@@ -1,0 +1,5 @@
+- ToolPanel = require "./tool_panel"
+
+.tool(style=@style title=@title class=@activeClass class=@detailClass click=@activate dblclick=@detail)
+  - if @settings
+    = ToolPanel(@settings)
