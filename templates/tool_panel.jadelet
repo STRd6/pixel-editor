@@ -1,0 +1,3 @@
+.panel
+  - if size = @size
+    input(type=size.type min=size.min max=size.max value=size.value)
