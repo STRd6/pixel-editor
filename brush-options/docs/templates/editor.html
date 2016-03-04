@@ -25,7 +25,8 @@
 - editor = this
 - Symmetry = require &quot;../symmetry&quot;
 - Palette = require &quot;./palette&quot;
-- ToolPanel = require &quot;./tool_panel&quot;
+- Tool = require &quot;./tool&quot;
+- ToolPresenter = require &quot;../presenters/tool&quot;
 
 .editor</code></pre>
 </div>
@@ -41,11 +42,7 @@
   <div class="content"><pre><code class="lang-haml">  .toolbar
     .tools
       - @tools.each (tool) -&gt;
-        - activeClass = -&gt; &quot;active&quot; if tool is activeTool()
-        - activate = -&gt; activeTool(tool)
-        .tool(style=&quot;background-image: url(#{tool.iconUrl})&quot; title=tool.hotkeys class=activeClass click=activate)
-          - if settings = tool.settings
-            = ToolPanel(settings)
+        = Tool ToolPresenter(editor, tool)
     %h2 Symmetry
     .tools
       - symmetryMode = @symmetryMode

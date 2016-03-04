@@ -495,6 +495,12 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   initialState = self.getSnapshot()
 
+  document.addEventListener <span class="string">"mousedown"</span>, (e) -&gt;
+    <span class="keyword">return</span> <span class="keyword">if</span> e.path.some (node) -&gt;
+      node.classList?.contains <span class="string">"panel"</span>
+
+    self.detailTool <span class="literal">null</span>
+
   <span class="keyword">return</span> self</code></pre>
 </div>
 </li>
