@@ -2,6 +2,7 @@ Util
 ====
 
     require "extensions"
+    require "./shims"
 
     global.Bindable = require "bindable"
     global.Matrix = require "matrix"

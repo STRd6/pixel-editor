@@ -467,6 +467,7 @@ Editor
       initialState = self.getSnapshot()
 
       document.addEventListener "mousedown", (e) ->
+        console.log e.path
         return if e.path.some (node) ->
           node.classList?.contains "panel"
         
