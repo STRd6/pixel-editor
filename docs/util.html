@@ -31,6 +31,7 @@
     
   </div>
   <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"extensions"</span>
+require <span class="string">"./shims"</span>
 
 global.Bindable = require <span class="string">"bindable"</span>
 global.Matrix = require <span class="string">"matrix"</span>
@@ -154,7 +155,9 @@ Point.prototype.<span class="function"><span class="title">floor</span></span> =
         err += dx
         y0 += sy
 
-      iterator x0, y0
+      iterator
+        x: x0
+        y: y0
 
   rect: (start, end, iterator) -&gt;
     [start.y..end.y].forEach (y) -&gt;

@@ -28,21 +28,74 @@
     <div class="pilwrap">
       <a class="pilcrow" href="#section-2">&#182;</a>
     </div>
+    
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"./util"</span></code></pre>
+</div>
+</li>
+<li id="section-3">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-3">&#182;</a>
+    </div>
     <p>A brush takes a point and returns a list of points.</p>
 
   </div>
-  <div class="content"><pre><code class="lang-coffeescript">module.exports =
-  pencil: (point) -&gt;
-    [point]
+  <div class="content"><pre><code class="lang-coffeescript">tiny = <span class="string">"""
+  1
+"""</span>
 
-  brush: ({x, y}) -&gt;
-    [
-      Point x, y - <span class="number">1</span>
-      Point x - <span class="number">1</span>, y
-      Point x, y
-      Point x + <span class="number">1</span>, y
-      Point x, y + <span class="number">1</span>
-    ]</code></pre>
+small = <span class="string">"""
+  010
+  111
+  010
+"""</span>
+
+big = <span class="string">"""
+  01110
+  11111
+  11111
+  11111
+  01110
+"""</span>
+
+bigger = <span class="string">"""
+  0011100
+  0111110
+  1111111
+  1111111
+  1111111
+  0111110
+  0011100
+"""</span>
+
+sizes = [tiny, small, big, bigger].map (data) -&gt;
+  rows = data.split(<span class="string">'\n'</span>)
+
+  offset = Math.floor rows[<span class="number">0</span>].length / <span class="number">2</span>
+
+  points = rows.reduce (array, row, y) -&gt;
+    y -= offset
+    row.split(<span class="string">''</span>).forEach (c, x) -&gt;
+      x -= offset
+      <span class="keyword">if</span> c <span class="keyword">is</span> <span class="string">'1'</span>
+        array.push Point(x, y)
+
+    <span class="keyword">return</span> array
+  , []
+
+  (point) -&gt;
+    points.map (brushPoint) -&gt;
+      brushPoint.add(point)
+
+<span class="comment"># TODO: use these arrays as sizes</span>
+
+module.exports =
+  pencil: sizes[<span class="number">0</span>]
+
+  brush: sizes[<span class="number">1</span>]
+
+  sizes: sizes</code></pre>
 </div>
 </li>
     </ul>

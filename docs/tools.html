@@ -33,10 +33,6 @@
   <div class="content"><pre><code class="lang-coffeescript">Brushes = require <span class="string">"./brushes"</span>
 {circle, line, rect, rectOutline, endDeltoid} = require <span class="string">"./util"</span>
 
-<span class="function"><span class="title">line2</span></span> = (start, end, fn) -&gt;
-  fn start
-  line start, end, fn
-
 <span class="function"><span class="title">neighbors</span></span> = (point) -&gt;
   [
     {x: point.x, y: point.y-<span class="number">1</span>}
@@ -67,31 +63,39 @@
     editor.restore()
     fn(editor, editor.canvas, start, end)
 
-<span class="function"><span class="title">brushTool</span></span> = (brushName, hotkey, offsetX, offsetY, icon, options) -&gt;
+<span class="function"><span class="title">sizedTool</span></span> = (hotkey, offsetX, offsetY, icon, options) -&gt;
   previousPosition = <span class="literal">null</span>
-  brush = Brushes[brushName]
 
   <span class="function"><span class="title">OP</span></span> = (out) -&gt;
     (p) -&gt;
       out(p, options)
 
   <span class="function"><span class="title">paint</span></span> = (out) -&gt;
-    (x, y) -&gt;
-      brush({x, y}).forEach OP out
+    (p) -&gt;
+      brush = Brushes.sizes[self.settings.size.value()]
 
-  hotkeys: hotkey
-  iconUrl: icon
-  iconOffset:
-    x: offsetX
-    y: offsetY
-  touch: ({position, editor})-&gt;
-    paint(editor.draw) position.x, position.y
-    previousPosition = position
-  move: ({editor, position})-&gt;
-    line previousPosition, position, paint(editor.draw)
-    previousPosition = position
-  release: -&gt;
-    previousPosition = <span class="literal">null</span></code></pre>
+      brush(p).forEach OP out
+
+  self =
+    hotkeys: hotkey
+    iconUrl: icon
+    iconOffset:
+      x: offsetX
+      y: offsetY
+    touch: ({position, editor})-&gt;
+      paint(editor.draw) position
+      previousPosition = position
+    move: ({editor, position})-&gt;
+      line previousPosition, position, paint(editor.draw)
+      previousPosition = position
+    release: -&gt;
+      previousPosition = <span class="literal">null</span>
+    settings:
+      size:
+        type: <span class="string">'range'</span>
+        min: <span class="number">0</span>
+        max: <span class="number">3</span>
+        value: Observable <span class="number">0</span></code></pre>
 </div>
 </li>
 <li id="section-3">
@@ -113,13 +117,10 @@
     <p>Draw a line when moving while touching.</p>
 
   </div>
-  <div class="content"><pre><code class="lang-coffeescript">  pencil: brushTool <span class="string">"pencil"</span>, <span class="string">"p"</span>, <span class="number">4</span>, <span class="number">14</span>,
+  <div class="content"><pre><code class="lang-coffeescript">  pencil: sizedTool <span class="string">"p"</span>, <span class="number">4</span>, <span class="number">14</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA5klEQVQ4T5VTuw2DMBB9LmkZg54ZGCDpHYkJYBBYATcUSKnSwAy0iDFoKR0fDgiMDc5JLvy59969OzPchzSesP3+sLFgySoMweMYou/xmWe81VKx5d0CyCQBoghoGgiV/JombwDNzjkwjsAw/A8gswwgBWm6VPdU7L4laPa6BsrSyX6oxTBQ7munO1v9LgCv2ldCWxcWgDV4EDjZbQq0dDKv65ytuxokKdtWO08AagkhTr2/BiD2otBv8hyMurCbPHNaTQ8OBjJScZFs9eChTKMwB8byT5ajkwIC8E22AvyY7j7ZJugLVIZ5EV8R1SQAAAAASUVORK5CYII="</span>
 
-  brush: brushTool <span class="string">"brush"</span>, <span class="string">"b"</span>, <span class="number">4</span>, <span class="number">14</span>,
-    <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAKBJREFUeJytkrsRgzAQRFeME6UXXwVUogKoRB2JmAagEEqBcB0ge/Dw0cm2ZpTd7tuTFqg/zBcA0NSKkwg6719G1WJSlUnkI4XZgCGQql+tQKoCbYt+WWrB2SDGA92aYKMD/6dbEjCJAPP8A73wbe5OnAuDYV1LsyfkEMgYi4W5ciW56Zxzt/THBR2YJmAcbXn34s77d+dh6Ps+2tlw8eGedfBU8rnbDOMAAAAASUVORK5CYII="</span>
-
-  eraser: brushTool <span class="string">"pencil"</span>, <span class="string">"e"</span>, <span class="number">4</span>, <span class="number">11</span>,
+  eraser: sizedTool <span class="string">"e"</span>, <span class="number">4</span>, <span class="number">11</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAIdJREFUeJzNUsERwCAIw15n031wDt0Hl0s/9VoF9NnmZzRBCERfI2zusdOtDABmopRGVoRCrdviADNMiADM6L873Mql2NYiw3E2WItzVi2dSuw8JBHNvQyegcU4vmjNFesWZrHFTSlYQ/RhRDgatKZFnXPy7zMIoVaYa3fH5i3PTHira4r/gQv1W1E4p9FksQAAAABJRU5ErkJggg=="</span>,
     color: <span class="string">"transparent"</span>
 
@@ -261,14 +262,13 @@
       circle start, end, (x, y) -&gt;
         editor.draw({x, y})
 
-  line2: shapeTool <span class="string">"l"</span>, <span class="number">0</span>, <span class="number">0</span>,
+  line: shapeTool <span class="string">"l"</span>, <span class="number">0</span>, <span class="number">0</span>,
     <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAV0lEQVQ4T6XSyQ0AIAgEQOm/aIWHxoNzJTG+GASk9hnE+Z2P3FDMRBjZK0PI/fQyovVeQqzhpRFv+ikkWl+IRID8DRfJAC6SBUykAqhIFXgQBDgQFFjIAMAADxGQlO+iAAAAAElFTkSuQmCC"</span>
     (editor, canvas, start, end) -&gt;
       color = editor.activeColor()
 
       <span class="comment"># Have to draw our own lines if we want them crisp ;_;</span>
-      line start, end, (x, y) -&gt;
-        editor.draw {x, y}
+      line start, end, editor.draw
 
 module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Core(I)) -&gt;
   self.extend
@@ -280,6 +280,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       self.tools.push tool
 
     activeTool: Observable()
+    detailTool: Observable()
     previousTool: Observable()
 
     tools: Observable []
