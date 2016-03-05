@@ -28,7 +28,7 @@
 - Tool = require &quot;./tool&quot;
 - ToolPresenter = require &quot;../presenters/tool&quot;
 
-.editor</code></pre>
+.editor(class=@loadingClass)</code></pre>
 </div>
 </li>
 <li id="section-2">
@@ -95,7 +95,10 @@
   .actions
     - @actions.each (action) -&gt;
       .action(click=action.perform touchstart=action.perform title=action.hotkey style=&quot;background-image: url(#{action.iconUrl})&quot;)
-        .text= action.name</code></pre>
+        .text= action.name
+
+  #loader
+    %progress.vertical-center(value=@loadingProgress)</code></pre>
 </div>
 </li>
     </ul>

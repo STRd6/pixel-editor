@@ -88,6 +88,11 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     pixelExtent: pixelExtent
     positionDisplay: positionDisplay
 
+    loading: Observable <span class="literal">false</span>
+    loadingProgress: Observable <span class="number">0</span>
+    loadingClass: -&gt;
+      <span class="string">"loading"</span> <span class="keyword">if</span> self.loading()
+
     viewportWidth: -&gt;
       pixelExtent().scale(pixelSize()).width
     viewportHeight: -&gt;
@@ -237,11 +242,15 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     loadReplayFromURL: (jsonURL, sourceImage, finalImage) -&gt;
       <span class="keyword">if</span> jsonURL?
+        self.loading <span class="literal">true</span>
+
         ajax.getJSON(jsonURL)
+        .progress (e) -&gt;
+          self.loadingProgress e.loaded / e.total
         .<span class="keyword">then</span> (data) -&gt;
           <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
             <span class="keyword">if</span> sourceImage
-              Q.all([loader.load(sourceImage), loader.load(finalImage)])
+              Promise.all([loader.load(sourceImage), loader.load(finalImage)])
               .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
                 {width, height} = finalImageData
 
@@ -259,6 +268,9 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
                 editor.setInitialState finalImageData
           <span class="keyword">else</span>
             editor.restoreState data, <span class="literal">true</span>
+        .<span class="keyword">finally</span> -&gt;
+          self.loadingProgress <span class="number">0</span>
+          self.loading <span class="literal">false</span>
       <span class="keyword">else</span>
         loader.load(finalImage)
         .<span class="keyword">then</span> (imageData) -&gt;
