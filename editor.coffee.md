@@ -161,29 +161,33 @@ Editor
           unless replaying
             replaying = true
 
-            steps = data
+            new ProgressPromise (resolve, reject, notify) ->
+              steps = data
 
-            # It's pretty funny if we don't reset the symmetry mode ^_^
-            self.symmetryMode "normal"
+              # It's pretty funny if we don't reset the symmetry mode ^_^
+              self.symmetryMode "normal"
 
-            self.repaint()
+              self.repaint()
 
-            delay = (5000 / steps.length).clamp(1, 250)
-            i = 0
+              delay = (5000 / steps.length).clamp(1, 250)
+              i = 0
 
-            runStep = ->
-              if step = steps[i]
-                step.forEach ({x, y, color}) ->
-                  self.draw {x, y}, {color}
+              runStep = ->
+                if step = steps[i]
+                  try
+                    step.forEach ({x, y, color}) ->
+                      self.draw {x, y}, {color}
 
-                i += 1
+                  i += 1
 
-                setTimeout runStep, delay
-              else
-                # Replay will be done and history will have been automatically rebuilt
-                replaying = false
+                  setTimeout runStep, delay
+                else
+                  resolve()
 
-            setTimeout runStep, delay
+              setTimeout runStep, delay
+            .finally ->
+              replaying = false
+              self.restoreInitialState()
 
         replay: (steps) ->
           unless replaying
@@ -191,10 +195,8 @@ Editor
 
             # Copy and clear history
             steps ?= self.history()
-            self.history([])
 
-            editor.canvas.clear()
-            self.repaint()
+            self.restoreInitialState()
 
             delay = (5000 / steps.length).clamp(1, 250)
             i = 0
@@ -220,6 +222,7 @@ Editor
               self.loadingProgress e.loaded / e.total
             .then (data) ->
               if Array.isArray(data[0])
+                console.log "vintage"
                 if sourceImage
                   Promise.all([loader.load(sourceImage), loader.load(finalImage)])
                   .then ([imageData, finalImageData]) ->
@@ -235,6 +238,7 @@ Editor
                   .then (finalImageData) ->
                     {width, height} = finalImageData
                     editor.resize({width, height})
+                    editor.canvas.clear()
                     editor.vintageReplay(data)
                     editor.setInitialState finalImageData
               else
