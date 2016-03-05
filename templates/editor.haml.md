@@ -9,7 +9,7 @@ Editor template
     - Tool = require "./tool"
     - ToolPresenter = require "../presenters/tool"
 
-    .editor
+    .editor(class=@loadingClass)
 
 The toolbar holds our tools.
 
@@ -56,3 +56,6 @@ The palette holds our colors.
         - @actions.each (action) ->
           .action(click=action.perform touchstart=action.perform title=action.hotkey style="background-image: url(#{action.iconUrl})")
             .text= action.name
+
+      #loader
+        %progress.vertical-center(value=@loadingProgress)
