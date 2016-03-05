@@ -12,26 +12,20 @@
     - showPicker = false
     - click = (e) ->
       - unless showPicker
+        - showPicker = true
         - e.preventDefault()
 
-    - longHold = null
-    - start = (e) ->
-      - clearTimeout longHold
-      - longHold = setTimeout ->
-        - showPicker = true
-        - e.target.click()
+      - setTimeout ->
         - showPicker = false
       - , 500
+
       - editor.activeColor color()
       - return
-
-    - stop = ->
-      - clearTimeout longHold
 
     - input = (e) ->
       - editor.activeColor e.target.value
 
-    .color(mousedown=start touchstart=start mouseup=stop touchend=stop mouseout=stop)
+    .color
       - style = -> 
         - c = color()
         - "background-color: #{c}; color: #{c};"

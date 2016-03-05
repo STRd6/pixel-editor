@@ -469,7 +469,7 @@ Editor
       document.addEventListener "mousedown", (e) ->
         return if e.path.some (node) ->
           node.classList?.contains "panel"
-        
+
         self.detailTool null
 
       return self
