@@ -5,48 +5,45 @@
   <title>editor</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
-  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+  <link rel="stylesheet" media="all" href="https://strd6.github.io/cdn/parallel/docco.css" />
 </head>
 <body>
   <div id="container">
     <div id="background"></div>
     <ul class="sections">
-        
-        
-        <li id="section-1">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-1">&#182;</a>
-              </div>
-              <h1 id="editor">Editor</h1>
+      <li id="section-1">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-1">&#182;</a>
+    </div>
+    <h1 id="editor">Editor</h1>
 
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
-        </li>
-        
-        
-        <li id="section-2">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-2">&#182;</a>
-              </div>
-              
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">LITTLE_ENDIAN = require <span class="string">"./endianness"</span>
-
-require <span class="string">"cornerstone"</span>
+</li>
+<li id="section-2">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-2">&#182;</a>
+    </div>
+    
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">LITTLE_ENDIAN = require <span class="string">"./endianness"</span>
 
 loader = require(<span class="string">"./loader"</span>)()
+ajax = require(<span class="string">"ajax"</span>)()
+
+{extend, defaults} = require <span class="string">"util"</span>
 
 TouchCanvas = require <span class="string">"touch-canvas"</span>
-GridGen = require <span class="string">"grid-gen"</span>
 
 Actions = require <span class="string">"./actions"</span>
 Command = require <span class="string">"./command"</span>
 Drop = require <span class="string">"./drop"</span>
 Eval = require <span class="string">"eval"</span>
+GridGen = require <span class="string">"grid-gen"</span>
 Notifications = require <span class="string">"./notifications"</span>
 Postmaster = require <span class="string">"postmaster"</span>
 Tools = require <span class="string">"./tools"</span>
@@ -54,23 +51,13 @@ Undo = require <span class="string">"undo"</span>
 
 Palette = require(<span class="string">"./palette"</span>)
 
-template = require <span class="string">"./templates/editor"</span>
-debugTemplate = require <span class="string">"./templates/debug"</span>
-
 {rgb2Hex} = require <span class="string">"./util"</span>
 
 Symmetry = require <span class="string">"./symmetry"</span>
 
-module.<span class="function"><span class="title">exports</span></span> = (I={}, self) -&gt;
-  defaults I,
-    selector: <span class="string">"body"</span>
-
-  activeIndex = Observable <span class="number">1</span>
-
+module.<span class="function"><span class="title">exports</span></span> = (I={}, self=Model(I)) -&gt;
   pixelExtent = Observable Size(<span class="number">64</span>, <span class="number">64</span>)
   pixelSize = Observable <span class="number">8</span>
-  viewSize = Observable -&gt;
-    pixelExtent().scale pixelSize()
 
   positionDisplay = Observable(<span class="string">""</span>)
 
@@ -81,8 +68,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   replaying = <span class="literal">false</span>
   initialState = <span class="literal">null</span>
-
-  self ?= Model(I)
 
   self.include Actions
   self.include Bindable
@@ -98,15 +83,60 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   self.extend
     alpha: Observable <span class="number">100</span>
-    activeIndex: activeIndex
 
     pixelSize: pixelSize
     pixelExtent: pixelExtent
     positionDisplay: positionDisplay
 
-    grid: Observable <span class="literal">false</span>
+    loading: Observable <span class="literal">false</span>
+    loadingProgress: Observable <span class="number">0</span>
+    loadingClass: -&gt;
+      <span class="string">"loading"</span> <span class="keyword">if</span> self.loading()
+
+    viewportWidth: -&gt;
+      pixelExtent().scale(pixelSize()).width
+    viewportHeight: -&gt;
+      pixelExtent().scale(pixelSize()).height
+
+    viewportStyle: -&gt;
+      width = self.viewportWidth()
+      height = self.viewportHeight()
+
+      {iconUrl, iconOffset} = self.activeTool()
+      {x, y} = Point(iconOffset)
+      cursor = <span class="string">"url(<span class="subst">#{iconUrl}</span>) <span class="subst">#{x}</span> <span class="subst">#{y}</span>, default"</span>
+
+      <span class="string">"width: <span class="subst">#{width}</span>px; height: <span class="subst">#{height}</span>px; cursor: <span class="subst">#{cursor}</span>;"</span>
+
+    mainHeight: Observable(<span class="number">720</span>)
+
+    viewportCheckered: Observable <span class="literal">false</span>
+
+    viewportChecker: -&gt;
+      <span class="string">"checkered"</span> <span class="keyword">if</span> self.viewportCheckered()
+
+    viewportCenter: -&gt;
+      <span class="keyword">if</span> self.viewportHeight() &lt; self.mainHeight()
+        <span class="string">"vertical-center"</span>
+
+    displayGrid: Observable <span class="literal">false</span>
+
+    guideInterval: Observable <span class="number">4</span>
+    gridStyle: -&gt;
+      <span class="keyword">if</span> self.displayGrid()
+        gridImage = GridGen(
+          width: self.pixelSize()
+          height: self.pixelSize()
+          guide: self.guideInterval()
+        ).backgroundImage()
+
+        <span class="string">"background-image: <span class="subst">#{gridImage}</span>;"</span>
 
     symmetryMode: symmetryMode
+
+    hideModal: -&gt;
+      Modal = require <span class="string">"./modal"</span>
+      Modal.hide()
 
     outputCanvas: () -&gt;
       outputCanvas = TouchCanvas pixelExtent()
@@ -121,9 +151,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
       canvasElement = canvas.element()
       thumbnailCanvasElement = thumbnailCanvas.element()
+      previewCanvasElement = previewCanvas.element()
 
-      thumbnailCanvasElement.width = canvasElement.width = width
-      thumbnailCanvasElement.height = canvasElement.height = height
+      thumbnailCanvasElement.width = canvasElement.width = previewCanvasElement.width = width
+      thumbnailCanvasElement.height = canvasElement.height = previewCanvasElement.height = height
 
       self.putImageData(data)
 
@@ -159,29 +190,33 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
 
-        steps = data
+        <span class="keyword">new</span> ProgressPromise (resolve, reject, notify) -&gt;
+          steps = data
 
-        <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
-        self.symmetryMode <span class="string">"normal"</span>
+          <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
+          self.symmetryMode <span class="string">"normal"</span>
 
-        self.repaint()
+          self.repaint()
 
-        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
-        i = <span class="number">0</span>
+          delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+          i = <span class="number">0</span>
 
-        <span class="function"><span class="title">runStep</span></span> = -&gt;
-          <span class="keyword">if</span> step = steps[i]
-            step.forEach ({x, y, color}) -&gt;
-              self.draw {x, y}, {color}
+          <span class="function"><span class="title">runStep</span></span> = -&gt;
+            <span class="keyword">if</span> step = steps[i]
+              <span class="keyword">try</span>
+                step.forEach ({x, y, color}) -&gt;
+                  self.draw {x, y}, {color}
 
-            i += <span class="number">1</span>
+              i += <span class="number">1</span>
 
-            setTimeout runStep, delay
-          <span class="keyword">else</span>
-            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
-            replaying = <span class="literal">false</span>
+              setTimeout runStep, delay
+            <span class="keyword">else</span>
+              resolve()
 
-        setTimeout runStep, delay
+          setTimeout runStep, delay
+        .<span class="keyword">finally</span> -&gt;
+          replaying = <span class="literal">false</span>
+          self.restoreInitialState()
 
     replay: (steps) -&gt;
       <span class="keyword">unless</span> replaying
@@ -189,10 +224,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         <span class="comment"># Copy and clear history</span>
         steps ?= self.history()
-        self.history([])
 
-        editor.canvas.clear()
-        self.repaint()
+        self.restoreInitialState()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
         i = <span class="number">0</span>
@@ -211,11 +244,16 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
     loadReplayFromURL: (jsonURL, sourceImage, finalImage) -&gt;
       <span class="keyword">if</span> jsonURL?
-        Q($.getJSON(jsonURL))
+        self.loading <span class="literal">true</span>
+
+        ajax.getJSON(jsonURL)
+        .progress (e) -&gt;
+          self.loadingProgress e.loaded / e.total
         .<span class="keyword">then</span> (data) -&gt;
           <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
+            console.log <span class="string">"vintage"</span>
             <span class="keyword">if</span> sourceImage
-              Q.all([loader.load(sourceImage), loader.load(finalImage)])
+              Promise.all([loader.load(sourceImage), loader.load(finalImage)])
               .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
                 {width, height} = finalImageData
 
@@ -229,10 +267,14 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
               .<span class="keyword">then</span> (finalImageData) -&gt;
                 {width, height} = finalImageData
                 editor.resize({width, height})
+                editor.canvas.clear()
                 editor.vintageReplay(data)
                 editor.setInitialState finalImageData
           <span class="keyword">else</span>
             editor.restoreState data, <span class="literal">true</span>
+        .<span class="keyword">finally</span> -&gt;
+          self.loadingProgress <span class="number">0</span>
+          self.loading <span class="literal">false</span>
       <span class="keyword">else</span>
         loader.load(finalImage)
         .<span class="keyword">then</span> (imageData) -&gt;
@@ -282,9 +324,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = <span class="number">1</span>
 
     draw: (point, options={}) -&gt;
-      {index, color, size} = options
-      index ?= activeIndex()
-      color ?= self.color(index)
+      {color, size} = options
+      color ?= self.activeColor()
       size ?= <span class="number">1</span>
 
       {x, y} = point
@@ -307,16 +348,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     color: (index) -&gt;
       self.palette()[index]()
 
-    setColor: (color) -&gt;
-      colors =  self.palette().map (o) -&gt; o().toLowerCase()
-      index = colors.indexOf(color.toLowerCase())
-
-      <span class="keyword">if</span> index != -<span class="number">1</span>
-        activeIndex(index)
-      <span class="keyword">else</span>
-        self.palette.push Observable(color)
-        self.activeIndex self.palette().length - <span class="number">1</span>
-
     getColor: (position) -&gt;
       {x, y} = position
       data = canvas.context().getImageData(x, y, <span class="number">1</span>, <span class="number">1</span>).data
@@ -324,7 +355,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       rgb2Hex data[<span class="number">0</span>], data[<span class="number">1</span>], data[<span class="number">2</span>]
 
     colorAsInt: -&gt;
-      color = self.color self.activeIndex()
+      color = self.activeColor()
 
       color = color.substring(color.indexOf(<span class="string">"#"</span>) + <span class="number">1</span>)
 
@@ -348,66 +379,24 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
           iterator(index, x, y)
 
     thumbnailClick: (e) -&gt;
-      $(e.currentTarget).toggleClass(<span class="string">"right"</span>)
+      e.currentTarget.classList.toggle <span class="string">"right"</span>
 
-  self.activeColor = Observable -&gt;
-    self.color(self.activeIndex())
+  self.activeColor = Observable <span class="string">"#000000"</span>
 
   self.activeColorStyle = Observable -&gt;
     <span class="string">"background-color: <span class="subst">#{self.activeColor()}</span>"</span>
 
-  $selector = $(I.selector)
-  $(I.selector).append template self
-
   self.canvas = canvas = TouchCanvas pixelExtent()
   self.previewCanvas = previewCanvas = TouchCanvas pixelExtent()
-  thumbnailCanvas = TouchCanvas pixelExtent()
+  self.thumbnailCanvas = thumbnailCanvas = TouchCanvas pixelExtent()
+
+  previewCanvas.element().classList.add <span class="string">"preview"</span>
 
   <span class="keyword">do</span> (ctx=self.canvas.context()) -&gt;
     ctx.imageSmoothingEnabled = <span class="literal">false</span>
-    ctx.webkitImageSmoothingEnabled = <span class="literal">false</span>
     ctx.mozImageSmoothingEnabled = <span class="literal">false</span>
 
-  $selector.find(<span class="string">".viewport"</span>)
-  .append(canvas.element())
-  .append($(previewCanvas.element()).addClass(<span class="string">"preview"</span>))
-  .css
-    backgroundImage: <span class="string">"url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVQ4T2NkIADOnDnzH58SxlEDGIZDGBCKZxMTE7zeZBw1gGEYhAEAJQ47KemVQJ8AAAAASUVORK5CYII=)"</span>
-
-  $selector.find(<span class="string">".thumbnail"</span>).append thumbnailCanvas.element()
-
   self.TRANSPARENT_FILL = require(<span class="string">"./lib/checker"</span>)().pattern()
-
-  updateViewportCentering = (-&gt;
-    size = viewSize()
-    $selector.find(<span class="string">".viewport"</span>).toggleClass <span class="string">"vertical-center"</span>, size.height &lt; $selector.find(<span class="string">".main"</span>).height()
-  ).debounce(<span class="number">15</span>)
-  $(window).resize updateViewportCentering
-
-  <span class="function"><span class="title">updateViewSize</span></span> = (size) -&gt;
-    $selector.find(<span class="string">".viewport, .overlay"</span>).css
-      width: size.width
-      height: size.height
-
-    <span class="comment"># TODO: Should be bound directly to the template's overlay backgrond image attribute</span>
-    <span class="keyword">if</span> self.grid()
-      gridImage = GridGen(
-        <span class="comment"># TODO: Grid size options and matching pixel size/extent</span>
-      ).backgroundImage()
-
-      $selector.find(<span class="string">".overlay"</span>).css
-        backgroundImage: gridImage
-    <span class="keyword">else</span>
-      $selector.find(<span class="string">".overlay"</span>).css
-        backgroundImage: <span class="string">"none"</span>
-
-    updateViewportCentering()
-
-  <span class="comment"># TODO: Use auto-dependencies</span>
-  updateViewSize(viewSize())
-  viewSize.observe updateViewSize
-  self.grid.observe -&gt;
-    updateViewSize viewSize()
 
   <span class="function"><span class="title">canvasPosition</span></span> = (position) -&gt;
     Point(position).scale(pixelExtent()).floor()
@@ -495,22 +484,11 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         x: x
         y: y
 
-  $(previewCanvas.element()).<span class="literal">on</span> <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
+  previewCanvas.element().addEventListener <span class="string">"mousemove"</span>, ({currentTarget, pageX, pageY}) -&gt;
     {left, top} = currentTarget.getBoundingClientRect()
     {x, y} = Point(pageX - left, pageY - top).scale(<span class="number">1</span>/pixelSize()).floor()
 
     positionDisplay(<span class="string">"<span class="subst">#{x}</span>,<span class="subst">#{y}</span>"</span>)
-
-  <span class="comment"># TODO: Move this into template?</span>
-  $viewport = $selector.find(<span class="string">".viewport"</span>)
-
-  <span class="function"><span class="title">setCursor</span></span> = ({iconUrl, iconOffset}) -&gt;
-    {x, y} = Point(iconOffset)
-
-    $viewport.css
-      cursor: <span class="string">"url(<span class="subst">#{iconUrl}</span>) <span class="subst">#{x}</span> <span class="subst">#{y}</span>, default"</span>
-  self.activeTool.observe setCursor
-  setCursor self.activeTool()
 
   self.<span class="literal">on</span> <span class="string">"release"</span>, -&gt;
     previewCanvas.clear()
@@ -533,15 +511,19 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
   initialState = self.getSnapshot()
 
+  document.addEventListener <span class="string">"mousedown"</span>, (e) -&gt;
+    <span class="keyword">return</span> <span class="keyword">if</span> e.path.some (node) -&gt;
+      node.classList?.contains <span class="string">"panel"</span>
+
+    self.detailTool <span class="literal">null</span>
+
   <span class="keyword">return</span> self</code></pre>
 </div>
-        </li>
-        
+</li>
     </ul>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 

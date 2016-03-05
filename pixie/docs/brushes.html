@@ -5,56 +5,103 @@
   <title>brushes</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
-  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+  <link rel="stylesheet" media="all" href="https://strd6.github.io/cdn/parallel/docco.css" />
 </head>
 <body>
   <div id="container">
     <div id="background"></div>
     <ul class="sections">
-        
-        
-        <li id="section-1">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-1">&#182;</a>
-              </div>
-              <h1 id="brushes">Brushes</h1>
+      <li id="section-1">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-1">&#182;</a>
+    </div>
+    <h1 id="brushes">Brushes</h1>
 
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">
 </code></pre>
 </div>
-        </li>
-        
-        
-        <li id="section-2">
-            <div class="annotation">
-              <div class="pilwrap">
-                <a class="pilcrow" href="#section-2">&#182;</a>
-              </div>
-              <p>A brush takes a point and returns a list of points.</p>
-
-            </div>
-            <div class="content"><pre><code class="lang-coffeescript">module.exports =
-  pencil: (point) -&gt;
-    [point]
-
-  brush: ({x, y}) -&gt;
-    [
-      Point x, y - <span class="number">1</span>
-      Point x - <span class="number">1</span>, y
-      Point x, y
-      Point x + <span class="number">1</span>, y
-      Point x, y + <span class="number">1</span>
-    ]</code></pre>
+</li>
+<li id="section-2">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-2">&#182;</a>
+    </div>
+    
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">require <span class="string">"./util"</span></code></pre>
 </div>
-        </li>
-        
+</li>
+<li id="section-3">
+  <div class="annotation">
+    <div class="pilwrap">
+      <a class="pilcrow" href="#section-3">&#182;</a>
+    </div>
+    <p>A brush takes a point and returns a list of points.</p>
+
+  </div>
+  <div class="content"><pre><code class="lang-coffeescript">tiny = <span class="string">"""
+  1
+"""</span>
+
+small = <span class="string">"""
+  010
+  111
+  010
+"""</span>
+
+big = <span class="string">"""
+  01110
+  11111
+  11111
+  11111
+  01110
+"""</span>
+
+bigger = <span class="string">"""
+  0011100
+  0111110
+  1111111
+  1111111
+  1111111
+  0111110
+  0011100
+"""</span>
+
+sizes = [tiny, small, big, bigger].map (data) -&gt;
+  rows = data.split(<span class="string">'\n'</span>)
+
+  offset = Math.floor rows[<span class="number">0</span>].length / <span class="number">2</span>
+
+  points = rows.reduce (array, row, y) -&gt;
+    y -= offset
+    row.split(<span class="string">''</span>).forEach (c, x) -&gt;
+      x -= offset
+      <span class="keyword">if</span> c <span class="keyword">is</span> <span class="string">'1'</span>
+        array.push Point(x, y)
+
+    <span class="keyword">return</span> array
+  , []
+
+  (point) -&gt;
+    points.map (brushPoint) -&gt;
+      brushPoint.add(point)
+
+<span class="comment"># TODO: use these arrays as sizes</span>
+
+module.exports =
+  pencil: sizes[<span class="number">0</span>]
+
+  brush: sizes[<span class="number">1</span>]
+
+  sizes: sizes</code></pre>
+</div>
+</li>
     </ul>
   </div>
   <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script><script>
   (function() {
   var ErrorReporter, bindUpdates, createEditor, exec, findInteractiveElements, readShebang, runners;
 
