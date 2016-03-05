@@ -190,29 +190,33 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
 
-        steps = data
+        <span class="keyword">new</span> ProgressPromise (resolve, reject, notify) -&gt;
+          steps = data
 
-        <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
-        self.symmetryMode <span class="string">"normal"</span>
+          <span class="comment"># It's pretty funny if we don't reset the symmetry mode ^_^</span>
+          self.symmetryMode <span class="string">"normal"</span>
 
-        self.repaint()
+          self.repaint()
 
-        delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
-        i = <span class="number">0</span>
+          delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
+          i = <span class="number">0</span>
 
-        <span class="function"><span class="title">runStep</span></span> = -&gt;
-          <span class="keyword">if</span> step = steps[i]
-            step.forEach ({x, y, color}) -&gt;
-              self.draw {x, y}, {color}
+          <span class="function"><span class="title">runStep</span></span> = -&gt;
+            <span class="keyword">if</span> step = steps[i]
+              <span class="keyword">try</span>
+                step.forEach ({x, y, color}) -&gt;
+                  self.draw {x, y}, {color}
 
-            i += <span class="number">1</span>
+              i += <span class="number">1</span>
 
-            setTimeout runStep, delay
-          <span class="keyword">else</span>
-            <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
-            replaying = <span class="literal">false</span>
+              setTimeout runStep, delay
+            <span class="keyword">else</span>
+              resolve()
 
-        setTimeout runStep, delay
+          setTimeout runStep, delay
+        .<span class="keyword">finally</span> -&gt;
+          replaying = <span class="literal">false</span>
+          self.restoreInitialState()
 
     replay: (steps) -&gt;
       <span class="keyword">unless</span> replaying
@@ -220,10 +224,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
 
         <span class="comment"># Copy and clear history</span>
         steps ?= self.history()
-        self.history([])
 
-        editor.canvas.clear()
-        self.repaint()
+        self.restoreInitialState()
 
         delay = (<span class="number">5000</span> / steps.length).clamp(<span class="number">1</span>, <span class="number">250</span>)
         i = <span class="number">0</span>
@@ -249,6 +251,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
           self.loadingProgress e.loaded / e.total
         .<span class="keyword">then</span> (data) -&gt;
           <span class="keyword">if</span> Array.isArray(data[<span class="number">0</span>])
+            console.log <span class="string">"vintage"</span>
             <span class="keyword">if</span> sourceImage
               Promise.all([loader.load(sourceImage), loader.load(finalImage)])
               .<span class="keyword">then</span> ([imageData, finalImageData]) -&gt;
@@ -264,6 +267,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
               .<span class="keyword">then</span> (finalImageData) -&gt;
                 {width, height} = finalImageData
                 editor.resize({width, height})
+                editor.canvas.clear()
                 editor.vintageReplay(data)
                 editor.setInitialState finalImageData
           <span class="keyword">else</span>
