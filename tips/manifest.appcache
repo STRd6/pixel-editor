@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1457155971540
+
+CACHE:
+index.html
+../tips.json
+
+
+NETWORK:
+https://*
+http://*
+*
