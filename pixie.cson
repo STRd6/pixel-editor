@@ -1,6 +1,6 @@
 version: "0.2.0"
 dependencies:
-  ajax: "distri/ajax:master"
+  ajax: "distri/ajax:v0.1.5-pre.0"
   analytics: "distri/google-analytics:v0.1.0"
   bindable: "distri/bindable:master"
   byte_array: "distri/byte_array:v0.1.1"

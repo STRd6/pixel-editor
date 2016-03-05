@@ -59,6 +59,11 @@ Editor
         pixelExtent: pixelExtent
         positionDisplay: positionDisplay
 
+        loading: Observable false
+        loadingProgress: Observable 0
+        loadingClass: ->
+          "loading" if self.loading()
+
         viewportWidth: ->
           pixelExtent().scale(pixelSize()).width
         viewportHeight: ->
@@ -208,11 +213,15 @@ Editor
 
         loadReplayFromURL: (jsonURL, sourceImage, finalImage) ->
           if jsonURL?
+            self.loading true
+
             ajax.getJSON(jsonURL)
+            .progress (e) ->
+              self.loadingProgress e.loaded / e.total
             .then (data) ->
               if Array.isArray(data[0])
                 if sourceImage
-                  Q.all([loader.load(sourceImage), loader.load(finalImage)])
+                  Promise.all([loader.load(sourceImage), loader.load(finalImage)])
                   .then ([imageData, finalImageData]) ->
                     {width, height} = finalImageData
 
@@ -230,6 +239,9 @@ Editor
                     editor.setInitialState finalImageData
               else
                 editor.restoreState data, true
+            .finally ->
+              self.loadingProgress 0
+              self.loading false
           else
             loader.load(finalImage)
             .then (imageData) ->
