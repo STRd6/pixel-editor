@@ -218,7 +218,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
           replaying = <span class="literal">false</span>
           self.restoreInitialState()
 
-    replay: (steps) -&gt;
+    replay: (steps, dropHistory=<span class="literal">false</span>) -&gt;
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
 
@@ -239,6 +239,8 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
           <span class="keyword">else</span>
             <span class="comment"># Replay will be done and history will have been automatically rebuilt</span>
             replaying = <span class="literal">false</span>
+            <span class="keyword">if</span> dropHistory
+              self.restoreInitialState()
 
         setTimeout runStep, delay
 
@@ -271,7 +273,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
                 editor.vintageReplay(data)
                 editor.setInitialState finalImageData
           <span class="keyword">else</span>
-            editor.restoreState data, <span class="literal">true</span>
+            loader.load(finalImage)
+            .<span class="keyword">then</span> (finalImageData) -&gt;
+              editor.restoreState data, <span class="literal">true</span>
+              editor.setInitialState finalImageData
         .<span class="keyword">finally</span> -&gt;
           self.loadingProgress <span class="number">0</span>
           self.loading <span class="literal">false</span>
@@ -290,7 +295,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       commands = state.history.map self.Command.parse
 
       <span class="keyword">if</span> performReplay
-        self.replay commands
+        self.replay commands, <span class="literal">true</span>
       <span class="keyword">else</span>
         commands.forEach (command) -&gt; command.execute()
         self.history commands
