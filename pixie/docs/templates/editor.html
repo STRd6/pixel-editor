@@ -24,6 +24,9 @@
 - previousTool = @previousTool
 - editor = this
 - Symmetry = require &quot;../symmetry&quot;
+
+- Action = require &quot;./action&quot;
+- ActionPresenter = require &quot;../presenters/action&quot;
 - Palette = require &quot;./palette&quot;
 - Tool = require &quot;./tool&quot;
 - ToolPresenter = require &quot;../presenters/tool&quot;
@@ -93,9 +96,8 @@
     %input.alphaSlider(type=&quot;range&quot; value=@alpha step=&quot;1&quot; min=&quot;0&quot; max=&quot;100&quot;)
 
   .actions
-    - @actions.each (action) -&gt;
-      .action(click=action.perform touchstart=action.perform title=action.hotkey style=&quot;background-image: url(#{action.iconUrl})&quot;)
-        .text= action.name
+    - @actions.forEach (action) -&gt; 
+      = Action ActionPresenter action, editor
 
   #loader
     %progress.vertical-center(value=@loadingProgress)</code></pre>
