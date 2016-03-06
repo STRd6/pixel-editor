@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1457226447568
+
+CACHE:
+index.html
+../pixie3.json
+
+
+NETWORK:
+https://*
+http://*
+*
