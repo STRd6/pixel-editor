@@ -11,6 +11,7 @@
   - @palette.forEach (color, index) ->
     - showPicker = false
     - click = (e) ->
+      - e.target.blur()
       - unless showPicker
         - showPicker = true
         - e.preventDefault()

@@ -189,7 +189,7 @@ Editor
               replaying = false
               self.restoreInitialState()
 
-        replay: (steps) ->
+        replay: (steps, dropHistory=false) ->
           unless replaying
             replaying = true
 
@@ -210,6 +210,8 @@ Editor
               else
                 # Replay will be done and history will have been automatically rebuilt
                 replaying = false
+                if dropHistory
+                  self.restoreInitialState()
 
             setTimeout runStep, delay
 
@@ -242,7 +244,10 @@ Editor
                     editor.vintageReplay(data)
                     editor.setInitialState finalImageData
               else
-                editor.restoreState data, true
+                loader.load(finalImage)
+                .then (finalImageData) ->
+                  editor.restoreState data, true
+                  editor.setInitialState finalImageData
             .finally ->
               self.loadingProgress 0
               self.loading false
@@ -261,7 +266,7 @@ Editor
           commands = state.history.map self.Command.parse
 
           if performReplay
-            self.replay commands
+            self.replay commands, true
           else
             commands.forEach (command) -> command.execute()
             self.history commands
