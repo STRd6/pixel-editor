@@ -5,6 +5,9 @@ Editor template
     - previousTool = @previousTool
     - editor = this
     - Symmetry = require "../symmetry"
+
+    - Action = require "./action"
+    - ActionPresenter = require "../presenters/action"
     - Palette = require "./palette"
     - Tool = require "./tool"
     - ToolPresenter = require "../presenters/tool"
@@ -53,9 +56,8 @@ The palette holds our colors.
         %input.alphaSlider(type="range" value=@alpha step="1" min="0" max="100")
 
       .actions
-        - @actions.each (action) ->
-          .action(click=action.perform touchstart=action.perform title=action.hotkey style="background-image: url(#{action.iconUrl})")
-            .text= action.name
+        - @actions.forEach (action) -> 
+          = Action ActionPresenter action, editor
 
       #loader
         %progress.vertical-center(value=@loadingProgress)
