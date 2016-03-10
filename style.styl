@@ -6,15 +6,47 @@ html, body
 body
   color: #222
 
+.panel
+  display: none
+
+  .panelOpen > &
+    display: inline-block
+
 .opacity
-  h2
+  & > h2
     font-size: 12px
+    margin-bottom: 2px
+
+  & > input[type=number]
+    box-sizing: border-box
+    width: 100%
+
+  & > .panel
+    background-color: #ccc
+    border-left: 1px solid rgba(255, 255, 255, 0.5)
+    border-top: 1px solid rgba(255, 255, 255, 0.5)
+    border-right: 1px solid #ccc
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5)
+    border-bottom-left-radius: 4px
+    border-top-left-radius: 2px
+    position: relative
+    top: -23px
+    left: -107px
+    width: 101px
+    height: 20px
+    padding: 2px
+
+    & > input[type=range]
+      height: 100%
+      margin: 0
+      width: 100%
+
 
 .editor
   background-color: #AAA
   box-sizing: border-box
   height: 100%
-  padding: 0px 72px 64px 35px
+  padding: 0px 50px 64px 35px
   position: relative
   user-select: none
   -moz-user-select: none
@@ -43,7 +75,7 @@ body
         height: auto
 
       &.right
-        right: 77px
+        right: 54px
         left: auto
 
   .position
@@ -51,33 +83,6 @@ body
     bottom:0
     right: 0.25em
     z-index: 2
-
-  & > .opacity
-    display: inline-block
-    position: absolute
-    right: -2.5em
-    bottom: 5em
-    z-index: 2
-
-    & > h2
-      position: absolute
-      right: 40px
-      bottom: 3.5em
-
-    input.alphaValue
-      position: absolute
-      right: 56px
-      width: 25px
-      bottom: 2em
-      text-align: right
-
-    input.alphaSlider
-      position: absolute
-      right: 8px
-      bottom: 4px
-      transform: rotate(-90deg)
-      width: 64px
-      height: 20px
 
 .notifications
   background-color: rgba(0, 0, 0, 0.5)
@@ -130,7 +135,8 @@ body
       border-bottom: 1px solid rgba(0, 0, 0, 0.5)
       border-right: 1px solid rgba(0, 0, 0, 0.5)
       border-top: 1px solid rgba(255, 255, 255, 0.5)
-      display: none
+      border-bottom-right-radius: 2px
+      border-top-right-radius: 2px
       margin-top: -1px
       margin-left: 35px
       padding: 3px
@@ -143,9 +149,6 @@ body
 
       &:empty
         border-right: 1px solid rgba(0, 0, 0, 0.5)
-
-      & > .panel
-        display: inline-block
 
     &:last-child
       border-bottom-right-radius: 2px
