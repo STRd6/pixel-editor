@@ -9,7 +9,8 @@ module.exports = (action, editor) ->
         editor: editor
     else
       editor[method]()
-  title: hotkey
+  title: ->
+    "#{name} [#{hotkey}]"
   name: name
   style: ->
     "background-image: url(#{icon})"
