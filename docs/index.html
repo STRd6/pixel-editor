@@ -47,6 +47,11 @@ runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
 runtime.boot()
 runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
+metaTag = document.createElement(<span class="string">'meta'</span>)
+metaTag.name = <span class="string">"viewport"</span>
+metaTag.content = <span class="string">"width=device-width, initial-scale=1.0"</span>
+document.getElementsByTagName(<span class="string">'head'</span>)[<span class="number">0</span>].appendChild(metaTag)
+
 Editor = require <span class="string">"./editor"</span>
 
 <span class="comment"># For debugging</span>
