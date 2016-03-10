@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1457587640626
+
+CACHE:
+index.html
+../mobile-fixes.json
+
+
+NETWORK:
+https://*
+http://*
+*
