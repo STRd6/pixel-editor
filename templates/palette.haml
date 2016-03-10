@@ -1,3 +1,6 @@
+- Opacity = require "./opacity"
+- OpacityPresenter = require "../presenters/opacity"
+
 .palette
   - editor = this
   - activeIndex = @activeIndex
@@ -31,3 +34,5 @@
         - c = color()
         - "background-color: #{c}; color: #{c};"
       %input(type="color" value=color click=click input=input style=style)
+
+  = Opacity OpacityPresenter this

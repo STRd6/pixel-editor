@@ -2,9 +2,9 @@ Observable = require "observable"
 
 module.exports = (editor, tool) ->
   self =
-    activate: -> 
+    activate: ->
       editor.activeTool(tool)
-    activeClass: -> 
+    activeClass: ->
       "active" if tool is editor.activeTool()
     detail: ->
       editor.detailTool(tool)

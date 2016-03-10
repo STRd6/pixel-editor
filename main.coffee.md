@@ -20,6 +20,11 @@ Editing pixels in your browser.
     runtime.boot()
     runtime.applyStyleSheet(require('./style'))
 
+    metaTag = document.createElement('meta')
+    metaTag.name = "viewport"
+    metaTag.content = "width=device-width, initial-scale=1.0"
+    document.getElementsByTagName('head')[0].appendChild(metaTag)
+
     Editor = require "./editor"
 
     # For debugging

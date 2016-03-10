@@ -1,13 +1,16 @@
 module.exports = (action, editor) ->
   {hotkey, icon, method, name} = action
 
-  perform: ->
+  perform: (e) ->
+    e.preventDefault()
+
     if typeof method is "function"
       method
         editor: editor
     else
       editor[method]()
-  title: hotkey
+  title: ->
+    "#{name} [#{hotkey}]"
   name: name
   style: ->
     "background-image: url(#{icon})"
