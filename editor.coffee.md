@@ -157,6 +157,10 @@ Editor
           loader.load(dataURL)
           .then self.insertImageData
 
+        fromBlob: (blob) ->
+          url = URL.createObjectURL(blob)
+          self.fromDataURL(url)
+
         vintageReplay: (data) ->
           unless replaying
             replaying = true
