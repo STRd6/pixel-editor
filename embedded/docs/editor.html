@@ -186,6 +186,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       loader.load(dataURL)
       .<span class="keyword">then</span> self.insertImageData
 
+    fromBlob: (blob) -&gt;
+      url = URL.createObjectURL(blob)
+      self.fromDataURL(url)
+
     vintageReplay: (data) -&gt;
       <span class="keyword">unless</span> replaying
         replaying = <span class="literal">true</span>
