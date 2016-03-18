@@ -153,6 +153,8 @@ Editor
             imageData: imageData
             imageDataPrevious: editor.getSnapshot()
 
+          return
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then self.insertImageData
