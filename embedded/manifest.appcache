@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1458270542310
+
+CACHE:
+index.html
+../embedded.json
+
+
+NETWORK:
+https://*
+http://*
+*
