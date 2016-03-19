@@ -161,7 +161,12 @@ Editor
 
         fromBlob: (blob) ->
           url = URL.createObjectURL(blob)
+
           self.fromDataURL(url)
+          .then ->
+            URL.revokeObjectURL(url)
+            self.history([])
+            return
 
         vintageReplay: (data) ->
           unless replaying
