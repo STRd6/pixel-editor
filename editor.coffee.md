@@ -159,7 +159,7 @@ Editor
           loader.load(dataURL)
           .then self.insertImageData
 
-        fromBlob: (blob) ->
+        loadFile: (blob) ->
           url = URL.createObjectURL(blob)
 
           self.fromDataURL(url)
