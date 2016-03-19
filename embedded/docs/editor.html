@@ -188,7 +188,7 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       loader.load(dataURL)
       .<span class="keyword">then</span> self.insertImageData
 
-    fromBlob: (blob) -&gt;
+    loadFile: (blob) -&gt;
       url = URL.createObjectURL(blob)
 
       self.fromDataURL(url)
