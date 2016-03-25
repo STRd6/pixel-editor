@@ -1,6 +1,5 @@
 module.exports = (editor) ->
   focus: ->
-    console.log 'ficus'
     editor.detailTool("opacity")
 
   value: editor.alpha
