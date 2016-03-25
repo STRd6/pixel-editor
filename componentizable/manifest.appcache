@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1458879518638
+
+CACHE:
+index.html
+../componentizable.json
+
+
+NETWORK:
+https://*
+http://*
+*
