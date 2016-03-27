@@ -1,6 +1,5 @@
 require "./lib/mousetrap"
 
-ByteArray = require "byte_array"
 FileReading = require("./file_reading")
 Modal = require("./modal")
 Palette = require("./palette")
@@ -21,19 +20,28 @@ module.exports = Actions = (I={}, self=Core(I)) ->
         self.actions.push action
 
       if action.hotkey?
-        self.addHotkey hotkey, method
+        self.addHotkey action
 
     actions: Observable []
 
-    addHotkey: (key, method) ->
-      Mousetrap.bind key, (event) ->
+    dispatchAction: (action) ->
+      {method, remote} = action
+
+      if typeof method is "function"
+        method
+          editor: editor
+      else if remote
+        editor.invokeRemote method
+      else
+        editor[method]()
+
+    addHotkey: (action) ->
+      {hotkey} = action
+
+      Mousetrap.bind hotkey, (event) ->
         event.preventDefault()
 
-        if typeof method is "function"
-          method
-            editor: self
-        else
-          self[method]()
+        self.dispatchAction(action)
 
         return
 

@@ -207,8 +207,9 @@ Shapes
       self.extend
         addTool: (tool) ->
           [].concat(tool.hotkeys or []).forEach (hotkey) ->
-            self.addHotkey hotkey, ->
-              self.activeTool tool
+            self.addHotkey
+              hotkey: hotkey
+              method: -> self.activeTool tool
 
           self.tools.push tool
 
@@ -229,9 +230,13 @@ Shapes
             self.activeTool tool
 
       [1..9].forEach (n) ->
-        self.addHotkey n.toString(), setNthTool(n-1)
+        self.addHotkey 
+          hotkey: n.toString()
+          method: setNthTool(n-1)
 
-      self.addHotkey "0", setNthTool(9)
+      self.addHotkey 
+        hotkey: "0", 
+        method: setNthTool(9)
 
       prevTool = null
       self.activeTool.observe (newTool) ->

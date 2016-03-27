@@ -1,14 +1,11 @@
 module.exports = (action, editor) ->
-  {hotkey, icon, method, name} = action
+  {hotkey, icon, name} = action
 
   perform: (e) ->
     e.preventDefault()
 
-    if typeof method is "function"
-      method
-        editor: editor
-    else
-      editor[method]()
+    editor.dispatchAction(action)
+
   title: ->
     "#{name} [#{hotkey}]"
   name: name
