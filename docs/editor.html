@@ -182,9 +182,20 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         imageData: imageData
         imageDataPrevious: editor.getSnapshot()
 
+      <span class="keyword">return</span>
+
     fromDataURL: (dataURL) -&gt;
       loader.load(dataURL)
       .<span class="keyword">then</span> self.insertImageData
+
+    loadFile: (blob) -&gt;
+      url = URL.createObjectURL(blob)
+
+      self.fromDataURL(url)
+      .<span class="keyword">then</span> -&gt;
+        URL.revokeObjectURL(url)
+        self.history([])
+        <span class="keyword">return</span>
 
     vintageReplay: (data) -&gt;
       <span class="keyword">unless</span> replaying
