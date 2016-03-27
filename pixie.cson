@@ -11,7 +11,7 @@ dependencies:
   matrix: "distri/matrix:master"
   observable: "distri/observable:master"
   point: "distri/point:master"
-  postmaster: "distri/postmaster:v0.2.3"
+  postmaster: "distri/postmaster:master"
   runtime: "distri/runtime:v0.3.0"
   size: "distri/size:master"
   "touch-canvas": "distri/touch-canvas:v0.4.2"

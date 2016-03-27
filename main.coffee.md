@@ -12,13 +12,14 @@ Editing pixels in your browser.
     Editor = require "./editor"
 
     launch = ->
-
       # For debugging
       global.editor = Editor()
 
       Template = require "./templates/editor"
       editorElement = Template editor
       document.body.appendChild editorElement
+
+      editor.invokeRemote "childLoaded"
 
       updateViewportCentering = ->
         {height: mainHeight} = editorElement.querySelector(".main").getBoundingClientRect()
@@ -37,7 +38,7 @@ Editing pixels in your browser.
       runtime = require("runtime")(PACKAGE)
       runtime.boot()
       runtime.applyStyleSheet(require('./style'))
-  
+
       metaTag = document.createElement('meta')
       metaTag.name = "viewport"
       metaTag.content = "width=device-width, initial-scale=1.0"
