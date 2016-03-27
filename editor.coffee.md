@@ -153,9 +153,20 @@ Editor
             imageData: imageData
             imageDataPrevious: editor.getSnapshot()
 
+          return
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then self.insertImageData
+
+        loadFile: (blob) ->
+          url = URL.createObjectURL(blob)
+
+          self.fromDataURL(url)
+          .then ->
+            URL.revokeObjectURL(url)
+            self.history([])
+            return
 
         vintageReplay: (data) ->
           unless replaying

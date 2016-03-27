@@ -32,6 +32,8 @@ Editing pixels in your browser.
 
     editor.notify("Welcome to PixiPaint!")
 
+    editor.invokeRemote "childLoaded"
+
     Template = require "./templates/editor"
     editorElement = Template editor
     document.body.appendChild editorElement
