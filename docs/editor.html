@@ -143,6 +143,11 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       outputCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
       outputCanvas.element()
 
+    getBlob: -&gt;
+      <span class="keyword">new</span> Promise (resolve, reject) -&gt;
+        editor.outputCanvas().toBlob (blob) -&gt;
+          resolve(blob)
+
     resize: (size, data) -&gt;
       data ?= self.getSnapshot()
 
