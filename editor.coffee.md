@@ -114,6 +114,11 @@ Editor
           outputCanvas.context().drawImage(canvas.element(), 0, 0)
           outputCanvas.element()
 
+        getBlob: ->
+          new Promise (resolve, reject) ->
+            editor.outputCanvas().toBlob (blob) ->
+              resolve(blob)
+
         resize: (size, data) ->
           data ?= self.getSnapshot()
 

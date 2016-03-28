@@ -8,6 +8,7 @@ module.exports = (action, editor) ->
 
   title: ->
     "#{name} [#{hotkey}]"
-  name: name
+  name: ->
+    name
   style: ->
     "background-image: url(#{icon})"
