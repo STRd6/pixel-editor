@@ -185,12 +185,6 @@
   window.require = Require.generateFor(pkg);
 })({
   "source": {
-    ".travis.yml": {
-      "path": ".travis.yml",
-      "content": "language: node_js\nnode_js:\n  - \"stable\"\n",
-      "mode": "100644",
-      "type": "blob"
-    },
     "LICENSE": {
       "path": "LICENSE",
       "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
@@ -357,12 +351,6 @@
       "path": "presenters/tool.coffee",
       "content": "Observable = require \"observable\"\n\nmodule.exports = (editor, tool) ->\n  self =\n    activate: ->\n      editor.activeTool(tool)\n    activeClass: ->\n      \"active\" if tool is editor.activeTool()\n    detail: ->\n      editor.detailTool(tool)\n    detailClass: ->\n      \"panelOpen\" if tool is editor.detailTool()\n\n    style: ->\n      \"background-image: url(#{tool.iconUrl})\"\n\n    title: ->\n      tool.hotkeys\n\n    settings: tool.settings\n",
       "mode": "100644",
-      "type": "blob"
-    },
-    "script/build": {
-      "path": "script/build",
-      "content": "#!/bin/bash\n\nmkdir -p dist\nrm -r dist/*\n\ncd gh-pages\ncp index.html master.json.js ../dist\ncd ..\n\n# TODO: Read config from pixie.cson\n\nTITLE=\"Pixi Paint\"\nWIDTH=1280\nHEIGHT=720\nVERSION=\"0.9.0\"\n\ntee dist/package.json <<EOS\n{\n  \"name\": \"$TITLE\",\n  \"version\": \"$VERSION\",\n  \"main\": \"index.html\",\n  \"window\": {\n    \"title\": \"$TITLE\",\n    \"width\": $WIDTH,\n    \"height\": $HEIGHT,\n    \"toolbar\": false\n  }\n}\nEOS\n\nmkdir -p build\nrm -r build/*\n\n# Can also build ,linux32,linux64\nnwbuild -p \"osx,win\" dist\n\n# TODO: May be able to only update nw.pack in zip file rather than\n# rebuild everything\n\n# Rename nw.exe to \"$TITLE\".exe\nmv build/\"$TITLE\"/win/nw.exe build/\"$TITLE\"/win/\"$TITLE\".exe\n# Rename node-webkit.app to \"#$TITLE\".app\nmv build/\"$TITLE\"/osx/node-webkit.app build/\"$TITLE\"/osx/\"$TITLE\".app\n\n# Zip all builds\ncd \"build/$TITLE\"\n\nfor folder in *\ndo\n  echo \"$folder\"\n  mkdir -p \"$TITLE\"\n  rm -r \"$TITLE\"/*\n  cp -r \"$folder\"/* \"$TITLE\"\n  zip -9 -r \"../$folder.zip\" \"$TITLE\"\ndone\n\n# To get nw working on newer linux distros need to modify binary\n# cd ~/.nvm/v0.10.28/lib/node_modules/node-webkit-builder/cache/0.9.2/linux32\n# sed -i 's/\\x75\\x64\\x65\\x76\\x2E\\x73\\x6F\\x2E\\x30/\\x75\\x64\\x65\\x76\\x2E\\x73\\x6F\\x2E\\x31/g' nw\n",
-      "mode": "100755",
       "type": "blob"
     },
     "shims.coffee": {
