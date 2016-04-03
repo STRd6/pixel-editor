@@ -8,6 +8,7 @@ loader = require("./loader")()
 saveAs = require "./lib/file_saver"
 
 OptionsTemplate = require "./templates/options"
+TipsTemplate = require "./templates/tips"
 
 module.exports = Actions = (I={}, self=Core(I)) ->
   self.extend
@@ -163,6 +164,15 @@ Actions.defaults =
     method: ({editor}) ->
       Modal.show OptionsTemplate editor
     icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC+klEQVQ4T3VTS0jjUBR9qX/bommpNv5QlIILoRTxA4IIunDrWhCU2Ym4EUStv1F3iriSyMyidFOC2I0gONSFYotipWqdRRFBUUqrbSEmJrz3kuFGdIYZ58FLXsK9595z7nkM+s86PT0dIYQMEkIQIcTf09Pz7bNQ5s+fl5eXzZIkPbS3t79EIpFkXV2dQ9d1FA6H0/F43NnW1mZRFKV6YGDg53veB0AsFtuilA4TQlKKonh0XY/W1tY6AeDq6ipJCPFomhbFGFdgjL8PDQ19ARAD4Pz8fNpqtS6xLIsymQx6fHyUCCGlHMcxmqahRCKhE0Lk+vp6c01NDcSjeDw+MzExsWwAnJyceFVVXYAERVFQQUEBMplMCGOMAAC+VVU1NqUUBYNBXVGUufX19a8fFI6OjpbLy8unAACCcrkcuru7M5IbGhpQfn6+ASjLMrq4uFiZnJycNihEIpEz4EUIMXMcx0qSZNA4Pj4Oi6I4W1xcjGw222Jra2sn6GGxWFAoFMpijCVKaYo5PDykLpfL9Pz8jERRNCpeX1+j29vbPq/X+wOq8Dzfy7LsvtPpNDoAEDivrq5qTCgUok1NTSZoGQCg4v39PbTfNzY2ZgBsbGz0OhyO/aqqKgQdlpSUILvdjtbW1jTG5/OdPT09VbAsa3a73SxUKCoqQrFYLEwpnQVNCCGLHo+nEzQAfQRByIqiCJNKfYgoCMIyx3FT4DwQLC8vzxAREqAyvF9fX40ODg4OVjY3N99EhEcgEPASQhbcbjeTzWaNDgoLCxFUfx8jnGGXlZUhn8+nq6o6x/P82xj9fv90ZWXlUmNjI9gW3dzcSCaTqbS7u9swkiAIOsMwckdHh7mlpQVtb2/DKGd2dnbejARrfn5+K5PJDEuSlLJarR6bzRbt7+93AiWe55MYYw/GOCrLsmHlvb2931Z+BxkfH2+mlD7Y7fYXhFCyq6vLAZwDgUDa5XI5E4mEJZfLVe/u7v57mf6+qqOjoyPpdHoQ7Assg8Hgp9f5F8rrwJFre608AAAAAElFTkSuQmCC"
+
+  "f1":
+    name: "Tips"
+    description: """
+      Show tips
+    """
+    method: ({editor}) ->
+      Modal.show TipsTemplate editor
+    icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAHjSURBVDjLdZO/alVBEMZ/5+TemxAbFUUskqAoSOJNp4KC4AsoPoGFIHY+gA+jiJXaKIiChbETtBYLUbSMRf6Aydndmfks9kRjvHdhGVh2fvN9uzONJK7fe7Ai6algA3FZCAmQqEF/dnihpK1v7x7dPw0woF64Izg3Xl5s1n9uIe0lQYUFCtjc+sVuEqHBKfpVAXB1vLzQXFtdYPHkGFUCoahVo1Y/fnie+bkBV27c5R8A0pHxyhKvPn5hY2MHRQAQeyokFGJze4cuZfav3gLNYDTg7Pklzpw4ijtIQYRwFx6BhdjtCk+erU0CCPfg+/o2o3ZI13WUlLGo58YMg+GIY4dmCWkCAAgPzAspJW5ePFPlV3VI4uHbz5S5IQfy/yooHngxzFser30iFcNcuAVGw3A0Ilt91IkAsyCXQg5QO0szHEIrogkiguwN2acCoJhjnZGKYx4Ujz5WOA2YD1BMU+BBSYVUvNpxkXuIuWgbsOxTHrG3UHIFWIhsgXtQQpTizNBS5jXZQkhkcywZqQQlAjdRwiml7wU5xWLaL1AvZa8WIjALzIRZ7YVWDW5CiIj48Z8F2pYLl1ZR0+AuzEX0UX035mxIkLq0dhDw5vXL97fr5O3rfwQHJhPx4uuH57f2AL8BfPrVlrs6xwsAAAAASUVORK5CYII="
 
   "f5":
     name: "Replay"

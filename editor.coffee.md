@@ -499,8 +499,6 @@ Editor
 
       self.include require "./dirty"
 
-      # self.include require("./plugins/save_to_s3")
-
       initialState = self.getSnapshot()
 
       document.addEventListener "mousedown", (e) ->
