@@ -148,6 +148,18 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         editor.outputCanvas().toBlob (blob) -&gt;
           resolve(blob)
 
+    clear: -&gt;
+      previous = self.getSnapshot()
+      self.canvas.clear()
+
+      self.execute editor.Command.PutImageData
+        imageData: self.getSnapshot()
+        imageDataPrevious: previous
+        x: <span class="number">0</span>
+        y: <span class="number">0</span>
+
+      <span class="keyword">return</span>
+
     resize: (size, data) -&gt;
       data ?= self.getSnapshot()
 
