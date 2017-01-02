@@ -119,6 +119,18 @@ Editor
             editor.outputCanvas().toBlob (blob) ->
               resolve(blob)
 
+        clear: ->
+          previous = self.getSnapshot()
+          self.canvas.clear()
+
+          self.execute editor.Command.PutImageData
+            imageData: self.getSnapshot()
+            imageDataPrevious: previous
+            x: 0
+            y: 0
+
+          return
+
         resize: (size, data) ->
           data ?= self.getSnapshot()
 
