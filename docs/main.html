@@ -46,7 +46,8 @@ Editor = require <span class="string">"./editor"</span>
   editorElement = Template editor
   document.body.appendChild editorElement
 
-  editor.invokeRemote <span class="string">"childLoaded"</span>
+  <span class="keyword">try</span>
+    editor.invokeRemote <span class="string">"childLoaded"</span>
 
   <span class="function"><span class="title">updateViewportCentering</span></span> = -&gt;
     {height: mainHeight} = editorElement.querySelector(<span class="string">".main"</span>).getBoundingClientRect()
