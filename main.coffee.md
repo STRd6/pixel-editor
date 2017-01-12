@@ -19,7 +19,8 @@ Editing pixels in your browser.
       editorElement = Template editor
       document.body.appendChild editorElement
 
-      editor.invokeRemote "childLoaded"
+      try
+        editor.invokeRemote "childLoaded"
 
       updateViewportCentering = ->
         {height: mainHeight} = editorElement.querySelector(".main").getBoundingClientRect()
