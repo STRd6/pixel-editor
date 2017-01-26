@@ -50,7 +50,8 @@
   prompted = <span class="literal">false</span>
   window.addEventListener <span class="string">"beforeunload"</span>, (e) -&gt;
     <span class="keyword">unless</span> prompted
-      e.returnValue = <span class="string">"Your changes haven't yet been saved. If you leave now you will lose your work."</span> <span class="keyword">if</span> self.dirty()
+      <span class="keyword">if</span> self.dirty()
+        e.returnValue = <span class="string">"Your changes haven't yet been saved. If you leave now you will lose your work."</span>
       prompted = <span class="literal">true</span>
 
     setTimeout -&gt;
