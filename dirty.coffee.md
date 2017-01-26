@@ -22,7 +22,8 @@ Handle dirty tracking and onbeforeunload event for editors.
       prompted = false
       window.addEventListener "beforeunload", (e) ->
         unless prompted
-          e.returnValue = "Your changes haven't yet been saved. If you leave now you will lose your work." if self.dirty()
+          if self.dirty()
+            e.returnValue = "Your changes haven't yet been saved. If you leave now you will lose your work."
           prompted = true
 
         setTimeout ->
