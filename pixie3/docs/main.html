@@ -33,36 +33,48 @@ help, but right now it&#39;s mostly code.</p>
 <p>Editing pixels in your browser.</p>
 
   </div>
-  <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># For debug purposes</span>
-global.PACKAGE = PACKAGE
-global.require = require
-
-<span class="comment"># Google Analytics</span>
-require(<span class="string">"analytics"</span>).init(<span class="string">"UA-3464282-15"</span>)
-
-<span class="comment"># Setup</span>
+  <div class="content"><pre><code class="lang-coffeescript"><span class="comment"># Setup</span>
 require <span class="string">"./lib/canvas-to-blob"</span>
-
-runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
-runtime.boot()
-runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
 
 Editor = require <span class="string">"./editor"</span>
 
-<span class="comment"># For debugging</span>
-global.editor = Editor()
+<span class="function"><span class="title">launch</span></span> = -&gt;
+  <span class="comment"># For debugging</span>
+  global.editor = Editor()
 
-editor.notify(<span class="string">"Welcome to PixiPaint!"</span>)
+  Template = require <span class="string">"./templates/editor"</span>
+  editorElement = Template editor
+  document.body.appendChild editorElement
 
-Template = require <span class="string">"./templates/editor"</span>
-editorElement = Template editor
-document.body.appendChild editorElement
+  <span class="keyword">try</span>
+    editor.invokeRemote <span class="string">"childLoaded"</span>
 
-<span class="function"><span class="title">updateViewportCentering</span></span> = -&gt;
-  {height: mainHeight} = editorElement.querySelector(<span class="string">".main"</span>).getBoundingClientRect()
-  editor.mainHeight mainHeight
-window.addEventListener <span class="string">"resize"</span>, updateViewportCentering
-updateViewportCentering()</code></pre>
+  <span class="function"><span class="title">updateViewportCentering</span></span> = -&gt;
+    {height: mainHeight} = editorElement.querySelector(<span class="string">".main"</span>).getBoundingClientRect()
+    editor.mainHeight mainHeight
+  window.addEventListener <span class="string">"resize"</span>, updateViewportCentering
+  updateViewportCentering()
+
+<span class="keyword">if</span> PACKAGE.name <span class="keyword">is</span> <span class="string">"ROOT"</span>
+  <span class="comment"># Google Analytics</span>
+  require(<span class="string">"analytics"</span>).init(<span class="string">"UA-3464282-15"</span>)
+
+  <span class="comment"># For debug purposes</span>
+  global.PACKAGE = PACKAGE
+  global.require = require
+
+  runtime = require(<span class="string">"runtime"</span>)(PACKAGE)
+  runtime.boot()
+  runtime.applyStyleSheet(require(<span class="string">'./style'</span>))
+
+  metaTag = document.createElement(<span class="string">'meta'</span>)
+  metaTag.name = <span class="string">"viewport"</span>
+  metaTag.content = <span class="string">"width=device-width, initial-scale=1.0"</span>
+  document.getElementsByTagName(<span class="string">'head'</span>)[<span class="number">0</span>].appendChild(metaTag)
+
+  launch()
+
+module.exports = Editor</code></pre>
 </div>
 </li>
     </ul>

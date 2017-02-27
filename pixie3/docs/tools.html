@@ -274,8 +274,9 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self.extend
     addTool: (tool) -&gt;
       [].concat(tool.hotkeys <span class="keyword">or</span> []).forEach (hotkey) -&gt;
-        self.addHotkey hotkey, -&gt;
-          self.activeTool tool
+        self.addHotkey
+          hotkey: hotkey
+          method: -&gt; self.activeTool tool
 
       self.tools.push tool
 
@@ -296,9 +297,13 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         self.activeTool tool
 
   [<span class="number">1.</span><span class="number">.9</span>].forEach (n) -&gt;
-    self.addHotkey n.toString(), setNthTool(n-<span class="number">1</span>)
+    self.addHotkey 
+      hotkey: n.toString()
+      method: setNthTool(n-<span class="number">1</span>)
 
-  self.addHotkey <span class="string">"0"</span>, setNthTool(<span class="number">9</span>)
+  self.addHotkey 
+    hotkey: <span class="string">"0"</span>, 
+    method: setNthTool(<span class="number">9</span>)
 
   prevTool = <span class="literal">null</span>
   self.activeTool.observe (newTool) -&gt;

@@ -75,9 +75,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self.include Drop
   self.include Eval
   self.include Notifications
-  self.include Postmaster
   self.include Undo
   self.include Tools
+
+  Postmaster(self)
 
   activeTool = self.activeTool
 
@@ -143,6 +144,23 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       outputCanvas.context().drawImage(canvas.element(), <span class="number">0</span>, <span class="number">0</span>)
       outputCanvas.element()
 
+    getBlob: -&gt;
+      <span class="keyword">new</span> Promise (resolve, reject) -&gt;
+        editor.outputCanvas().toBlob (blob) -&gt;
+          resolve(blob)
+
+    clear: -&gt;
+      previous = self.getSnapshot()
+      self.canvas.clear()
+
+      self.execute editor.Command.PutImageData
+        imageData: self.getSnapshot()
+        imageDataPrevious: previous
+        x: <span class="number">0</span>
+        y: <span class="number">0</span>
+
+      <span class="keyword">return</span>
+
     resize: (size, data) -&gt;
       data ?= self.getSnapshot()
 
@@ -182,9 +200,20 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
         imageData: imageData
         imageDataPrevious: editor.getSnapshot()
 
+      <span class="keyword">return</span>
+
     fromDataURL: (dataURL) -&gt;
       loader.load(dataURL)
       .<span class="keyword">then</span> self.insertImageData
+
+    loadFile: (blob) -&gt;
+      url = URL.createObjectURL(blob)
+
+      self.fromDataURL(url)
+      .<span class="keyword">then</span> -&gt;
+        URL.revokeObjectURL(url)
+        self.history([])
+        <span class="keyword">return</span>
 
     vintageReplay: (data) -&gt;
       <span class="keyword">unless</span> replaying
@@ -511,8 +540,6 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
       self.trigger <span class="string">"change"</span>
 
   self.include require <span class="string">"./dirty"</span>
-
-  <span class="comment"># self.include require("./plugins/save_to_s3")</span>
 
   initialState = self.getSnapshot()
 

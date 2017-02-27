@@ -46,8 +46,18 @@
   self.markClean()
 
   <span class="comment"># HACK: This assumes we're the only app in the page</span>
-  window.<span class="function"><span class="title">onbeforeunload</span></span> = -&gt;
-    <span class="keyword">return</span> <span class="string">"Your changes haven't yet been saved. If you leave now you will lose your work."</span> <span class="keyword">if</span> self.dirty()
+  <span class="comment"># NOTE: Track `prompted` so in an iframe it won't trigger twice</span>
+  prompted = <span class="literal">false</span>
+  window.addEventListener <span class="string">"beforeunload"</span>, (e) -&gt;
+    <span class="keyword">unless</span> prompted
+      <span class="keyword">if</span> self.dirty()
+        e.returnValue = <span class="string">"Your changes haven't yet been saved. If you leave now you will lose your work."</span>
+      prompted = <span class="literal">true</span>
+
+    setTimeout -&gt;
+      prompted = <span class="literal">false</span>
+
+    <span class="keyword">return</span> e.returnValue
 
   <span class="keyword">return</span> self</code></pre>
 </div>
