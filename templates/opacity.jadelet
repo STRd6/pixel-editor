@@ -1,0 +1,5 @@
+.opacity(class=@detailClass)
+  h2 Opacity
+  input(type="number" @value @min @max @step @focus)
+  .panel
+    input(type="range" @value @min @mai @step)

@@ -1,0 +1,2 @@
+.action(click=@perform touchstart=@perform @title @style)
+  .text= @name

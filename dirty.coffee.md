@@ -18,7 +18,17 @@ Handle dirty tracking and onbeforeunload event for editors.
       self.markClean()
 
       # HACK: This assumes we're the only app in the page
-      window.onbeforeunload = ->
-        return "Your changes haven't yet been saved. If you leave now you will lose your work." if self.dirty()
+      # NOTE: Track `prompted` so in an iframe it won't trigger twice
+      prompted = false
+      window.addEventListener "beforeunload", (e) ->
+        unless prompted
+          if self.dirty()
+            e.returnValue = "Your changes haven't yet been saved. If you leave now you will lose your work."
+          prompted = true
+
+        setTimeout ->
+          prompted = false
+
+        return e.returnValue
 
       return self

@@ -46,9 +46,10 @@ Editor
       self.include Drop
       self.include Eval
       self.include Notifications
-      self.include Postmaster
       self.include Undo
       self.include Tools
+
+      Postmaster(self)
 
       activeTool = self.activeTool
 
@@ -114,6 +115,23 @@ Editor
           outputCanvas.context().drawImage(canvas.element(), 0, 0)
           outputCanvas.element()
 
+        getBlob: ->
+          new Promise (resolve, reject) ->
+            editor.outputCanvas().toBlob (blob) ->
+              resolve(blob)
+
+        clear: ->
+          previous = self.getSnapshot()
+          self.canvas.clear()
+
+          self.execute editor.Command.PutImageData
+            imageData: self.getSnapshot()
+            imageDataPrevious: previous
+            x: 0
+            y: 0
+
+          return
+
         resize: (size, data) ->
           data ?= self.getSnapshot()
 
@@ -153,9 +171,20 @@ Editor
             imageData: imageData
             imageDataPrevious: editor.getSnapshot()
 
+          return
+
         fromDataURL: (dataURL) ->
           loader.load(dataURL)
           .then self.insertImageData
+
+        loadFile: (blob) ->
+          url = URL.createObjectURL(blob)
+
+          self.fromDataURL(url)
+          .then ->
+            URL.revokeObjectURL(url)
+            self.history([])
+            return
 
         vintageReplay: (data) ->
           unless replaying
@@ -482,8 +511,6 @@ Editor
           self.trigger "change"
 
       self.include require "./dirty"
-
-      # self.include require("./plugins/save_to_s3")
 
       initialState = self.getSnapshot()
 

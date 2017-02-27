@@ -4,8 +4,6 @@ TODO
 Polishing
 ---------
 
-Loading progress for replays
-
 Icons, Icon offsets for tools
 
 Thumbnail viewing mini-map rectangle
@@ -105,6 +103,8 @@ Simple Replays
 Make sure replays can be saved and loaded
 
 Be able to display PixieEngine replays
+
+Loading progress for replays
 
 Memory Usage
 ------------

@@ -1,3 +1,9 @@
+- Opacity = require "./opacity"
+- OpacityPresenter = require "../presenters/opacity"
+
+- Color = require "./color"
+- ColorPresenter = require "../presenters/color"
+
 .palette
   - editor = this
   - activeIndex = @activeIndex
@@ -9,25 +15,6 @@
     %input(type="color" value=editor.activeColor style=style)
 
   - @palette.forEach (color, index) ->
-    - showPicker = false
-    - click = (e) ->
-      - e.target.blur()
-      - unless showPicker
-        - showPicker = true
-        - e.preventDefault()
+    = Color ColorPresenter color, editor
 
-      - setTimeout ->
-        - showPicker = false
-      - , 500
-
-      - editor.activeColor color()
-      - return
-
-    - input = (e) ->
-      - editor.activeColor e.target.value
-
-    .color
-      - style = -> 
-        - c = color()
-        - "background-color: #{c}; color: #{c};"
-      %input(type="color" value=color click=click input=input style=style)
+  = Opacity OpacityPresenter this

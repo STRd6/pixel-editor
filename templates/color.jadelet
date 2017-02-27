@@ -1,0 +1,2 @@
+.color
+  input(type="color" value=@color @click @input @style)
