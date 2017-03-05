@@ -50,4 +50,4 @@ Pixi Paint is [open source software](https://github.com/STRd6/pixel-editor).
 >     $(".content").eq(0).empty()
 >     .append($ "<h2>", text: "Live Demo")
 >     $(".content").eq(1).empty()
->     .append($ "<iframe>", src: "http://danielx.net/pixel-editor", style: "border: none; border-top: 1px solid gray", width: 640, height: 640)
+>     .append($ "<iframe>", src: "https://danielx.net/pixel-editor/", style: "border: none; border-top: 1px solid gray", width: 768, height: 640)
