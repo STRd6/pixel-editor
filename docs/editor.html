@@ -75,9 +75,10 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
   self.include Drop
   self.include Eval
   self.include Notifications
-  self.include Postmaster
   self.include Undo
   self.include Tools
+
+  Postmaster(self)
 
   activeTool = self.activeTool
 
@@ -339,10 +340,14 @@ module.<span class="function"><span class="title">exports</span></span> = (I={},
     setInitialState: (imageData) -&gt;
       initialState = imageData
 
+      <span class="keyword">return</span>
+
     restoreInitialState: -&gt;
       <span class="comment"># Become the image with no history</span>
       self.resize initialState, initialState
       self.history([])
+
+      <span class="keyword">return</span>
 
     withCanvasMods: (cb) -&gt;
       canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / <span class="number">100</span>
