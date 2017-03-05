@@ -46,9 +46,10 @@ Editor
       self.include Drop
       self.include Eval
       self.include Notifications
-      self.include Postmaster
       self.include Undo
       self.include Tools
+
+      Postmaster(self)
 
       activeTool = self.activeTool
 
@@ -310,10 +311,14 @@ Editor
         setInitialState: (imageData) ->
           initialState = imageData
 
+          return
+
         restoreInitialState: ->
           # Become the image with no history
           self.resize initialState, initialState
           self.history([])
+
+          return
 
         withCanvasMods: (cb) ->
           canvas.context().globalAlpha = thumbnailCanvas.context().globalAlpha = self.alpha() / 100
