@@ -23,7 +23,7 @@ describe "Editor", ->
   it "should exist", ->
     assert editor
 
-  it "should be able to drawn upon", ->
+  it "should be able to be drawn upon", ->
     p1 = x: 0, y: 0, identifier: 0
     p2 = x: 5, y: 5, identifier: 0
 

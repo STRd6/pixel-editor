@@ -10,7 +10,6 @@ TouchCanvas = require "touch-canvas"
 Actions = require "./actions"
 Command = require "./command"
 Drop = require "./drop"
-Eval = require "eval"
 GridGen = require "grid-gen"
 Notifications = require "./notifications"
 Postmaster = require "postmaster"
@@ -41,7 +40,6 @@ module.exports = (I={}, self=Model(I)) ->
   self.include Bindable
   self.include Command
   self.include Drop
-  self.include Eval
   self.include Notifications
   self.include Undo
   self.include Tools
