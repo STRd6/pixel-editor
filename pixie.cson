@@ -10,7 +10,6 @@ dependencies:
   observable: "distri/observable:v0.3.7"
   point: "distri/point:v0.2.0"
   postmaster: "distri/postmaster:v0.5.3"
-  runtime: "distri/runtime:v0.3.0"
   size: "distri/size:v0.1.4"
   "touch-canvas": "distri/touch-canvas:v0.4.2"
   "undo": "distri/undo:v0.2.0"
