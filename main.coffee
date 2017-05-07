@@ -11,8 +11,7 @@ launch = ->
   editorElement = Template editor
   document.body.appendChild editorElement
 
-  try
-    editor.invokeRemote "childLoaded"
+  editor.invokeRemote? "childLoaded"
 
   updateViewportCentering = ->
     {height: mainHeight, width: mainWidth} = editorElement.querySelector(".main").getBoundingClientRect()

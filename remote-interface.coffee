@@ -2,6 +2,7 @@ module.exports = (I, self) ->
   # Embedded package in ZineOS
   if system? and postmaster?
     console.info "Attached ZineOS remote delegate"
+    editor.invokeRemote = postmaster.invokeRemote
     postmaster.delegate = self
   else if window.location.origin is "null"
     # Assume we're in a secure enough embedded iframe
