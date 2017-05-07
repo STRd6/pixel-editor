@@ -116,7 +116,7 @@
     },
     "main.coffee": {
       "path": "main.coffee",
-      "content": "# Setup\nrequire \"./lib/canvas-to-blob\"\n\nEditor = require \"./editor\"\n\nlaunch = ->\n  # For debugging\n  global.editor = Editor()\n\n  Template = require \"./templates/editor\"\n  editorElement = Template editor\n  document.body.appendChild editorElement\n\n  try\n    editor.invokeRemote \"childLoaded\"\n\n  updateViewportCentering = ->\n    {height: mainHeight, width: mainWidth} = editorElement.querySelector(\".main\").getBoundingClientRect()\n    editor.mainHeight mainHeight\n    editor.mainWidth mainWidth\n  window.addEventListener \"resize\", updateViewportCentering\n  updateViewportCentering()\n\nif PACKAGE.name is \"ROOT\"\n  # Google Analytics\n  require(\"analytics\").init(\"UA-3464282-15\")\n\n  # For debug purposes\n  global.PACKAGE = PACKAGE\n  global.require = require\n\n  runtime = require(\"runtime\")(PACKAGE)\n  runtime.boot()\n  runtime.applyStyleSheet(require('./style'))\n\n  metaTag = document.createElement('meta')\n  metaTag.name = \"viewport\"\n  metaTag.content = \"width=device-width, initial-scale=1.0\"\n  document.getElementsByTagName('head')[0].appendChild(metaTag)\n\n  launch()\n\nmodule.exports = Editor\n",
+      "content": "# Setup\nrequire \"./lib/canvas-to-blob\"\n\nEditor = require \"./editor\"\n\nlaunch = ->\n  # For debugging\n  global.editor = Editor()\n\n  Template = require \"./templates/editor\"\n  editorElement = Template editor\n  document.body.appendChild editorElement\n\n  try\n    editor.invokeRemote \"childLoaded\"\n\n  updateViewportCentering = ->\n    {height: mainHeight, width: mainWidth} = editorElement.querySelector(\".main\").getBoundingClientRect()\n    editor.mainHeight mainHeight\n    editor.mainWidth mainWidth\n  window.addEventListener \"resize\", updateViewportCentering\n  updateViewportCentering()\n\nif PACKAGE.name is \"ROOT\"\n  # Google Analytics\n  require(\"analytics\").init(\"UA-3464282-15\")\n\n  # For debug purposes\n  global.PACKAGE = PACKAGE\n  global.require = require\n\n  styleNode = document.createElement(\"style\")\n  styleNode.innerHTML = require('./style')\n  document.head.appendChild(styleNode)\n\n  metaTag = document.createElement('meta')\n  metaTag.name = \"viewport\"\n  metaTag.content = \"width=device-width, initial-scale=1.0\"\n  document.getElementsByTagName('head')[0].appendChild(metaTag)\n\n  launch()\n\nmodule.exports = Editor\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -140,7 +140,7 @@
     },
     "pixie.cson": {
       "path": "pixie.cson",
-      "content": "version: \"0.2.0\"\ndependencies:\n  ajax: \"distri/ajax:v0.1.5-pre.0\"\n  analytics: \"distri/google-analytics:v0.1.0\"\n  bindable: \"distri/bindable:v0.2.0\"\n  core: \"distri/core:v0.6.0\"\n  extensions: \"distri/extensions:v0.2.0\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  matrix: \"distri/matrix:v0.3.1\"\n  observable: \"distri/observable:v0.3.7\"\n  point: \"distri/point:v0.2.0\"\n  postmaster: \"distri/postmaster:v0.5.3\"\n  runtime: \"distri/runtime:v0.3.0\"\n  size: \"distri/size:v0.1.4\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.4.2\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1280\nheight: 720\n",
+      "content": "version: \"0.2.0\"\ndependencies:\n  ajax: \"distri/ajax:v0.1.5-pre.0\"\n  analytics: \"distri/google-analytics:v0.1.0\"\n  bindable: \"distri/bindable:v0.2.0\"\n  core: \"distri/core:v0.6.0\"\n  extensions: \"distri/extensions:v0.2.0\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  matrix: \"distri/matrix:v0.3.1\"\n  observable: \"distri/observable:v0.3.7\"\n  point: \"distri/point:v0.2.0\"\n  postmaster: \"distri/postmaster:v0.5.3\"\n  size: \"distri/size:v0.1.4\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.4.2\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1280\nheight: 720\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -272,7 +272,7 @@
     },
     "remote-interface.coffee": {
       "path": "remote-interface.coffee",
-      "content": "module.exports = (I, self) ->\n  # Embedded package in ZineOS\n  if system? and postmaster?\n    postmaster.delegate = self\n  else if window.location.origin is \"null\"\n    # Assume we're in a secure enough embedded iframe\n    localPostmaster = require(\"postmaster\")(self)\n  else if window is window.parent\n    # Not embedded, no need to enable remote interface\n  else\n    # otherwise we can't allow the remote interface as it could enable XSS\n    console.warn \"Remote interface disabled, iframe must be sandboxed\"\n\n  return self\n",
+      "content": "module.exports = (I, self) ->\n  # Embedded package in ZineOS\n  if system? and postmaster?\n    console.info \"Attached ZineOS remote delegate\"\n    postmaster.delegate = self\n  else if window.location.origin is \"null\"\n    # Assume we're in a secure enough embedded iframe\n    console.info \"Attached remote interface\"\n    localPostmaster = require(\"postmaster\")(self)\n  else if window is window.parent\n    # Not embedded, no need to enable remote interface\n    console.info \"Not embedded, no remote interface\"\n  else\n    # otherwise we can't allow the remote interface as it could enable XSS\n    console.warn \"Remote interface disabled, iframe must be sandboxed\"\n\n  return self\n",
       "mode": "100644"
     },
     "templates/editor.jadelet": {
@@ -359,7 +359,7 @@
     },
     "main": {
       "path": "main",
-      "content": "(function() {\n  var Editor, launch, metaTag, runtime;\n\n  require(\"./lib/canvas-to-blob\");\n\n  Editor = require(\"./editor\");\n\n  launch = function() {\n    var Template, editorElement, updateViewportCentering;\n    global.editor = Editor();\n    Template = require(\"./templates/editor\");\n    editorElement = Template(editor);\n    document.body.appendChild(editorElement);\n    try {\n      editor.invokeRemote(\"childLoaded\");\n    } catch (_error) {}\n    updateViewportCentering = function() {\n      var mainHeight, mainWidth, _ref;\n      _ref = editorElement.querySelector(\".main\").getBoundingClientRect(), mainHeight = _ref.height, mainWidth = _ref.width;\n      editor.mainHeight(mainHeight);\n      return editor.mainWidth(mainWidth);\n    };\n    window.addEventListener(\"resize\", updateViewportCentering);\n    return updateViewportCentering();\n  };\n\n  if (PACKAGE.name === \"ROOT\") {\n    require(\"analytics\").init(\"UA-3464282-15\");\n    global.PACKAGE = PACKAGE;\n    global.require = require;\n    runtime = require(\"runtime\")(PACKAGE);\n    runtime.boot();\n    runtime.applyStyleSheet(require('./style'));\n    metaTag = document.createElement('meta');\n    metaTag.name = \"viewport\";\n    metaTag.content = \"width=device-width, initial-scale=1.0\";\n    document.getElementsByTagName('head')[0].appendChild(metaTag);\n    launch();\n  }\n\n  module.exports = Editor;\n\n}).call(this);\n",
+      "content": "(function() {\n  var Editor, launch, metaTag, styleNode;\n\n  require(\"./lib/canvas-to-blob\");\n\n  Editor = require(\"./editor\");\n\n  launch = function() {\n    var Template, editorElement, updateViewportCentering;\n    global.editor = Editor();\n    Template = require(\"./templates/editor\");\n    editorElement = Template(editor);\n    document.body.appendChild(editorElement);\n    try {\n      editor.invokeRemote(\"childLoaded\");\n    } catch (_error) {}\n    updateViewportCentering = function() {\n      var mainHeight, mainWidth, _ref;\n      _ref = editorElement.querySelector(\".main\").getBoundingClientRect(), mainHeight = _ref.height, mainWidth = _ref.width;\n      editor.mainHeight(mainHeight);\n      return editor.mainWidth(mainWidth);\n    };\n    window.addEventListener(\"resize\", updateViewportCentering);\n    return updateViewportCentering();\n  };\n\n  if (PACKAGE.name === \"ROOT\") {\n    require(\"analytics\").init(\"UA-3464282-15\");\n    global.PACKAGE = PACKAGE;\n    global.require = require;\n    styleNode = document.createElement(\"style\");\n    styleNode.innerHTML = require('./style');\n    document.head.appendChild(styleNode);\n    metaTag = document.createElement('meta');\n    metaTag.name = \"viewport\";\n    metaTag.content = \"width=device-width, initial-scale=1.0\";\n    document.getElementsByTagName('head')[0].appendChild(metaTag);\n    launch();\n  }\n\n  module.exports = Editor;\n\n}).call(this);\n",
       "type": "blob"
     },
     "modal": {
@@ -379,7 +379,7 @@
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.2.0\",\"dependencies\":{\"ajax\":\"distri/ajax:v0.1.5-pre.0\",\"analytics\":\"distri/google-analytics:v0.1.0\",\"bindable\":\"distri/bindable:v0.2.0\",\"core\":\"distri/core:v0.6.0\",\"extensions\":\"distri/extensions:v0.2.0\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"matrix\":\"distri/matrix:v0.3.1\",\"observable\":\"distri/observable:v0.3.7\",\"point\":\"distri/point:v0.2.0\",\"postmaster\":\"distri/postmaster:v0.5.3\",\"runtime\":\"distri/runtime:v0.3.0\",\"size\":\"distri/size:v0.1.4\",\"touch-canvas\":\"distri/touch-canvas:v0.4.2\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1280,\"height\":720};",
+      "content": "module.exports = {\"version\":\"0.2.0\",\"dependencies\":{\"ajax\":\"distri/ajax:v0.1.5-pre.0\",\"analytics\":\"distri/google-analytics:v0.1.0\",\"bindable\":\"distri/bindable:v0.2.0\",\"core\":\"distri/core:v0.6.0\",\"extensions\":\"distri/extensions:v0.2.0\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"matrix\":\"distri/matrix:v0.3.1\",\"observable\":\"distri/observable:v0.3.7\",\"point\":\"distri/point:v0.2.0\",\"postmaster\":\"distri/postmaster:v0.5.3\",\"size\":\"distri/size:v0.1.4\",\"touch-canvas\":\"distri/touch-canvas:v0.4.2\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1280,\"height\":720};",
       "type": "blob"
     },
     "presenters/action": {
@@ -489,7 +489,7 @@
     },
     "remote-interface": {
       "path": "remote-interface",
-      "content": "(function() {\n  module.exports = function(I, self) {\n    var localPostmaster;\n    if ((typeof system !== \"undefined\" && system !== null) && (typeof postmaster !== \"undefined\" && postmaster !== null)) {\n      postmaster.delegate = self;\n    } else if (window.location.origin === \"null\") {\n      localPostmaster = require(\"postmaster\")(self);\n    } else if (window === window.parent) {\n\n    } else {\n      console.warn(\"Remote interface disabled, iframe must be sandboxed\");\n    }\n    return self;\n  };\n\n}).call(this);\n",
+      "content": "(function() {\n  module.exports = function(I, self) {\n    var localPostmaster;\n    if ((typeof system !== \"undefined\" && system !== null) && (typeof postmaster !== \"undefined\" && postmaster !== null)) {\n      console.info(\"Attached ZineOS remote delegate\");\n      postmaster.delegate = self;\n    } else if (window.location.origin === \"null\") {\n      console.info(\"Attached remote interface\");\n      localPostmaster = require(\"postmaster\")(self);\n    } else if (window === window.parent) {\n      console.info(\"Not embedded, no remote interface\");\n    } else {\n      console.warn(\"Remote interface disabled, iframe must be sandboxed\");\n    }\n    return self;\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "templates/editor": {
@@ -519,7 +519,6 @@
       "observable": "distri/observable:v0.3.7",
       "point": "distri/point:v0.2.0",
       "postmaster": "distri/postmaster:v0.5.3",
-      "runtime": "distri/runtime:v0.3.0",
       "size": "distri/size:v0.1.4",
       "touch-canvas": "distri/touch-canvas:v0.4.2",
       "undo": "distri/undo:v0.2.0",
@@ -1979,340 +1978,6 @@
         "publishBranch": "gh-pages"
       },
       "dependencies": {}
-    },
-    "runtime": {
-      "source": {
-        "LICENSE": {
-          "path": "LICENSE",
-          "mode": "100644",
-          "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
-          "type": "blob"
-        },
-        "README.md": {
-          "path": "README.md",
-          "mode": "100644",
-          "content": "runtime\n=======\n",
-          "type": "blob"
-        },
-        "pixie.cson": {
-          "path": "pixie.cson",
-          "mode": "100644",
-          "content": "version: \"0.3.0\"\nentryPoint: \"runtime\"\ndependencies:\n  appcache: \"distri/appcache:v0.2.0\"\n",
-          "type": "blob"
-        },
-        "runtime.coffee.md": {
-          "path": "runtime.coffee.md",
-          "mode": "100644",
-          "content": "Runtime\n=======\n\n    require \"appcache\"\n\nThe runtime holds utilities to assist with an apps running environment.\n\n    module.exports = (pkg) ->\n\nCall on start to boot up the runtime, get the root node, add styles, display a\npromo. Link back to the creator of this app in the promo.\n\n      self =\n        boot: ->\n          if pkg?.progenitor?.url\n            promo(\"You should meet my creator #{pkg.progenitor.url}\")\n\n          promo(\"Docs #{document.location.href}docs\")\n\n          return self\n\nApply the stylesheet to the root node.\n\n        applyStyleSheet: (style, className=\"runtime\") ->\n          styleNode = document.createElement(\"style\")\n          styleNode.innerHTML = style\n          styleNode.className = className\n\n          if previousStyleNode = document.head.querySelector(\"style.#{className}\")\n            previousStyleNode.parentNode.removeChild(prevousStyleNode)\n\n          document.head.appendChild(styleNode)\n\n          return self\n\nHelpers\n-------\n\nDisplay a promo in the console.\n\n    promo = (message) ->\n      console.log(\"%c #{message}\", \"\"\"\n        background: #000;\n        color: white;\n        font-size: 2em;\n        line-height: 2em;\n        padding: 10px 100px;\n        margin-bottom: 1em;\n        text-shadow:\n          0 0 0.05em #fff,\n          0 0 0.1em #fff,\n          0 0 0.15em #fff,\n          0 0 0.2em #ff00de,\n          0 0 0.35em #ff00de,\n          0 0 0.4em #ff00de,\n          0 0 0.5em #ff00de,\n          0 0 0.75em #ff00de;'\n      \"\"\")\n",
-          "type": "blob"
-        },
-        "test/runtime.coffee": {
-          "path": "test/runtime.coffee",
-          "mode": "100644",
-          "content": "Runtime = require \"../runtime\"\n\ndescribe \"Runtime\", ->\n  it \"should be created from a package and provide a boot method\", ->\n    assert Runtime(PACKAGE).boot()\n\n  it \"should be able to attach a style\", ->\n    assert Runtime().applyStyleSheet(\"body {background-color: lightgrey}\")\n\n  it \"should work without a package\", ->\n    assert Runtime().boot()\n",
-          "type": "blob"
-        }
-      },
-      "distribution": {
-        "pixie": {
-          "path": "pixie",
-          "content": "module.exports = {\"version\":\"0.3.0\",\"entryPoint\":\"runtime\",\"dependencies\":{\"appcache\":\"distri/appcache:v0.2.0\"}};",
-          "type": "blob"
-        },
-        "runtime": {
-          "path": "runtime",
-          "content": "(function() {\n  var promo;\n\n  require(\"appcache\");\n\n  module.exports = function(pkg) {\n    var self;\n    return self = {\n      boot: function() {\n        var _ref;\n        if (pkg != null ? (_ref = pkg.progenitor) != null ? _ref.url : void 0 : void 0) {\n          promo(\"You should meet my creator \" + pkg.progenitor.url);\n        }\n        promo(\"Docs \" + document.location.href + \"docs\");\n        return self;\n      },\n      applyStyleSheet: function(style, className) {\n        var previousStyleNode, styleNode;\n        if (className == null) {\n          className = \"runtime\";\n        }\n        styleNode = document.createElement(\"style\");\n        styleNode.innerHTML = style;\n        styleNode.className = className;\n        if (previousStyleNode = document.head.querySelector(\"style.\" + className)) {\n          previousStyleNode.parentNode.removeChild(prevousStyleNode);\n        }\n        document.head.appendChild(styleNode);\n        return self;\n      }\n    };\n  };\n\n  promo = function(message) {\n    return console.log(\"%c \" + message, \"background: #000;\\ncolor: white;\\nfont-size: 2em;\\nline-height: 2em;\\npadding: 10px 100px;\\nmargin-bottom: 1em;\\ntext-shadow:\\n  0 0 0.05em #fff,\\n  0 0 0.1em #fff,\\n  0 0 0.15em #fff,\\n  0 0 0.2em #ff00de,\\n  0 0 0.35em #ff00de,\\n  0 0 0.4em #ff00de,\\n  0 0 0.5em #ff00de,\\n  0 0 0.75em #ff00de;'\");\n  };\n\n}).call(this);\n\n//# sourceURL=runtime.coffee",
-          "type": "blob"
-        },
-        "test/runtime": {
-          "path": "test/runtime",
-          "content": "(function() {\n  var Runtime;\n\n  Runtime = require(\"../runtime\");\n\n  describe(\"Runtime\", function() {\n    it(\"should be created from a package and provide a boot method\", function() {\n      return assert(Runtime(PACKAGE).boot());\n    });\n    it(\"should be able to attach a style\", function() {\n      return assert(Runtime().applyStyleSheet(\"body {background-color: lightgrey}\"));\n    });\n    return it(\"should work without a package\", function() {\n      return assert(Runtime().boot());\n    });\n  });\n\n}).call(this);\n\n//# sourceURL=test/runtime.coffee",
-          "type": "blob"
-        }
-      },
-      "progenitor": {
-        "url": "http://strd6.github.io/editor/"
-      },
-      "version": "0.3.0",
-      "entryPoint": "runtime",
-      "repository": {
-        "id": 13202878,
-        "name": "runtime",
-        "full_name": "distri/runtime",
-        "owner": {
-          "login": "distri",
-          "id": 6005125,
-          "avatar_url": "https://avatars.githubusercontent.com/u/6005125",
-          "gravatar_id": null,
-          "url": "https://api.github.com/users/distri",
-          "html_url": "https://github.com/distri",
-          "followers_url": "https://api.github.com/users/distri/followers",
-          "following_url": "https://api.github.com/users/distri/following{/other_user}",
-          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
-          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
-          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
-          "organizations_url": "https://api.github.com/users/distri/orgs",
-          "repos_url": "https://api.github.com/users/distri/repos",
-          "events_url": "https://api.github.com/users/distri/events{/privacy}",
-          "received_events_url": "https://api.github.com/users/distri/received_events",
-          "type": "Organization",
-          "site_admin": false
-        },
-        "private": false,
-        "html_url": "https://github.com/distri/runtime",
-        "description": "",
-        "fork": false,
-        "url": "https://api.github.com/repos/distri/runtime",
-        "forks_url": "https://api.github.com/repos/distri/runtime/forks",
-        "keys_url": "https://api.github.com/repos/distri/runtime/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/distri/runtime/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/distri/runtime/teams",
-        "hooks_url": "https://api.github.com/repos/distri/runtime/hooks",
-        "issue_events_url": "https://api.github.com/repos/distri/runtime/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/distri/runtime/events",
-        "assignees_url": "https://api.github.com/repos/distri/runtime/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/distri/runtime/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/distri/runtime/tags",
-        "blobs_url": "https://api.github.com/repos/distri/runtime/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/distri/runtime/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/distri/runtime/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/distri/runtime/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/distri/runtime/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/distri/runtime/languages",
-        "stargazers_url": "https://api.github.com/repos/distri/runtime/stargazers",
-        "contributors_url": "https://api.github.com/repos/distri/runtime/contributors",
-        "subscribers_url": "https://api.github.com/repos/distri/runtime/subscribers",
-        "subscription_url": "https://api.github.com/repos/distri/runtime/subscription",
-        "commits_url": "https://api.github.com/repos/distri/runtime/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/distri/runtime/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/distri/runtime/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/distri/runtime/issues/comments/{number}",
-        "contents_url": "https://api.github.com/repos/distri/runtime/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/distri/runtime/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/distri/runtime/merges",
-        "archive_url": "https://api.github.com/repos/distri/runtime/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/distri/runtime/downloads",
-        "issues_url": "https://api.github.com/repos/distri/runtime/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/distri/runtime/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/distri/runtime/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/distri/runtime/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/distri/runtime/labels{/name}",
-        "releases_url": "https://api.github.com/repos/distri/runtime/releases{/id}",
-        "created_at": "2013-09-30T00:44:37Z",
-        "updated_at": "2014-02-27T19:26:02Z",
-        "pushed_at": "2013-11-29T20:14:49Z",
-        "git_url": "git://github.com/distri/runtime.git",
-        "ssh_url": "git@github.com:distri/runtime.git",
-        "clone_url": "https://github.com/distri/runtime.git",
-        "svn_url": "https://github.com/distri/runtime",
-        "homepage": null,
-        "size": 140,
-        "stargazers_count": 0,
-        "watchers_count": 0,
-        "language": "CoffeeScript",
-        "has_issues": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "forks_count": 0,
-        "mirror_url": null,
-        "open_issues_count": 0,
-        "forks": 0,
-        "open_issues": 0,
-        "watchers": 0,
-        "default_branch": "master",
-        "master_branch": "master",
-        "permissions": {
-          "admin": true,
-          "push": true,
-          "pull": true
-        },
-        "organization": {
-          "login": "distri",
-          "id": 6005125,
-          "avatar_url": "https://avatars.githubusercontent.com/u/6005125",
-          "gravatar_id": null,
-          "url": "https://api.github.com/users/distri",
-          "html_url": "https://github.com/distri",
-          "followers_url": "https://api.github.com/users/distri/followers",
-          "following_url": "https://api.github.com/users/distri/following{/other_user}",
-          "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
-          "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
-          "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
-          "organizations_url": "https://api.github.com/users/distri/orgs",
-          "repos_url": "https://api.github.com/users/distri/repos",
-          "events_url": "https://api.github.com/users/distri/events{/privacy}",
-          "received_events_url": "https://api.github.com/users/distri/received_events",
-          "type": "Organization",
-          "site_admin": false
-        },
-        "network_count": 0,
-        "subscribers_count": 1,
-        "branch": "v0.3.0",
-        "defaultBranch": "master"
-      },
-      "dependencies": {
-        "appcache": {
-          "source": {
-            "LICENSE": {
-              "path": "LICENSE",
-              "mode": "100644",
-              "content": "The MIT License (MIT)\n\nCopyright (c) 2013 Daniel X Moore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\nFOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\nCOPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\nCONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
-              "type": "blob"
-            },
-            "README.md": {
-              "path": "README.md",
-              "mode": "100644",
-              "content": "appcache\n========\n\nHTML5 AppCache Helpers\n",
-              "type": "blob"
-            },
-            "main.coffee.md": {
-              "path": "main.coffee.md",
-              "mode": "100644",
-              "content": "App Cache\n=========\n\nSome helpers for working with HTML5 application cache.\n\nhttp://www.html5rocks.com/en/tutorials/appcache/beginner/\n\n    applicationCache = window.applicationCache\n\n    applicationCache.addEventListener 'updateready', (e) ->\n      if applicationCache.status is applicationCache.UPDATEREADY\n        # Browser downloaded a new app cache.\n        if confirm('A new version of this site is available. Load it?')\n          window.location.reload()\n    , false\n",
-              "type": "blob"
-            },
-            "pixie.cson": {
-              "path": "pixie.cson",
-              "mode": "100644",
-              "content": "version: \"0.2.0\"\nentryPoint: \"main\"\n",
-              "type": "blob"
-            }
-          },
-          "distribution": {
-            "main": {
-              "path": "main",
-              "content": "(function() {\n  var applicationCache;\n\n  applicationCache = window.applicationCache;\n\n  applicationCache.addEventListener('updateready', function(e) {\n    if (applicationCache.status === applicationCache.UPDATEREADY) {\n      if (confirm('A new version of this site is available. Load it?')) {\n        return window.location.reload();\n      }\n    }\n  }, false);\n\n}).call(this);\n\n//# sourceURL=main.coffee",
-              "type": "blob"
-            },
-            "pixie": {
-              "path": "pixie",
-              "content": "module.exports = {\"version\":\"0.2.0\",\"entryPoint\":\"main\"};",
-              "type": "blob"
-            }
-          },
-          "progenitor": {
-            "url": "http://strd6.github.io/editor/"
-          },
-          "version": "0.2.0",
-          "entryPoint": "main",
-          "repository": {
-            "id": 14539483,
-            "name": "appcache",
-            "full_name": "distri/appcache",
-            "owner": {
-              "login": "distri",
-              "id": 6005125,
-              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
-              "gravatar_id": null,
-              "url": "https://api.github.com/users/distri",
-              "html_url": "https://github.com/distri",
-              "followers_url": "https://api.github.com/users/distri/followers",
-              "following_url": "https://api.github.com/users/distri/following{/other_user}",
-              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
-              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
-              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
-              "organizations_url": "https://api.github.com/users/distri/orgs",
-              "repos_url": "https://api.github.com/users/distri/repos",
-              "events_url": "https://api.github.com/users/distri/events{/privacy}",
-              "received_events_url": "https://api.github.com/users/distri/received_events",
-              "type": "Organization",
-              "site_admin": false
-            },
-            "private": false,
-            "html_url": "https://github.com/distri/appcache",
-            "description": "HTML5 AppCache Helpers",
-            "fork": false,
-            "url": "https://api.github.com/repos/distri/appcache",
-            "forks_url": "https://api.github.com/repos/distri/appcache/forks",
-            "keys_url": "https://api.github.com/repos/distri/appcache/keys{/key_id}",
-            "collaborators_url": "https://api.github.com/repos/distri/appcache/collaborators{/collaborator}",
-            "teams_url": "https://api.github.com/repos/distri/appcache/teams",
-            "hooks_url": "https://api.github.com/repos/distri/appcache/hooks",
-            "issue_events_url": "https://api.github.com/repos/distri/appcache/issues/events{/number}",
-            "events_url": "https://api.github.com/repos/distri/appcache/events",
-            "assignees_url": "https://api.github.com/repos/distri/appcache/assignees{/user}",
-            "branches_url": "https://api.github.com/repos/distri/appcache/branches{/branch}",
-            "tags_url": "https://api.github.com/repos/distri/appcache/tags",
-            "blobs_url": "https://api.github.com/repos/distri/appcache/git/blobs{/sha}",
-            "git_tags_url": "https://api.github.com/repos/distri/appcache/git/tags{/sha}",
-            "git_refs_url": "https://api.github.com/repos/distri/appcache/git/refs{/sha}",
-            "trees_url": "https://api.github.com/repos/distri/appcache/git/trees{/sha}",
-            "statuses_url": "https://api.github.com/repos/distri/appcache/statuses/{sha}",
-            "languages_url": "https://api.github.com/repos/distri/appcache/languages",
-            "stargazers_url": "https://api.github.com/repos/distri/appcache/stargazers",
-            "contributors_url": "https://api.github.com/repos/distri/appcache/contributors",
-            "subscribers_url": "https://api.github.com/repos/distri/appcache/subscribers",
-            "subscription_url": "https://api.github.com/repos/distri/appcache/subscription",
-            "commits_url": "https://api.github.com/repos/distri/appcache/commits{/sha}",
-            "git_commits_url": "https://api.github.com/repos/distri/appcache/git/commits{/sha}",
-            "comments_url": "https://api.github.com/repos/distri/appcache/comments{/number}",
-            "issue_comment_url": "https://api.github.com/repos/distri/appcache/issues/comments/{number}",
-            "contents_url": "https://api.github.com/repos/distri/appcache/contents/{+path}",
-            "compare_url": "https://api.github.com/repos/distri/appcache/compare/{base}...{head}",
-            "merges_url": "https://api.github.com/repos/distri/appcache/merges",
-            "archive_url": "https://api.github.com/repos/distri/appcache/{archive_format}{/ref}",
-            "downloads_url": "https://api.github.com/repos/distri/appcache/downloads",
-            "issues_url": "https://api.github.com/repos/distri/appcache/issues{/number}",
-            "pulls_url": "https://api.github.com/repos/distri/appcache/pulls{/number}",
-            "milestones_url": "https://api.github.com/repos/distri/appcache/milestones{/number}",
-            "notifications_url": "https://api.github.com/repos/distri/appcache/notifications{?since,all,participating}",
-            "labels_url": "https://api.github.com/repos/distri/appcache/labels{/name}",
-            "releases_url": "https://api.github.com/repos/distri/appcache/releases{/id}",
-            "created_at": "2013-11-19T22:09:16Z",
-            "updated_at": "2013-11-29T20:49:51Z",
-            "pushed_at": "2013-11-19T22:10:28Z",
-            "git_url": "git://github.com/distri/appcache.git",
-            "ssh_url": "git@github.com:distri/appcache.git",
-            "clone_url": "https://github.com/distri/appcache.git",
-            "svn_url": "https://github.com/distri/appcache",
-            "homepage": null,
-            "size": 240,
-            "stargazers_count": 0,
-            "watchers_count": 0,
-            "language": "CoffeeScript",
-            "has_issues": true,
-            "has_downloads": true,
-            "has_wiki": true,
-            "forks_count": 0,
-            "mirror_url": null,
-            "open_issues_count": 0,
-            "forks": 0,
-            "open_issues": 0,
-            "watchers": 0,
-            "default_branch": "master",
-            "master_branch": "master",
-            "permissions": {
-              "admin": true,
-              "push": true,
-              "pull": true
-            },
-            "organization": {
-              "login": "distri",
-              "id": 6005125,
-              "avatar_url": "https://identicons.github.com/f90c81ffc1498e260c820082f2e7ca5f.png",
-              "gravatar_id": null,
-              "url": "https://api.github.com/users/distri",
-              "html_url": "https://github.com/distri",
-              "followers_url": "https://api.github.com/users/distri/followers",
-              "following_url": "https://api.github.com/users/distri/following{/other_user}",
-              "gists_url": "https://api.github.com/users/distri/gists{/gist_id}",
-              "starred_url": "https://api.github.com/users/distri/starred{/owner}{/repo}",
-              "subscriptions_url": "https://api.github.com/users/distri/subscriptions",
-              "organizations_url": "https://api.github.com/users/distri/orgs",
-              "repos_url": "https://api.github.com/users/distri/repos",
-              "events_url": "https://api.github.com/users/distri/events{/privacy}",
-              "received_events_url": "https://api.github.com/users/distri/received_events",
-              "type": "Organization",
-              "site_admin": false
-            },
-            "network_count": 0,
-            "subscribers_count": 1,
-            "branch": "v0.2.0",
-            "defaultBranch": "master"
-          },
-          "dependencies": {}
-        }
-      }
     },
     "size": {
       "source": {
