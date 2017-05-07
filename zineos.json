@@ -272,7 +272,7 @@
     },
     "remote-interface.coffee": {
       "path": "remote-interface.coffee",
-      "content": "module.exports = (I, self) ->\n  # Embedded package in ZineOS\n  if system? and postmaster?\n    console.info \"Attached ZineOS remote delegate\"\n    editor.invokeRemote = postmaster.invokeRemote\n    postmaster.delegate = self\n  else if window.location.origin is \"null\"\n    # Assume we're in a secure enough embedded iframe\n    console.info \"Attached remote interface\"\n    localPostmaster = require(\"postmaster\")(self)\n  else if window is window.parent\n    # Not embedded, no need to enable remote interface\n    console.info \"Not embedded, no remote interface\"\n  else\n    # otherwise we can't allow the remote interface as it could enable XSS\n    console.warn \"Remote interface disabled, iframe must be sandboxed\"\n\n  return self\n",
+      "content": "module.exports = (I, self) ->\n  # Embedded package in ZineOS\n  if system? and postmaster?\n    console.info \"Attached ZineOS remote delegate\"\n    self.invokeRemote = postmaster.invokeRemote\n    postmaster.delegate = self\n  else if window.location.origin is \"null\"\n    # Assume we're in a secure enough embedded iframe\n    console.info \"Attached remote interface\"\n    localPostmaster = require(\"postmaster\")(self)\n  else if window is window.parent\n    # Not embedded, no need to enable remote interface\n    console.info \"Not embedded, no remote interface\"\n  else\n    # otherwise we can't allow the remote interface as it could enable XSS\n    console.warn \"Remote interface disabled, iframe must be sandboxed\"\n\n  return self\n",
       "mode": "100644"
     },
     "templates/editor.jadelet": {
@@ -489,7 +489,7 @@
     },
     "remote-interface": {
       "path": "remote-interface",
-      "content": "(function() {\n  module.exports = function(I, self) {\n    var localPostmaster;\n    if ((typeof system !== \"undefined\" && system !== null) && (typeof postmaster !== \"undefined\" && postmaster !== null)) {\n      console.info(\"Attached ZineOS remote delegate\");\n      editor.invokeRemote = postmaster.invokeRemote;\n      postmaster.delegate = self;\n    } else if (window.location.origin === \"null\") {\n      console.info(\"Attached remote interface\");\n      localPostmaster = require(\"postmaster\")(self);\n    } else if (window === window.parent) {\n      console.info(\"Not embedded, no remote interface\");\n    } else {\n      console.warn(\"Remote interface disabled, iframe must be sandboxed\");\n    }\n    return self;\n  };\n\n}).call(this);\n",
+      "content": "(function() {\n  module.exports = function(I, self) {\n    var localPostmaster;\n    if ((typeof system !== \"undefined\" && system !== null) && (typeof postmaster !== \"undefined\" && postmaster !== null)) {\n      console.info(\"Attached ZineOS remote delegate\");\n      self.invokeRemote = postmaster.invokeRemote;\n      postmaster.delegate = self;\n    } else if (window.location.origin === \"null\") {\n      console.info(\"Attached remote interface\");\n      localPostmaster = require(\"postmaster\")(self);\n    } else if (window === window.parent) {\n      console.info(\"Not embedded, no remote interface\");\n    } else {\n      console.warn(\"Remote interface disabled, iframe must be sandboxed\");\n    }\n    return self;\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "templates/editor": {
