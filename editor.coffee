@@ -13,6 +13,7 @@ Drop = require "./drop"
 GridGen = require "grid-gen"
 Notifications = require "./notifications"
 Postmaster = require "postmaster"
+RemoteInterface = require "./remote-interface"
 Tools = require "./tools"
 Undo = require "undo"
 
@@ -44,7 +45,7 @@ module.exports = (I={}, self=Model(I)) ->
   self.include Undo
   self.include Tools
 
-  Postmaster(self)
+  self.include RemoteInterface
 
   activeTool = self.activeTool
 
