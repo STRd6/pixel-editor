@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 1494183982972
+
+CACHE:
+index.html
+../zineos.json
+
+
+NETWORK:
+https://*
+http://*
+*
