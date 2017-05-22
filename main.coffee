@@ -11,8 +11,7 @@ launch = ->
   editorElement = Template editor
   document.body.appendChild editorElement
 
-  try
-    editor.invokeRemote "childLoaded"
+  editor.invokeRemote? "childLoaded"
 
   updateViewportCentering = ->
     {height: mainHeight, width: mainWidth} = editorElement.querySelector(".main").getBoundingClientRect()
@@ -29,9 +28,9 @@ if PACKAGE.name is "ROOT"
   global.PACKAGE = PACKAGE
   global.require = require
 
-  runtime = require("runtime")(PACKAGE)
-  runtime.boot()
-  runtime.applyStyleSheet(require('./style'))
+  styleNode = document.createElement("style")
+  styleNode.innerHTML = require('./style')
+  document.head.appendChild(styleNode)
 
   metaTag = document.createElement('meta')
   metaTag.name = "viewport"
