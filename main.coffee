@@ -29,9 +29,9 @@ if PACKAGE.name is "ROOT"
   global.PACKAGE = PACKAGE
   global.require = require
 
-  runtime = require("runtime")(PACKAGE)
-  runtime.boot()
-  runtime.applyStyleSheet(require('./style'))
+  style = document.createElement "style"
+  style.innerHTML = require "./style"
+  document.head.appendChild style
 
   metaTag = document.createElement('meta')
   metaTag.name = "viewport"
