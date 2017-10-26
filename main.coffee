@@ -3,6 +3,8 @@ require "./lib/canvas-to-blob"
 
 Editor = require "./editor"
 
+SystemClient = require "sys"
+
 launch = ->
   # For debugging
   global.editor = Editor()
@@ -11,8 +13,13 @@ launch = ->
   editorElement = Template editor
   document.body.appendChild editorElement
 
-  try
-    editor.invokeRemote "childLoaded"
+  {postmaster, system, application} = SystemClient()
+
+  if postmaster.remoteTarget()
+    postmaster.delegate = editor
+    # Install FileIO module in system host
+    application.loadModule "FileIO"
+    system.ready()
 
   updateViewportCentering = ->
     {height: mainHeight, width: mainWidth} = editorElement.querySelector(".main").getBoundingClientRect()

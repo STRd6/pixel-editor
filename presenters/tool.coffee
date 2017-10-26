@@ -1,5 +1,3 @@
-Observable = require "observable"
-
 module.exports = (editor, tool) ->
   self =
     activate: ->

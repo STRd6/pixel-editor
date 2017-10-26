@@ -1,3 +1,5 @@
+{Observable} = require "sys"
+
 Brushes = require "./brushes"
 {circle, line, rect, rectOutline, endDeltoid} = require "./util"
 
