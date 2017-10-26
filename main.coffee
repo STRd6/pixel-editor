@@ -25,7 +25,7 @@ launch = ->
       method: ({editor}) ->
         editor.getBlob()
         .then (blob) ->
-          postmaster.invokeRemote "save"
+          postmaster.invokeRemote "application", "save"
         .then ->
           editor.markClean()
   
