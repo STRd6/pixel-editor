@@ -372,3 +372,23 @@ body
 
 .editor.loading > #loader
   display: block
+
+@media print
+  .actions, .palette, .position, .thumbnail, .toolbar
+    display: none
+
+  .viewport
+    border: none
+
+    height: 100% !important
+    width: 100% !important
+
+    > canvas
+      height: auto
+      width: 100%
+
+  @media (orientation: landscape)
+    .viewport
+      > canvas
+        width: auto
+        height: 100%
