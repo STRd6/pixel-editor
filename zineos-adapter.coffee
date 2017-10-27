@@ -42,8 +42,10 @@ module.exports = (editor, client) ->
 
       editor.fromDataURL(url)
       .then ->
-        URL.revokeObjectURL(url)
-        editor.history([])
+        editor.currentPath path
+        URL.revokeObjectURL url
+        editor.history []
+        return
 
     newFile: ->
       editor.clear()
