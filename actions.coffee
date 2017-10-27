@@ -37,6 +37,13 @@ module.exports = Actions = (I={}, self=Core(I)) ->
       else
         editor[method]()
 
+    removeActionByName: (name) ->
+      [action] = self.actions.filter ({name:actionName}) ->
+        actionName is name
+
+      if action
+        self.actions.remove action
+
     addHotkey: (action) ->
       {hotkey} = action
 

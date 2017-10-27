@@ -170,28 +170,6 @@ module.exports = (I={}, self=Model(I)) ->
       loader.load(dataURL)
       .then self.insertImageData
 
-    # Implement ZineOS FileIO compatible `loadFile`
-    loadFile: (blob, path) ->
-      url = URL.createObjectURL(blob)
-
-      self.fromDataURL(url)
-      .then ->
-        URL.revokeObjectURL(url)
-        self.history([])
-      .then ->
-        # This is a bit sketchy, it sets the path for ZineOS
-        self.currentPath? path
-        return
-
-    newFile: ->
-      self.clear()
-      self.history []
-      return
-
-    # Alias getBlob as `saveData` for ZineOS compatibility
-    saveData: ->
-      self.getBlob()
-
     vintageReplay: (data) ->
       unless replaying
         replaying = true
