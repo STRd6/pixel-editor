@@ -16,3 +16,6 @@ dependencies:
   util: "distri/util:v0.1.0"
 width: 1280
 height: 720
+publish:
+  s3:
+    basePath: "public/danielx.net"
