@@ -40,7 +40,7 @@ if PACKAGE.name is "ROOT"
   document.getElementsByTagName('head')[0].appendChild(metaTag)
 
   launch()
-  
+
   # Need to add our styles last to take priority over base sys-UI styles
   style = document.createElement "style"
   style.innerHTML = require "./style"
