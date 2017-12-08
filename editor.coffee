@@ -6,13 +6,13 @@ ajax = require("ajax")()
 {extend, defaults} = require "util"
 
 TouchCanvas = require "touch-canvas"
+{UI, Observable} = require "sys"
 
 Actions = require "./actions"
 Command = require "./command"
 Drop = require "./drop"
 GridGen = require "grid-gen"
 Notifications = require "./notifications"
-Postmaster = require "postmaster"
 Tools = require "./tools"
 Undo = require "undo"
 
@@ -43,8 +43,6 @@ module.exports = (I={}, self=Model(I)) ->
   self.include Notifications
   self.include Undo
   self.include Tools
-
-  Postmaster(self)
 
   activeTool = self.activeTool
 
@@ -103,7 +101,6 @@ module.exports = (I={}, self=Model(I)) ->
     symmetryMode: symmetryMode
 
     hideModal: ->
-      Modal = require "./modal"
       Modal.hide()
 
     outputCanvas: () ->
@@ -172,15 +169,6 @@ module.exports = (I={}, self=Model(I)) ->
     fromDataURL: (dataURL) ->
       loader.load(dataURL)
       .then self.insertImageData
-
-    loadFile: (blob) ->
-      url = URL.createObjectURL(blob)
-
-      self.fromDataURL(url)
-      .then ->
-        URL.revokeObjectURL(url)
-        self.history([])
-        return
 
     vintageReplay: (data) ->
       unless replaying

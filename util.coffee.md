@@ -8,7 +8,6 @@ Util
     global.Matrix = require "matrix"
     global.Model = require "core"
     global.Point = require "point"
-    global.Observable = require "observable"
     global.Size = require "size"
 
     Matrix.Point = Point

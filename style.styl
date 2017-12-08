@@ -1,10 +1,11 @@
 html, body
-  margin: 0
   height: 100%
-  font-family: helvetica
 
 body
   color: #222
+  font-family: helvetica
+  line-height: initial // todo: remove when sys lib updates ui css
+  margin: 0
 
 .panel
   display: none
@@ -19,6 +20,7 @@ body
 
   > input[type=number]
     box-sizing: border-box
+    font-size: 13px
     width: 100%
 
   > .panel
