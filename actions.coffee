@@ -2,7 +2,7 @@ require "./lib/mousetrap"
 
 FileReading = require("./file_reading")
 {UI, Observable} = require("sys")
-Modal = {UI}
+{Modal} = UI
 Palette = require("./palette")
 
 loader = require("./loader")()
