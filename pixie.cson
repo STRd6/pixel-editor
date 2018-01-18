@@ -1,3 +1,6 @@
+publish:
+  s3:
+    basePath: "public/danielx.net"
 version: "0.2.0"
 dependencies:
   ajax: "distri/ajax:v0.1.5-pre.0"
