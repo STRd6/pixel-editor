@@ -325,7 +325,7 @@
     },
     "pixie.cson": {
       "path": "pixie.cson",
-      "content": "version: \"0.2.0\"\ndependencies:\n  ajax: \"distri/ajax:v0.1.5-pre.0\"\n  analytics: \"distri/google-analytics:v0.1.0\"\n  bindable: \"distri/bindable:v0.2.0\"\n  core: \"distri/core:v0.6.0\"\n  extensions: \"distri/extensions:v0.2.0\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  matrix: \"distri/matrix:v0.3.1\"\n  observable: \"distri/observable:v0.3.7\"\n  point: \"distri/point:v0.2.0\"\n  postmaster: \"distri/postmaster:v0.5.2\"\n  runtime: \"distri/runtime:v0.3.0\"\n  size: \"distri/size:v0.1.4\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.4.2\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1280\nheight: 720\n",
+      "content": "publish:\n  s3:\n    basePath: \"public/danielx.net\"\nversion: \"0.2.0\"\ndependencies:\n  ajax: \"distri/ajax:v0.1.5-pre.0\"\n  analytics: \"distri/google-analytics:v0.1.0\"\n  bindable: \"distri/bindable:v0.2.0\"\n  core: \"distri/core:v0.6.0\"\n  extensions: \"distri/extensions:v0.2.0\"\n  \"grid-gen\": \"distri/grid-gen:v0.2.0\"\n  matrix: \"distri/matrix:v0.3.1\"\n  observable: \"distri/observable:v0.3.7\"\n  point: \"distri/point:v0.2.0\"\n  postmaster: \"distri/postmaster:v0.5.2\"\n  runtime: \"distri/runtime:v0.3.0\"\n  size: \"distri/size:v0.1.4\"\n  \"touch-canvas\": \"distri/touch-canvas:v0.4.2\"\n  \"undo\": \"distri/undo:v0.2.0\"\n  util: \"distri/util:v0.1.0\"\nwidth: 1280\nheight: 720\n",
       "mode": "100644",
       "type": "blob"
     },
@@ -560,7 +560,7 @@
     },
     "pixie": {
       "path": "pixie",
-      "content": "module.exports = {\"version\":\"0.2.0\",\"dependencies\":{\"ajax\":\"distri/ajax:v0.1.5-pre.0\",\"analytics\":\"distri/google-analytics:v0.1.0\",\"bindable\":\"distri/bindable:v0.2.0\",\"core\":\"distri/core:v0.6.0\",\"extensions\":\"distri/extensions:v0.2.0\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"matrix\":\"distri/matrix:v0.3.1\",\"observable\":\"distri/observable:v0.3.7\",\"point\":\"distri/point:v0.2.0\",\"postmaster\":\"distri/postmaster:v0.5.2\",\"runtime\":\"distri/runtime:v0.3.0\",\"size\":\"distri/size:v0.1.4\",\"touch-canvas\":\"distri/touch-canvas:v0.4.2\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1280,\"height\":720};",
+      "content": "module.exports = {\"publish\":{\"s3\":{\"basePath\":\"public/danielx.net\"}},\"version\":\"0.2.0\",\"dependencies\":{\"ajax\":\"distri/ajax:v0.1.5-pre.0\",\"analytics\":\"distri/google-analytics:v0.1.0\",\"bindable\":\"distri/bindable:v0.2.0\",\"core\":\"distri/core:v0.6.0\",\"extensions\":\"distri/extensions:v0.2.0\",\"grid-gen\":\"distri/grid-gen:v0.2.0\",\"matrix\":\"distri/matrix:v0.3.1\",\"observable\":\"distri/observable:v0.3.7\",\"point\":\"distri/point:v0.2.0\",\"postmaster\":\"distri/postmaster:v0.5.2\",\"runtime\":\"distri/runtime:v0.3.0\",\"size\":\"distri/size:v0.1.4\",\"touch-canvas\":\"distri/touch-canvas:v0.4.2\",\"undo\":\"distri/undo:v0.2.0\",\"util\":\"distri/util:v0.1.0\"},\"width\":1280,\"height\":720};",
       "type": "blob"
     },
     "presenters/action": {
@@ -673,6 +673,11 @@
     "url": "https://danielx.net/editor/"
   },
   "config": {
+    "publish": {
+      "s3": {
+        "basePath": "public/danielx.net"
+      }
+    },
     "version": "0.2.0",
     "dependencies": {
       "ajax": "distri/ajax:v0.1.5-pre.0",
