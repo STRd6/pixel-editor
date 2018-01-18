@@ -12,7 +12,7 @@
     - style = ->
       - c = editor.activeColor()
       - "background-color: #{c}"
-    %input(type="color" value=editor.activeColor style=style)
+    input(type="color" value=editor.activeColor style=style)
 
   - @palette.forEach (color, index) ->
     = Color ColorPresenter color, editor
