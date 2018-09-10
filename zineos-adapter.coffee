@@ -75,6 +75,6 @@ module.exports = (editor, client) ->
 
   title.observe application.title
 
-  postmaster.delegate = editor
+  application.delegate = editor
 
   system.ready()
